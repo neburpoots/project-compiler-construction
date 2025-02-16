@@ -51,9 +51,33 @@ enum BinOpType {
     }
 };
 
-nodeset Expr = {Num, Float, Bool, Binop, Var};
-nodeset Stmt = {Assign};
+enum IfType {
+    prefix = IFT,
+    values {
+        if, elseif, else
+    }
+};
 
+enum TypeDef = {
+    prefix = TD,
+    values {
+        Float, Bool, Num, Num_Vec, Bool_Vec, Float_Vec, 
+    }
+};
+
+enum Declaration = {
+    prefix = Dec,
+    values {
+        Export, Extern, Local
+    }
+};
+
+nodeset FunctionType = TypeDef | Void;
+
+nodeset Expr = {Num, Float, Bool, Binop, Var};
+
+nodeset Stmt = {Assign};
+ 
 // Nodes you want to be able to link to from your symbol table.
 nodeset Link = Expr | Stmt;
 
@@ -67,6 +91,90 @@ node Stmts {
     children {
         Stmt stmt { constructor, mandatory },
         Stmts next { constructor }
+    }
+};
+
+node Parameter {
+    attributes {
+       TypeDef type,
+       Var name 
+    }
+};
+
+node Parameters {
+    children {
+        Parameter parameter { constructor, mandatory },
+        Parameters next
+    }
+};
+
+node Function {
+    attributes {
+        Declaration declaration { constructor, mandatory},
+        FunctionType type { constructor, mandatory},
+        Parameters parameters { constructor },
+        string name { constructor, mandatory },
+
+    }
+};
+
+node ForStatement {
+    attributes {
+
+        // int i = 0
+        Assign assign { constructor, mandatory },
+        
+        // (i < 10)
+        Exprs exprs { constructor, mandatory }
+        
+        // Code block
+        Stmts stmts   
+    }
+};
+
+node WhileStatement {
+    attributes {
+        // (i < 10)
+        Exprs exprs { constructor, mandatory }
+    },
+    children {
+        // Code block
+        Stmts stmts
+    }
+};
+
+node DoWhileStatement {
+    attributes {
+        // (i < 10)
+        Exprs exprs { constructor, mandatory }
+    },
+    children {
+        // Code block
+        Stmts stmts    
+    }
+};
+
+node IfStatement {
+    attributes {
+        // If, Else if, Else
+        IfType type,
+        
+        // (i = 10)
+        Exprs exprs { constructor }
+        
+        // Next statement (else if[], else)
+        IfStatement next { constructor}
+    }
+    children {
+        // Code block
+        Stmts stmts 
+    }
+};
+
+node Exprs {
+    children {
+        Expr expr { constructor, mandatory }
+        Exprs next { constructor }
     }
 };
 
@@ -126,3 +234,6 @@ node Bool {
         bool val { constructor }
     }
 };
+
+node Void {};
+
