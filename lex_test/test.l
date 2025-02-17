@@ -1,3 +1,7 @@
+/* flex test.l */
+/* gcc lex.yy.c -o scanner -lfl */
+/* echo "acccccabccc" | ./scanner */
+
 %{
 /* C code (header files, global variables) */
 #include <stdio.h>
