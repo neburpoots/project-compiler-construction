@@ -65,13 +65,6 @@ enum IfType {
     }
 };
 
-enum TypeDef = {
-    prefix = TD,
-    values {
-        Float, Bool, Num, Num_Vec, Bool_Vec, Float_Vec, 
-    }
-};
-
 nodeset DefNodes = {Num, Float, Bool, Vector, Matrix};
 
 enum Declaration = {
@@ -83,8 +76,7 @@ enum Declaration = {
 
 nodeset FunctionType = DefNodes | Void;
 
-nodeset Expr = {Num, Float, Bool, Binop, Var};
-
+nodeset Expr = {Num, Float, Bool, Binop, Var, Call};
 
 nodeset Stmt = {Assign};
  
@@ -118,6 +110,36 @@ node Parameters {
     }
 };
 
+//
+
+node FunctionBody {
+    children {
+        LocalFuncOrStmt elem { constructor, mandatory };
+        FunctionBody next { constructor };
+    }
+};
+
+node VarDec {
+    attributes {
+        DefNodes type { constructor, mandatory };
+        string name { constructor, mandatory };
+    }
+    children {
+        Expr init { constructor }; // Optional initialization
+    }
+};
+
+node Call {
+    attributes {
+        string name { constructor, mandatory };  // Function name being called
+    }
+    children {
+        Exprs args { constructor };  // Function arguments (expressions)
+    }
+};
+
+nodeset LocalFuncOrStmt = { Function, Stmt, VarDec, Call };
+
 node Function {
     attributes {
         // marks the decleration (Export, Extern, Local)
@@ -131,7 +153,7 @@ node Function {
     }
     children{
         // all the statements inside of the function
-        Stmts stmts { constructor, mandatory }
+        FunctionBody body { constructor, mandatory }
     }
 };
 
@@ -142,6 +164,9 @@ node ForStatement {
         
         // (i < 10)
         Exprs exprs { constructor, mandatory }
+
+        // Optional increment step
+        Expr step { constructor };
     },
     children{
         // Code block
@@ -186,7 +211,7 @@ node IfStatement {
         Exprs exprs { constructor }
         
         // Next statement (else if[], else)
-        IfStatement next { constructor}
+        IfStatement next {}
     }
     children {
         // Code block
