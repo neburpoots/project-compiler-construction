@@ -51,6 +51,13 @@ enum BinOpType {
     }
 };
 
+enum ArrayType {
+    prefix = AT,
+    values {
+      float, bool, int
+    }
+};
+
 enum IfType {
     prefix = IFT,
     values {
@@ -65,6 +72,8 @@ enum TypeDef = {
     }
 };
 
+nodeset DefNodes = {Num, Float, Bool, Vector, Matrix};
+
 enum Declaration = {
     prefix = Dec,
     values {
@@ -72,9 +81,10 @@ enum Declaration = {
     }
 };
 
-nodeset FunctionType = TypeDef | Void;
+nodeset FunctionType = DefNodes | Void;
 
 nodeset Expr = {Num, Float, Bool, Binop, Var};
+
 
 nodeset Stmt = {Assign};
  
@@ -96,7 +106,7 @@ node Stmts {
 
 node Parameter {
     attributes {
-       TypeDef type,
+       DefNodes type,
        Var name 
     }
 };
@@ -110,23 +120,30 @@ node Parameters {
 
 node Function {
     attributes {
+        // marks the decleration (Export, Extern, Local)
         Declaration declaration { constructor, mandatory},
+        // marks the function type as nodeset (Num, Float, Bool, Vector, Matrix or void)
         FunctionType type { constructor, mandatory},
-        Parameters parameters { constructor },
+        // the function name (main)
         string name { constructor, mandatory },
-
+        // all the parameters inside the function parameters (Num, Float, Bool, Vector, Matrix)
+        Parameters parameters { constructor },
+    }
+    children{
+        // all the statements inside of the function
+        Stmts stmts { constructor, mandatory }
     }
 };
 
 node ForStatement {
     attributes {
-
         // int i = 0
         Assign assign { constructor, mandatory },
         
         // (i < 10)
         Exprs exprs { constructor, mandatory }
-        
+    },
+    children{
         // Code block
         Stmts stmts   
     }
@@ -151,6 +168,12 @@ node DoWhileStatement {
     children {
         // Code block
         Stmts stmts    
+    }
+};
+
+node ReturnStatement{
+    attributes{
+      DefNodes returnNode;
     }
 };
 
@@ -232,6 +255,21 @@ node Float {
 node Bool {
     attributes {
         bool val { constructor }
+    }
+};
+
+node Vector{
+    attributes{
+        ArrayType type
+        int length { constructor }
+    }
+};
+
+node Matrix{
+    attributes{
+        ArrayType type
+        int colums { constructor }
+        int rows { constructor }
     }
 };
 
