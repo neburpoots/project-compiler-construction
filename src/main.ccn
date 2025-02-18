@@ -67,14 +67,14 @@ enum IfType {
 
 nodeset DefNodes = {Num, Float, Bool, Vector, Matrix};
 
-enum Declaration = {
+enum Declaration {
     prefix = Dec,
     values {
         Export, Extern, Local
     }
 };
 
-nodeset FunctionType = DefNodes | Void;
+nodeset FunctionType = DefNodes | {Void};
 
 nodeset Expr = {Num, Float, Bool, Binop, Var, Call};
 
@@ -86,6 +86,13 @@ nodeset Link = Expr | Stmt;
 root node Program {
     children {
         Stmts stmts { constructor, mandatory }
+    }
+};
+
+node Exprs {
+    children {
+        Expr expr { constructor, mandatory },
+        Exprs next { constructor }
     }
 };
 
@@ -114,115 +121,110 @@ node Parameters {
 
 node FunctionBody {
     children {
-        LocalFuncOrStmt elem { constructor, mandatory };
-        FunctionBody next { constructor };
+        LocalFuncOrStmt elem { constructor, mandatory },
+        FunctionBody next { constructor }
     }
 };
 
 node VarDec {
-    attributes {
-        DefNodes type { constructor, mandatory };
-        string name { constructor, mandatory };
-    }
     children {
-        Expr init { constructor }; // Optional initialization
+        Expr init { constructor } // Optional initialization
+    },
+    attributes {
+        DefNodes type { constructor, mandatory },
+        string name { constructor, mandatory }
     }
 };
 
 node Call {
-    attributes {
-        string name { constructor, mandatory };  // Function name being called
-    }
     children {
-        Exprs args { constructor };  // Function arguments (expressions)
+        Expr expr,
+        Exprs next { constructor }    
+    },
+    attributes {
+        string name { constructor, mandatory } // Function name being called
     }
 };
 
-nodeset LocalFuncOrStmt = { Function, Stmt, VarDec, Call };
+
+nodeset LocalFuncOrStmt = { Function, Assign, VarDec, Call };
 
 node Function {
+    children {
+        // all the statements inside of the function
+        FunctionBody body { constructor, mandatory }
+    },
     attributes {
         // marks the decleration (Export, Extern, Local)
-        Declaration declaration { constructor, mandatory},
+        Declaration declaration { constructor},
         // marks the function type as nodeset (Num, Float, Bool, Vector, Matrix or void)
         FunctionType type { constructor, mandatory},
         // the function name (main)
         string name { constructor, mandatory },
         // all the parameters inside the function parameters (Num, Float, Bool, Vector, Matrix)
-        Parameters parameters { constructor },
-    }
-    children{
-        // all the statements inside of the function
-        FunctionBody body { constructor, mandatory }
+        Parameters parameters { constructor }
     }
 };
 
 node ForStatement {
+    children {
+        // Code block
+        Stmts stmts   
+    },
     attributes {
         // int i = 0
         Assign assign { constructor, mandatory },
         
         // (i < 10)
-        Exprs exprs { constructor, mandatory }
+        Exprs exprs { constructor, mandatory },
 
         // Optional increment step
-        Expr step { constructor };
-    },
-    children{
-        // Code block
-        Stmts stmts   
+        Expr step { constructor }
     }
 };
 
 node WhileStatement {
-    attributes {
-        // (i < 10)
-        Exprs exprs { constructor, mandatory }
-    },
     children {
         // Code block
         Stmts stmts
+    },
+    attributes {
+        // (i < 10)
+        Exprs exprs { constructor, mandatory }
     }
 };
 
 node DoWhileStatement {
-    attributes {
-        // (i < 10)
-        Exprs exprs { constructor, mandatory }
-    },
     children {
         // Code block
         Stmts stmts    
+    },
+    attributes {
+        // (i < 10)
+        Exprs exprs { constructor, mandatory }
     }
 };
 
 node ReturnStatement{
-    attributes{
-      DefNodes returnNode;
+    attributes {
+      DefNodes returnNode
     }
 };
 
 node IfStatement {
+    children {
+        // Code block
+        Stmts stmts 
+    },
     attributes {
         // If, Else if, Else
         IfType type,
         
         // (i = 10)
-        Exprs exprs { constructor }
+        Exprs exprs { constructor },
         
         // Next statement (else if[], else)
-        IfStatement next {}
-    }
-    children {
-        // Code block
-        Stmts stmts 
-    }
-};
-
-node Exprs {
-    children {
-        Expr expr { constructor, mandatory }
-        Exprs next { constructor }
+        IfStatement next { constructor }
     }
 };
 
@@ -285,15 +287,15 @@ node Bool {
 
 node Vector{
     attributes{
-        ArrayType type
+        ArrayType type,
         int length { constructor }
     }
 };
 
 node Matrix{
     attributes{
-        ArrayType type
-        int colums { constructor }
+        ArrayType type,
+        int colums { constructor },
         int rows { constructor }
     }
 };
