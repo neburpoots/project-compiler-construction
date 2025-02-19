@@ -51,7 +51,7 @@ enum BinOpType {
     }
 };
 
-enum ArrayType {
+enum ArrayDataType {
     prefix = AT,
     values {
       float, bool, int
@@ -74,7 +74,7 @@ enum Declaration {
     }
 };
 
-nodeset FunctionType = DefNodes | {Void};
+nodeset FunctionType = DefNodes | Void;
 
 nodeset Expr = {Num, Float, Bool, Binop, Var, Call};
 
@@ -287,14 +287,14 @@ node Bool {
 
 node Vector{
     attributes{
-        ArrayType type,
+        ArrayDataType type { constructor },
         int length { constructor }
     }
 };
 
 node Matrix{
     attributes{
-        ArrayType type,
+        ArrayDataType type { constructor },
         int colums { constructor },
         int rows { constructor }
     }
@@ -302,3 +302,65 @@ node Matrix{
 
 node Void {};
 
+
+// New
+node Program_new{
+    children {
+        RProgramDeclerations declarations { constructor }
+    }
+};
+
+nodeset ProgramDeclerations = FunDec | FunDef | GlobalDec | GlobalDef;
+
+node FunDec{
+    attributes{
+        string name { constructor, mandatory }
+    }
+};
+
+node FunDef{
+    attributes{
+        FunHeader functionHeader { constructor, mandatory }
+    },
+    children{
+        FunBody body { constructor, mandatory }
+    }
+};
+
+node FunBody{
+    children{
+        VarDec variableDeclerations {constructor},
+        stmts statements {constructor}
+    }
+};
+
+node LocalFunDef{
+    attributes{
+        FunHeader functionHeader
+    },
+    children{
+        funBody FunctionBody
+    }
+};
+
+node FunHeader{
+    attributes{
+        FunctionType returnType { constructor },
+        parameters parameters { constructor }
+    }
+};
+
+node GlobalDec{
+    attributes{
+        FunctionType type { constructor }
+    }
+};
+
+node GlobalDef{
+    attributes{
+        FunctionType type { constructor }
+    },
+    children{
+        FunBody body { constructor }
+    }
+};
