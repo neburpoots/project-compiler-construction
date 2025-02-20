@@ -59,10 +59,20 @@ int yycolumn = 1;
 "&&"                       { FILTER( AND);    }
 "||"                       { FILTER( OR);    }
 
+"if"                       { FILTER( IF); }
+"else"                     { FILTER( ELSE); }
+
 "="                        { FILTER( LET);    }
 
 "true"                     { FILTER( TRUEVAL); }
 "false"                    { FILTER( FALSEVAL); }
+
+"int"                      { FILTER( INT); }
+"float"                    { FILTER( FLOAT); }
+"bool"                    { FILTER( FLOAT); }
+
+
+"extern"                   { FILTER( EXTERN); }
 
 [A-Za-z][A-Za-z0-9_]*      { yylval.id = STRcpy(yytext);
                              FILTER( ID);

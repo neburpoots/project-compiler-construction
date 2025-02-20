@@ -35,13 +35,25 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
 %token TRUEVAL FALSEVAL LET
 
+
+// %token 
+
 %token <cint> NUM
 %token <cflt> FLOAT
 %token <id> ID
 
+
+
 %type <node> intval floatval boolval constant expr
 %type <node> stmts stmt assign varlet program
 %type <cbinop> binop
+
+// %token IF ELSE
+%token IF ELSE
+%type <node> if_stmt
+
+%token EXTERN
+%type <node> glob_decl
 
 %start program
 
@@ -67,13 +79,29 @@ stmt: assign
        {
          $$ = $1;
        }
-       ;
+      |
+      if_stmt
+      {
+        $$ = $1;
+      }
+      ;
 
 assign: varlet LET expr SEMICOLON
         {
           $$ = ASTassign($1, $3);
         }
         ;
+
+if_stmt: IF BRACKET_L expr BRACKET_R stmt ELSE stmt
+        {
+          $$ = ASTifelse($3, ASTstmts($5, NULL), ASTstmts($7, NULL));
+        }
+      | IF BRACKET_L expr BRACKET_R stmt
+        {
+          $$ = ASTifelse($3, ASTstmts($5, NULL), NULL);
+        }
+      ;
+
 
 varlet: ID
         {
@@ -147,6 +175,11 @@ binop: PLUS      { $$ = BO_add; }
      | OR        { $$ = BO_or; }
      | AND       { $$ = BO_and; }
      ;
+
+glob_decl: EXTERN 
+           {
+            $$ = 
+           }
 
 %%
 
