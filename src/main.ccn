@@ -243,13 +243,13 @@ node GlobDecl {
 node GlobDef {
     children {
         Exprs dims,
-        Expr init
+        Expr init { constructor }
     },
 
     attributes {
         string name { constructor },
         Type type { constructor },
-        bool export
+        bool export { constructor }
     }
 };
 

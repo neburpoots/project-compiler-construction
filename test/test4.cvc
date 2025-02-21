@@ -1,7 +1,11 @@
-export int test() {
+export int NUMBER400 = 400;
+
+export float test() {
     int i = 0;
     int p = 0;  
     if(i > 0) {
         p = 5;
+    } else {
+        p = 10;
     }
 }

@@ -60,7 +60,7 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %type <node> if_stmt
 
 %token EXTERN
-%type <node> decls decl glob_decl
+%type <node> decls decl glob_decl glob_def
 
 %start program
 
@@ -90,6 +90,9 @@ decls: decl decls
         }
         ;
 
+//TODO VRAGEN
+//WAAROM GEEN FunDec optie in nodeset DECL vanuit coconut
+//nodeset Decl = {GlobDef, GlobDecl, FunDef};
 
 decl: glob_decl
       {
@@ -99,12 +102,35 @@ decl: glob_decl
       {
         $$ = $1;
       }
+    |
+      glob_def
+      {
+        $$ = $1;
+      }
     ;
 
 glob_decl: EXTERN type ID SEMICOLON
            {
              $$ = ASTglobdecl($3, $2);
            }
+        ;
+
+glob_def: EXPORT type ID LET expr SEMICOLON
+        {
+          $$ = ASTglobdef($5, $3, $2, true);
+        }
+        | type ID LET expr SEMICOLON
+        {
+          $$ = ASTglobdef($4, $2, $1, false);
+        }
+        | EXPORT type ID SEMICOLON
+        {
+          $$ = ASTglobdef(NULL, $3, $2, true);
+        }
+        | type ID SEMICOLON
+        {
+          $$ = ASTglobdef(NULL, $2, $1, true);
+        }          
         ;
 
 stmts: stmt stmts
@@ -130,6 +156,11 @@ stmt: assign
         $$ = $1;
       }
       ; 
+
+// fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
+//       {
+        
+//       }
 
 fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
         {
