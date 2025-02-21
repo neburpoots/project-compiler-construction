@@ -17,8 +17,8 @@
  */
 node_st *IFSifelse(node_st *node)
 {
-    printf("%s", VAR_NAME(node));
-    TRAVchildren(node);
+    printf("test");
+    // TRAVchildren(node);
     return node;
 }
 

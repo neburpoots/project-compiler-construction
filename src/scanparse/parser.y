@@ -26,12 +26,13 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
  int                 cint;
  float               cflt;
  enum BinOpType     cbinop;
+ enum Type           ctype;
  node_st             *node;
 }
 
 %locations
 
-%token BRACKET_L BRACKET_R COMMA SEMICOLON
+%token BRACKET_L BRACKET_R COMMA SEMICOLON CURLY_L CURLY_R SQUARE_L SQUARE_R
 %token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
 %token TRUEVAL FALSEVAL LET
 
@@ -42,28 +43,61 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %token <cflt> FLOAT
 %token <id> ID
 
-
+// Functions
+%token EXPORT RETURN
+%type <node> fundef funbody param var_decl return_stmt
 
 %type <node> intval floatval boolval constant expr
 %type <node> stmts stmt assign varlet program
 %type <cbinop> binop
+
+// enum Type 
+%token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
+%type <ctype> type
 
 // %token IF ELSE
 %token IF ELSE
 %type <node> if_stmt
 
 %token EXTERN
-%type <node> glob_decl
+%type <node> decls decl glob_decl
 
 %start program
 
 %%
 
-program: stmts
+program: decls
          {
            parseresult = ASTprogram($1);
          }
          ;
+
+decls: decl decls
+        {
+          $$ = ASTdecls($1, $2);
+        }
+      | decl
+        {
+          $$ = ASTdecls($1, NULL);
+        }
+        ;
+
+
+decl: glob_decl
+      {
+        $$ = $1;
+      }
+    | fundef
+      {
+        $$ = $1;
+      }
+    ;
+
+glob_decl: EXTERN type ID SEMICOLON
+           {
+             $$ = ASTglobdecl($3, $2);
+           }
+        ;
 
 stmts: stmt stmts
         {
@@ -84,7 +118,80 @@ stmt: assign
       {
         $$ = $1;
       }
+      ; 
+
+fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
+        {
+          $$ = ASTfundef($7, $5, $3, $2, true); // Exported function
+        }
+      | EXPORT type ID BRACKET_L BRACKET_R funbody
+        {
+          $$ = ASTfundef($6, NULL, $3, $2, true);
+        }
+      | type ID BRACKET_L param BRACKET_R funbody
+        {
+          $$ = ASTfundef($6, $4, $2, $1, false); // Non-exported function
+        }
+      | type ID BRACKET_L BRACKET_R funbody
+        {
+          $$ = ASTfundef($5, NULL, $2, $1, false);
+        }
       ;
+
+funbody: CURLY_L var_decl stmts return_stmt CURLY_R
+         {
+           $$ = ASTfunbody($2, NULL, ASTstmts($3, $4));
+         }
+       | CURLY_L stmts return_stmt CURLY_R
+         {
+           $$ = ASTfunbody(NULL, NULL, ASTstmts($2, $3));
+         }
+       | CURLY_L var_decl stmts CURLY_R
+         {
+           $$ = ASTfunbody($2, NULL, ASTstmts($3, NULL));
+         }
+       | CURLY_L CURLY_R
+         {
+           $$ = ASTfunbody(NULL, NULL, NULL);
+         }
+        // | CURLY_L var_decl fundefs stmts return_stmt CURLY_R
+        //     {
+        //         $$ = ASTfunbody($2, $3, ASTstmts($4, $5));
+        //     }
+        // | CURLY_L fundefs stmts return_stmt CURLY_R
+        //     {
+        //         $$ = ASTfunbody(NULL, $2, ASTstmts($3, $4));
+        //     }
+        // | CURLY_L var_decl fundefs stmts CURLY_R
+        //     {
+        //         $$ = ASTfunbody($2, $3, ASTstmts($4, NULL));
+        //     }
+       ;
+
+// var_decls: var_decl var_decls
+//            {
+//              $$ = ASTvardecls($1, $2);
+//            }
+//          | var_decl
+//            {
+//              $$ = ASTvardecls($1, NULL);
+//            }
+//          ;
+
+//TODO Handle Arrays
+var_decl: type ID SEMICOLON
+         {
+           $$ = ASTvardecl(NULL, NULL, $2, $1);
+         }
+       | type ID LET expr SEMICOLON
+         {
+           $$ = ASTvardecl($4, NULL, $2, $1);
+         }
+       | type ID LET expr SEMICOLON var_decl
+         {
+           $$ = ASTvardecl($4, $6, $2, $1);
+         }
+       ;
 
 assign: varlet LET expr SEMICOLON
         {
@@ -92,13 +199,34 @@ assign: varlet LET expr SEMICOLON
         }
         ;
 
-if_stmt: IF BRACKET_L expr BRACKET_R stmt ELSE stmt
+return_stmt: RETURN expr SEMICOLON
+            {
+              $$ = ASTreturn($2);
+            }
+          | RETURN SEMICOLON
+            {
+              $$ = ASTreturn(NULL);
+            }
+          ;
+
+if_stmt: IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
         {
-          $$ = ASTifelse($3, ASTstmts($5, NULL), ASTstmts($7, NULL));
+          $$ = ASTifelse($3, $6, $10);
         }
-      | IF BRACKET_L expr BRACKET_R stmt
+      | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
         {
-          $$ = ASTifelse($3, ASTstmts($5, NULL), NULL);
+          $$ = ASTifelse($3, $6, NULL);
+        }
+      ;
+
+param: type ID
+        {
+          $$ = ASTparam(NULL, $2, $1);
+        }
+      |
+        type ID COMMA param
+        {
+          $$ = ASTparam($4, $2, $1);
         }
       ;
 
@@ -140,6 +268,11 @@ constant: floatval
           }
         ;
 
+type: TYPE_INT   { $$ = CT_int; }
+    | TYPE_FLOAT { $$ = CT_float; }
+    | TYPE_BOOL  { $$ = CT_bool; }
+    | TYPE_VOID  { $$ = CT_void; }
+
 floatval: FLOAT
            {
              $$ = ASTfloat($1);
@@ -176,11 +309,6 @@ binop: PLUS      { $$ = BO_add; }
      | AND       { $$ = BO_and; }
      ;
 
-glob_decl: EXTERN 
-           {
-            $$ = 
-           }
-
 %%
 
 void AddLocToNode(node_st *node, void *begin_loc, void *end_loc)
@@ -208,7 +336,7 @@ node_st *SPdoScanParse(node_st *root)
     yyin = fopen(global.input_file, "r");
     if (yyin == NULL) {
         CTI(CTI_ERROR, true, "Cannot open file '%s'.", global.input_file);
-        CTIabortOnError();
+        CTIabortOnrEror();
     }
     yyparse();
     return parseresult;

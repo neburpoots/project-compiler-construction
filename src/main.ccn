@@ -8,7 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         TestIfStatement;
-        print;
+        // print;
     }
 };
 
@@ -129,7 +129,6 @@ node Ids {
     children {
         Ids next
     },
-
     attributes {
         string name { constructor }
     }
@@ -143,7 +142,7 @@ node ExprStmt {
 
 node Return {
     children {
-        Expr expr
+        Expr expr { constructor }
     }
 };
 
@@ -170,28 +169,28 @@ node Cast {
 node FunDefs {
     children {
         FunDef fundef { constructor, mandatory },
-        FunDefs next
+        FunDefs next { constructor }
     }
 };
 
 node FunDef {
     children {
-        FunBody body,
-        Param params
+        FunBody body { constructor },
+        Param params { constructor }
     },
 
     attributes {
         string name { constructor },
         Type type { constructor },
-        bool export
+        bool export { constructor }
     }
 };
 
 node FunBody {
     children {
-        VarDecl decls,
-        FunDefs local_fundefs,
-        Stmts stmts
+        VarDecl decls { constructor },
+        FunDefs local_fundefs { constructor },
+        Stmts stmts  { constructor }
     }
 };
 
@@ -257,7 +256,7 @@ node GlobDef {
 node Param {
     children {
         Ids dims,
-        Param next
+        Param next { constructor }
     },
 
     attributes {
@@ -266,15 +265,16 @@ node Param {
     }
 };
 
+//TODO HANDLE ARRAYS
+//Means parsing and filling in dims in the constructor if needed.
 node VarDecl {
     children {
         Exprs dims,
-        Expr init,
-        VarDecl next
+        Expr init { constructor },
+        VarDecl next { constructor }
     },
-
     attributes {
-        string name { constructor },
+        string name { constructor, mandatory },
         Type type { constructor }
     }
 };

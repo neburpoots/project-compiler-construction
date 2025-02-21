@@ -41,6 +41,12 @@ int yycolumn = 1;
 
 "("                        { FILTER( BRACKET_L); }
 ")"                        { FILTER( BRACKET_R); }
+
+"{"                        { FILTER( CURLY_L); }
+"}"                        { FILTER( CURLY_R); }
+
+"["                        { FILTER( SQUARE_L); }
+"]"                        { FILTER( SQUARE_R); }
 ","                        { FILTER( COMMA); }
 ";"                        { FILTER( SEMICOLON); }
 
@@ -67,12 +73,15 @@ int yycolumn = 1;
 "true"                     { FILTER( TRUEVAL); }
 "false"                    { FILTER( FALSEVAL); }
 
-"int"                      { FILTER( INT); }
-"float"                    { FILTER( FLOAT); }
-"bool"                    { FILTER( FLOAT); }
-
+"int"                      { FILTER( TYPE_INT); }
+"float"                    { FILTER( TYPE_FLOAT); }
+"bool"                     { FILTER( TYPE_BOOL); }
+"void"                     { FILTER( TYPE_VOID); }
 
 "extern"                   { FILTER( EXTERN); }
+"export"                   { FILTER( EXPORT ); }
+"return"                   { FILTER( RETURN ); }
+
 
 [A-Za-z][A-Za-z0-9_]*      { yylval.id = STRcpy(yytext);
                              FILTER( ID);
