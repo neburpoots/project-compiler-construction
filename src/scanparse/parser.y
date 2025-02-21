@@ -64,6 +64,14 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 
 %start program
 
+%left OR
+%left AND
+%left EQ NE
+%left LT LE GT GE
+%left PLUS MINUS
+%left STAR SLASH PERCENT
+// %right NOT
+
 %%
 
 program: decls
@@ -109,6 +117,9 @@ stmts: stmt stmts
         }
         ;
 
+// exprs: expr exprs
+    
+
 stmt: assign
        {
          $$ = $1;
@@ -148,11 +159,15 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
          }
        | CURLY_L var_decl stmts CURLY_R
          {
-           $$ = ASTfunbody($2, NULL, ASTstmts($3, NULL));
+           $$ = ASTfunbody($2, NULL, $3);
          }
        | CURLY_L CURLY_R
          {
            $$ = ASTfunbody(NULL, NULL, NULL);
+         }
+       | CURLY_L var_decl CURLY_R
+         {
+           $$ = ASTfunbody($2, NULL, NULL);
          }
         // | CURLY_L var_decl fundefs stmts return_stmt CURLY_R
         //     {
@@ -209,13 +224,13 @@ return_stmt: RETURN expr SEMICOLON
             }
           ;
 
-if_stmt: IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
+if_stmt: IF expr CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
         {
-          $$ = ASTifelse($3, $6, $10);
+          $$ = ASTifelse($2, $4, $8);
         }
-      | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
+      | IF expr CURLY_L stmts CURLY_R
         {
-          $$ = ASTifelse($3, $6, NULL);
+          $$ = ASTifelse($2, $4, NULL);
         }
       ;
 
@@ -253,7 +268,7 @@ expr: constant
         AddLocToNode($$, &@left, &@right);
       }
     ;
-
+ 
 constant: floatval
           {
             $$ = $1;
@@ -322,13 +337,64 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc)
     NODE_ECOL(node) = loc_e->last_column;
 }
 
+//21-2-2025 Ruben Edited it plus 1 for vs code actual line
+// I think indexing starts at 0 
 int yyerror(char *error)
 {
   CTI(CTI_ERROR, true, "line %d, col %d\nError parsing source code: %s\n",
-            global.line, global.col, error);
+            global.line + 1, global.col, error);
   CTIabortOnError();
   return 0;
 }
+
+// int yyerror(char *error)
+// {
+//     FILE *input_file = fopen(global.input_file, "r");
+//     if (input_file == NULL) {
+//         fprintf(stderr, "Cannot open input file '%s' for error reporting.\n", global.input_file);
+//         CTIabortOnError();
+//         return 0;
+//     }
+
+//     // Read the file line by line until we reach the error line
+//     char line[256];
+//     int current_line = 1;
+//     bool error_line_found = false;
+
+//     while (fgets(line, sizeof(line), input_file)) {
+//         if (current_line == global.line + 1) { // Adjust line number to match editor's convention
+//             // Print the error location
+//             fprintf(stderr, "error: line %d, col %d\n", global.line + 1, global.col);
+
+//             // Print the line where the error occurred
+//             fprintf(stderr, "%s", line);
+
+//             // Print an indicator (^) under the error column
+//             for (int i = 1; i < global.col; i++) {
+//                 fprintf(stderr, " ");
+//             }
+//             fprintf(stderr, "^\n");
+
+//             // Print the error message
+//             fprintf(stderr, "Error parsing source code: %s\n", error);
+
+//             error_line_found = true;
+//             break;
+//         }
+//         current_line++;
+//     }
+
+//     // Close the file
+//     fclose(input_file);
+
+//     if (!error_line_found) {
+//         fprintf(stderr, "error: line %d, col %d\n", global.line + 1, global.col);
+//         fprintf(stderr, "Error parsing source code: %s\n", error);
+//     }
+
+//     CTIabortOnError();
+//     return 0;
+// }
 
 node_st *SPdoScanParse(node_st *root)
 {
@@ -336,7 +402,7 @@ node_st *SPdoScanParse(node_st *root)
     yyin = fopen(global.input_file, "r");
     if (yyin == NULL) {
         CTI(CTI_ERROR, true, "Cannot open file '%s'.", global.input_file);
-        CTIabortOnrEror();
+        CTIabortOnError();
     }
     yyparse();
     return parseresult;

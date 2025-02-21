@@ -18,6 +18,7 @@
 node_st *IFSifelse(node_st *node)
 {
     printf("test");
+    // TRAVthen(node);
     // TRAVchildren(node);
     return node;
 }
