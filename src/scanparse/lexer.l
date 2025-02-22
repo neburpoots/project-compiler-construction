@@ -67,6 +67,7 @@ int yycolumn = 1;
 
 "if"                       { FILTER( IF); }
 "else"                     { FILTER( ELSE); }
+"while"                    { FILTER( WHILE); }
 
 "="                        { FILTER( LET);    }
 

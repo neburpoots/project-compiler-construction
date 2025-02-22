@@ -59,6 +59,10 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %token IF ELSE
 %type <node> if_stmt
 
+// token while
+%token WHILE
+%type <node> while_stmt
+
 %token EXTERN
 %type <node> decls decl glob_decl glob_def
 
@@ -155,6 +159,11 @@ stmt: assign
       {
         $$ = $1;
       }
+      |
+      while_stmt
+      {
+        $$ = $1;
+      }
       ; 
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
@@ -199,6 +208,11 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
        | CURLY_L var_decl CURLY_R
          {
            $$ = ASTfunbody($2, NULL, NULL);
+         }
+
+       | CURLY_L stmts CURLY_R
+         {
+           $$ = ASTfunbody(NULL, NULL, $2);
          }
         // | CURLY_L var_decl fundefs stmts return_stmt CURLY_R
         //     {
@@ -265,6 +279,20 @@ if_stmt: IF expr CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
         }
       ;
 
+while_stmt: WHILE expr CURLY_L stmts CURLY_R
+        {
+          $$ = ASTwhile($2, $4);
+        }
+        |
+
+        // Disallow empty while block???
+        WHILE expr CURLY_L CURLY_R
+        {
+          $$ = ASTwhile($2, NULL);
+        };
+
+
+
 param: type ID
         {
           $$ = ASTparam(NULL, $2, $1);
@@ -294,6 +322,12 @@ expr: constant
         $$ = ASTvar($1);
       }
     | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
+      {
+        $$ = ASTbinop( $left, $right, $type);
+        AddLocToNode($$, &@left, &@right);
+      }
+
+    | expr[left] binop[type] expr[right]
       {
         $$ = ASTbinop( $left, $right, $type);
         AddLocToNode($$, &@left, &@right);

@@ -205,7 +205,7 @@ node IfElse {
 node While {
     children {
         Expr cond { constructor, mandatory },
-        Stmts block
+        Stmts block { constructor }
     }
 };
 
