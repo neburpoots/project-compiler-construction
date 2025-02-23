@@ -38,7 +38,6 @@
 
 
 // %token 
-
 %token <cint> NUM
 %token <cflt> FLOAT
 %token <id> ID
@@ -165,7 +164,7 @@ stmt: assign
   | do_while_stmt
   {
     $$ = $1;
-  }; 
+  };
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
 //       {
@@ -332,6 +331,12 @@ expr: constant
   | ID
   {
     $$ = ASTvar($1);
+  }
+
+  //cast variable like bool test = (bool)0;
+  | BRACKET_L type BRACKET_R expr
+  {
+    $$ = ASTcast($4, $2);
   }
 
   // Empty function call

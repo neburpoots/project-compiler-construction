@@ -1,0 +1,11 @@
+export void test() {
+  int i = 1;
+}
+
+export void test() {
+  float i = 1.1;
+}
+
+export void test() {
+  bool i = false;
+}

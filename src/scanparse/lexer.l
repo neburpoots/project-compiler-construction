@@ -67,7 +67,7 @@ int yycolumn = 1;
 
 "if"                       { FILTER( IF); }
 "else"                     { FILTER( ELSE); }
-"do"                       { FILTER( DO); }
+"do"                        { FILTER( DO); }
 "while"                    { FILTER( WHILE); }
 
 "="                        { FILTER( LET);    }
@@ -94,6 +94,10 @@ int yycolumn = 1;
 
 [0-9]+                     { yylval.cint=atoi(yytext);
                              FILTER( NUM);
+                           }
+
+[0-9]+"."[0-9]*            { yylval.cflt = atof(yytext); 
+                             FILTER(FLOAT); 
                            }
 
 \n.*                       {

@@ -1,0 +1,11 @@
+export void test() {
+  bool x = (bool)0;
+}
+
+export void test() {
+  int x = (int)false;
+}
+
+export void test() {
+  float a = (float)true;    
+}
