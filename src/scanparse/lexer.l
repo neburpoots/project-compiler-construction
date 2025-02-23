@@ -84,6 +84,9 @@ int yycolumn = 1;
 "return"                   { FILTER( RETURN ); }
 
 
+"//".*                        { }
+"/*"[^*]*\*+([^/*][^*]*\*+)*"/" { }
+
 [A-Za-z][A-Za-z0-9_]*      { yylval.id = STRcpy(yytext);
                              FILTER( ID);
                            }

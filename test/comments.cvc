@@ -1,0 +1,17 @@
+/* Comments */
+
+/* 
+  Multi
+  Line
+  Comments
+*/
+
+//function comments
+export void test(){
+  //inline funcion call comment
+  int x = calc_x();
+}
+
+/*Ending
+ Test
+ comment*/
