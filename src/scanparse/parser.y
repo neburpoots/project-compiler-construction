@@ -321,14 +321,12 @@ expr: constant
   // Empty function call
   | ID BRACKET_L BRACKET_R
   {
-    printf("CALL 1\n");
     $$ = ASTfuncall(NULL, $1);
   }
 
   // function call with args
   | ID BRACKET_L args BRACKET_R
   {
-    printf("CALL 2\n");
     $$ = ASTfuncall($3, $1);
   }
 

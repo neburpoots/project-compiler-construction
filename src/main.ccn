@@ -8,6 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         TestIfStatement;
+		TestWhileStatements;
         // print;
     }
 };
@@ -15,6 +16,11 @@ start phase RootPhase {
 traversal TestIfStatement {
     uid = IFS,
     nodes = { IfElse }
+};
+
+traversal TestWhileStatements{
+  	uid = WH,
+	nodes = { While }
 };
 
 traversal Print {
