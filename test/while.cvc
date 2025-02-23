@@ -17,6 +17,17 @@ export void test(){
 }
 
 export void test() { 
-    while((3 * 3) <= (5 + 4)) {
-    }
+    while((3 * 3) <= (5 + 4)) {}
+}
+
+export void test() { 
+    while((3 * 3) <= (5 + 4) && 3 * 3 < 10) {}
+}
+
+export void test(){
+    while(is_valid()){}
+}
+
+export void test(){
+    while(is_valid(x)){}
 }

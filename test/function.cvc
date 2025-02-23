@@ -1,0 +1,11 @@
+export void test(){
+    int x = calc_x();
+}
+
+export void test(){
+    int x = calc_x(10);
+}
+
+export void test(){
+    bool y = is_true(20 > 10);
+}

@@ -1,33 +1,33 @@
 %{
 
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "palm/memory.h"
-#include "palm/ctinfo.h"
-#include "palm/dbug.h"
-#include "palm/str.h"
-#include "ccngen/ast.h"
-#include "ccngen/enum.h"
-#include "global/globals.h"
+	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
+	#include "palm/memory.h"
+	#include "palm/ctinfo.h"
+	#include "palm/dbug.h"
+	#include "palm/str.h"
+	#include "ccngen/ast.h"
+	#include "ccngen/enum.h"
+	#include "global/globals.h"
 
-static node_st *parseresult = NULL;
-extern int yylex();
-int yyerror(char *errname);
-extern FILE *yyin;
-void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
+	static node_st *parseresult = NULL;
+	extern int yylex();
+	int yyerror(char *errname);
+	extern FILE *yyin;
+	void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 
 
 %}
 
 %union {
- char               *id;
- int                 cint;
- float               cflt;
- enum BinOpType     cbinop;
- enum Type           ctype;
- node_st             *node;
+	 char               *id;
+	 int                 cint;
+	 float               cflt;
+	 enum BinOpType     cbinop;
+	 enum Type           ctype;
+	 node_st             *node;
 }
 
 %locations
@@ -50,6 +50,7 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %type <node> intval floatval boolval constant expr
 %type <node> stmts stmt assign varlet program
 %type <cbinop> binop
+%type <node> args
 
 // enum Type 
 %token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
@@ -79,92 +80,85 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %%
 
 program: decls
-         {
-           parseresult = ASTprogram($1);
-         }
-         ;
+	{
+		parseresult = ASTprogram($1);
+	}
+	;
 
 decls: decl decls
-        {
-          $$ = ASTdecls($1, $2);
-        }
-      | decl
-        {
-          $$ = ASTdecls($1, NULL);
-        }
-        ;
+	{
+		$$ = ASTdecls($1, $2);
+	}
+	| decl
+	{
+		$$ = ASTdecls($1, NULL);
+	}
+	;
 
 //TODO VRAGEN
 //WAAROM GEEN FunDec optie in nodeset DECL vanuit coconut
 //nodeset Decl = {GlobDef, GlobDecl, FunDef};
 
 decl: glob_decl
-      {
-        $$ = $1;
-      }
-    | fundef
-      {
-        $$ = $1;
-      }
-    |
-      glob_def
-      {
-        $$ = $1;
-      }
-    ;
+  {
+    $$ = $1;
+  }
+  | fundef
+  {
+    $$ = $1;
+  }
+  | glob_def
+  {
+    $$ = $1;
+  };
 
 glob_decl: EXTERN type ID SEMICOLON
-           {
-             $$ = ASTglobdecl($3, $2);
-           }
-        ;
+  {
+    $$ = ASTglobdecl($3, $2);
+  };
 
 glob_def: EXPORT type ID LET expr SEMICOLON
-        {
-          $$ = ASTglobdef($5, $3, $2, true);
-        }
-        | type ID LET expr SEMICOLON
-        {
-          $$ = ASTglobdef($4, $2, $1, false);
-        }
-        | EXPORT type ID SEMICOLON
-        {
-          $$ = ASTglobdef(NULL, $3, $2, true);
-        }
-        | type ID SEMICOLON
-        {
-          $$ = ASTglobdef(NULL, $2, $1, true);
-        }          
-        ;
+  {
+    $$ = ASTglobdef($5, $3, $2, true);
+  }
+  | type ID LET expr SEMICOLON
+  {
+    $$ = ASTglobdef($4, $2, $1, false);
+  }
+  | EXPORT type ID SEMICOLON
+  {
+    $$ = ASTglobdef(NULL, $3, $2, true);
+  }
+  | type ID SEMICOLON
+  {
+    $$ = ASTglobdef(NULL, $2, $1, true);
+  };
 
 stmts: stmt stmts
-        {
-          $$ = ASTstmts($1, $2);
-        }
-      | stmt
-        {
-          $$ = ASTstmts($1, NULL);
-        }
-        ;
+  {
+    $$ = ASTstmts($1, $2);
+  }
+  | stmt
+  {
+    $$ = ASTstmts($1, NULL);
+  };
 
 // exprs: expr exprs
     
 
 stmt: assign
-       {
-         $$ = $1;
-       }
-      |
-      if_stmt
-      {
-        $$ = $1;
-      }
-      |
-      while_stmt
-      {
-        $$ = $1;
-      }
-      ; 
+  {
+    $$ = $1;
+  }
+  | if_stmt
+  {
+    $$ = $1;
+  }
+  | while_stmt
+  {
+    $$ = $1;
+  }
+  ; 
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
 //       {
@@ -172,48 +166,46 @@ stmt: assign
 //       }
 
 fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
-        {
-          $$ = ASTfundef($7, $5, $3, $2, true); // Exported function
-        }
-      | EXPORT type ID BRACKET_L BRACKET_R funbody
-        {
-          $$ = ASTfundef($6, NULL, $3, $2, true);
-        }
-      | type ID BRACKET_L param BRACKET_R funbody
-        {
-          $$ = ASTfundef($6, $4, $2, $1, false); // Non-exported function
-        }
-      | type ID BRACKET_L BRACKET_R funbody
-        {
-          $$ = ASTfundef($5, NULL, $2, $1, false);
-        }
-      ;
+  {
+    $$ = ASTfundef($7, $5, $3, $2, true); // Exported function
+  }
+  | EXPORT type ID BRACKET_L BRACKET_R funbody
+  {
+    $$ = ASTfundef($6, NULL, $3, $2, true);
+  }
+  | type ID BRACKET_L param BRACKET_R funbody
+  {
+    $$ = ASTfundef($6, $4, $2, $1, false); // Non-exported function
+  }
+  | type ID BRACKET_L BRACKET_R funbody
+  {
+    $$ = ASTfundef($5, NULL, $2, $1, false);
+  };
 
 funbody: CURLY_L var_decl stmts return_stmt CURLY_R
-         {
-           $$ = ASTfunbody($2, NULL, ASTstmts($3, $4));
-         }
-       | CURLY_L stmts return_stmt CURLY_R
-         {
-           $$ = ASTfunbody(NULL, NULL, ASTstmts($2, $3));
-         }
-       | CURLY_L var_decl stmts CURLY_R
-         {
-           $$ = ASTfunbody($2, NULL, $3);
-         }
-       | CURLY_L CURLY_R
-         {
-           $$ = ASTfunbody(NULL, NULL, NULL);
-         }
-       | CURLY_L var_decl CURLY_R
-         {
-           $$ = ASTfunbody($2, NULL, NULL);
-         }
-
-       | CURLY_L stmts CURLY_R
-         {
-           $$ = ASTfunbody(NULL, NULL, $2);
-         }
+  {
+    $$ = ASTfunbody($2, NULL, ASTstmts($3, $4));
+  }
+  | CURLY_L stmts return_stmt CURLY_R
+  {
+    $$ = ASTfunbody(NULL, NULL, ASTstmts($2, $3));
+  }
+  | CURLY_L var_decl stmts CURLY_R
+  {
+    $$ = ASTfunbody($2, NULL, $3);
+  }
+  | CURLY_L CURLY_R
+  {
+    $$ = ASTfunbody(NULL, NULL, NULL);
+  }
+  | CURLY_L var_decl CURLY_R
+  {
+    $$ = ASTfunbody($2, NULL, NULL);
+  }
+  | CURLY_L stmts CURLY_R
+  {
+    $$ = ASTfunbody(NULL, NULL, $2);
+  }
         // | CURLY_L var_decl fundefs stmts return_stmt CURLY_R
         //     {
         //         $$ = ASTfunbody($2, $3, ASTstmts($4, $5));
@@ -240,113 +232,133 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
 
 //TODO Handle Arrays
 var_decl: type ID SEMICOLON
-         {
-           $$ = ASTvardecl(NULL, NULL, $2, $1);
-         }
-       | type ID LET expr SEMICOLON
-         {
-           $$ = ASTvardecl($4, NULL, $2, $1);
-         }
-       | type ID LET expr SEMICOLON var_decl
-         {
-           $$ = ASTvardecl($4, $6, $2, $1);
-         }
-       ;
+  {
+    $$ = ASTvardecl(NULL, NULL, $2, $1);
+  }
+  | type ID LET expr SEMICOLON
+  {
+    $$ = ASTvardecl($4, NULL, $2, $1);
+  }
+  | type ID LET expr SEMICOLON var_decl
+  {
+    $$ = ASTvardecl($4, $6, $2, $1);
+  };
 
 assign: varlet LET expr SEMICOLON
-        {
-          $$ = ASTassign($1, $3);
-        }
-        ;
+  {
+    $$ = ASTassign($1, $3);
+  };
 
 return_stmt: RETURN expr SEMICOLON
-            {
-              $$ = ASTreturn($2);
-            }
-          | RETURN SEMICOLON
-            {
-              $$ = ASTreturn(NULL);
-            }
-          ;
+  {
+    $$ = ASTreturn($2);
+  }
+  | RETURN SEMICOLON
+  {
+    $$ = ASTreturn(NULL);
+  };
 
 if_stmt: IF expr CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
-        {
-          $$ = ASTifelse($2, $4, $8);
-        }
-      | IF expr CURLY_L stmts CURLY_R
-        {
-          $$ = ASTifelse($2, $4, NULL);
-        }
-      ;
+  {
+    $$ = ASTifelse($2, $4, $8);
+  }
+  | IF expr CURLY_L stmts CURLY_R
+  {
+    $$ = ASTifelse($2, $4, NULL);
+  };
 
 while_stmt: WHILE expr CURLY_L stmts CURLY_R
-        {
-          $$ = ASTwhile($2, $4);
-        }
-        | WHILE expr CURLY_L CURLY_R
-        {
-          $$ = ASTwhile($2, NULL);
-        }
-        ;
+  {
+    $$ = ASTwhile($2, $4);
+  }
+  | WHILE expr CURLY_L CURLY_R
+  {
+    $$ = ASTwhile($2, NULL);
+  };
 
 param: type ID
-        {
-          $$ = ASTparam(NULL, $2, $1);
-        }
-      |
-        type ID COMMA param
-        {
-          $$ = ASTparam($4, $2, $1);
-        }
-      ;
+  {
+    $$ = ASTparam(NULL, $2, $1);
+  }
+  |
+  type ID COMMA param
+  {
+    $$ = ASTparam($4, $2, $1);
+  };
 
 
 varlet: ID
-        {
-          $$ = ASTvarlet($1);
-          AddLocToNode($$, &@1, &@1);
-        }
-        ;
+  {
+    $$ = ASTvarlet($1);
+    AddLocToNode($$, &@1, &@1);
+  };
 
+args: expr
+  //single arg
+  {
+    $$ = ASTexprs($1, NULL); 
+  }
+  //multiple args
+  | expr COMMA args
+  {
+    $$ = ASTexprs($1, $3);
+  }
+  //empty
+  |
+  {
+    $$ = NULL;
+  };
 
 expr: constant
-      {
-        $$ = $1;
-      }
-    | ID
-      {
-        $$ = ASTvar($1);
-      }
-    | BRACKET_L expr BRACKET_R
-    {
-        $$ = $2;
-    }
-    | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
-      {
-        $$ = ASTbinop( $left, $right, $type);
-        AddLocToNode($$, &@left, &@right);
-      }
+  {
+    $$ = $1;
+  }
+  | ID
+  {
+    $$ = ASTvar($1);
+  }
 
-    | expr[left] binop[type] expr[right]
-      {
-        $$ = ASTbinop( $left, $right, $type);
-        AddLocToNode($$, &@left, &@right);
-      }
-    ;
- 
+  // Empty function call
+  | ID BRACKET_L BRACKET_R
+  {
+    printf("CALL 1\n");
+    $$ = ASTfuncall(NULL, $1);
+  }
+
+  // function call with args
+  | ID BRACKET_L args BRACKET_R
+  {
+    printf("CALL 2\n");
+    $$ = ASTfuncall($3, $1);
+  }
+
+  | BRACKET_L expr BRACKET_R
+  {
+    $$ = $2;
+  }
+  | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
+  {
+    $$ = ASTbinop( $left, $right, $type);
+    AddLocToNode($$, &@left, &@right);
+  }
+  | expr[left] binop[type] expr[right]
+  {
+    $$ = ASTbinop( $left, $right, $type);
+    AddLocToNode($$, &@left, &@right);
+  };
+
 constant: floatval
-          {
-            $$ = $1;
-          }
-        | intval
-          {
-            $$ = $1;
-          }
-        | boolval
-          {
-            $$ = $1;
-          }
-        ;
+  {
+    $$ = $1;
+  }
+  | intval
+  {
+    $$ = $1;
+  }
+  | boolval
+  {
+    $$ = $1;
+  };
 
 type: TYPE_INT   { $$ = CT_int; }
     | TYPE_FLOAT { $$ = CT_float; }
@@ -354,26 +366,23 @@ type: TYPE_INT   { $$ = CT_int; }
     | TYPE_VOID  { $$ = CT_void; }
 
 floatval: FLOAT
-           {
-             $$ = ASTfloat($1);
-           }
-         ;
+  {
+    $$ = ASTfloat($1);
+  };
 
 intval: NUM
-        {
-          $$ = ASTnum($1);
-        }
-      ;
+  {
+    $$ = ASTnum($1);
+  };
 
 boolval: TRUEVAL
-         {
-           $$ = ASTbool(true);
-         }
-       | FALSEVAL
-         {
-           $$ = ASTbool(false);
-         }
-       ;
+  {
+    $$ = ASTbool(true);
+  }
+  | FALSEVAL
+  {
+    $$ = ASTbool(false);
+  };
 
 
 binop: PLUS      { $$ = BO_add; }

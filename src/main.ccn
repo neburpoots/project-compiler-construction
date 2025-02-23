@@ -148,7 +148,7 @@ node Return {
 
 node FunCall {
     children {
-        Exprs fun_args
+        Exprs fun_args { constructor }
     },
 
     attributes {
