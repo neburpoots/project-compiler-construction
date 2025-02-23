@@ -64,6 +64,10 @@
 %token WHILE
 %type <node> while_stmt
 
+// token do while
+%token DO
+%type <node> do_while_stmt
+
 %token EXTERN
 %type <node> decls decl glob_decl glob_def
 
@@ -158,7 +162,10 @@ stmt: assign
   {
     $$ = $1;
   }
-  ; 
+  | do_while_stmt
+  {
+    $$ = $1;
+  }; 
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
 //       {
@@ -274,6 +281,15 @@ while_stmt: WHILE expr CURLY_L stmts CURLY_R
   | WHILE expr CURLY_L CURLY_R
   {
     $$ = ASTwhile($2, NULL);
+  };
+
+do_while_stmt: DO CURLY_L stmts CURLY_R WHILE expr SEMICOLON
+  {
+    $$ = ASTdowhile($6, $3);
+  }
+  | DO CURLY_L CURLY_R WHILE expr SEMICOLON
+  {
+    $$ = ASTdowhile($5, NULL);
   };
 
 param: type ID
