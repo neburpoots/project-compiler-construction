@@ -283,15 +283,11 @@ while_stmt: WHILE expr CURLY_L stmts CURLY_R
         {
           $$ = ASTwhile($2, $4);
         }
-        |
-
-        // Disallow empty while block???
-        WHILE expr CURLY_L CURLY_R
+        | WHILE expr CURLY_L CURLY_R
         {
           $$ = ASTwhile($2, NULL);
-        };
-
-
+        }
+        ;
 
 param: type ID
         {
@@ -321,6 +317,10 @@ expr: constant
       {
         $$ = ASTvar($1);
       }
+    | BRACKET_L expr BRACKET_R
+    {
+        $$ = $2;
+    }
     | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
       {
         $$ = ASTbinop( $left, $right, $type);
@@ -374,6 +374,7 @@ boolval: TRUEVAL
            $$ = ASTbool(false);
          }
        ;
+
 
 binop: PLUS      { $$ = BO_add; }
      | MINUS     { $$ = BO_sub; }

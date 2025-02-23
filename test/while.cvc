@@ -1,4 +1,22 @@
 export void test() { 
-    while((10 + 10) < 5 * 5) {
+    while(10 > 2) {}
+}
+
+export void test() { 
+    while(10 > 2) {
+        while(5 < 10) {}
+    }
+}
+
+export void test(){
+    while(false){}
+}
+
+export void test(){
+    while(true){}
+}
+
+export void test() { 
+    while((3 * 3) <= (5 + 4)) {
     }
 }
