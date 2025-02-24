@@ -2,6 +2,7 @@ export void test() {
   int x = other_test();
   for(int i = 1, 10) {
   }
+  static_test();
 }
 
 export void test() {

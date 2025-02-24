@@ -153,26 +153,13 @@ stmts: stmt stmts
 // exprs: expr exprs
     
 
-stmt: assign
-  {
-    $$ = $1;
-  }
-  | if_stmt
-  {
-    $$ = $1;
-  }
-  | while_stmt
-  {
-    $$ = $1;
-  }
-  | do_while_stmt
-  {
-    $$ = $1;
-  }
-  | for_stmt
-  {
-    $$ = $1;
-  };
+stmt: assign { $$ = $1; }
+    | if_stmt { $$ = $1; }
+    | while_stmt { $$ = $1; }
+    | do_while_stmt { $$ = $1; }
+    | for_stmt { $$ = $1; }
+    | expr SEMICOLON { $$ = ASTexprstmt($1); 
+};
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
 //       {
