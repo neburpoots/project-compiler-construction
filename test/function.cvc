@@ -1,5 +1,6 @@
 export void test(){
     int x = calc_x();
+    int y = 10;
 }
 
 export void test(){

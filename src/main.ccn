@@ -226,8 +226,8 @@ node For {
     children {
         Expr start_expr { constructor, mandatory },
         Expr stop { constructor, mandatory },
-        Expr step,
-        Stmts block
+        Expr step {constructor},
+        Stmts block {constructor}
     },
 
     attributes {

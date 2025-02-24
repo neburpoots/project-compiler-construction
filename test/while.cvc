@@ -1,5 +1,7 @@
 export void test() { 
-    while(10 > 2) {}
+    int x = 10;
+    while(10 > 2) {
+    }
 }
 
 export void test() { 

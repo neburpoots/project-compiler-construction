@@ -16,6 +16,12 @@ export void test(){
     do {} while(true);
 }
 
+export void test(){
+    do {
+      int x = 10;
+    } while(true);
+}
+
 export void test() { 
     do {} while((3 * 3) <= (5 + 4));
 }

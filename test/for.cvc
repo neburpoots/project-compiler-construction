@@ -1,0 +1,23 @@
+export void test() {
+  for(int i = 1, 10) {
+  }
+}
+
+export void test() {
+  for(int i = 1, 10, 1) {
+  }
+}
+
+export void test() {
+  int x = 10;
+  for(int i = 1, 10) {
+    x = x + 1;
+  }
+}
+
+export void test() {
+  int x = 10;
+  for(int i = 1, 10, 1) {
+    x = x + 1;
+  }
+}

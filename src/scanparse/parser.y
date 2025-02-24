@@ -67,6 +67,10 @@
 %token DO
 %type <node> do_while_stmt
 
+// token for
+%token FOR
+%type <node> for_stmt
+
 %token EXTERN
 %type <node> decls decl glob_decl glob_def
 
@@ -164,6 +168,10 @@ stmt: assign
   | do_while_stmt
   {
     $$ = $1;
+  }
+  | for_stmt
+  {
+    $$ = $1;
   };
 
 // fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
@@ -251,9 +259,10 @@ var_decl: type ID SEMICOLON
   };
 
 assign: varlet LET expr SEMICOLON
-  {
-    $$ = ASTassign($1, $3);
-  };
+{
+  $$ = ASTassign($1, $3);
+};
+
 
 return_stmt: RETURN expr SEMICOLON
   {
@@ -290,6 +299,37 @@ do_while_stmt: DO CURLY_L stmts CURLY_R WHILE expr SEMICOLON
   {
     $$ = ASTdowhile($5, NULL);
   };
+
+for_stmt: 
+
+  //no step size, default to 1, no statements
+  FOR BRACKET_L expr COMMA expr BRACKET_R CURLY_L CURLY_R
+  {
+    printf("no step size, default to 1, no statements\n");
+    $$ = ASTfor($3, $5, ASTnum(1), NULL);
+  }
+
+  //with step size, no statements
+  | FOR BRACKET_L expr COMMA expr COMMA expr BRACKET_R CURLY_L CURLY_R
+  {
+    printf("with step size, no statements\n");
+    $$ = ASTfor($3, $5, $7, NULL);
+  }
+
+  //no step size, default to 1, with statements
+  | FOR BRACKET_L expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
+  {
+    printf("no step size, default to 1, with statements\n");
+    $$ = ASTfor($3, $5, ASTnum(1), $8);
+  }
+
+  //with step size, with statements
+  | FOR BRACKET_L expr COMMA expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
+  {
+    printf("with step size, with statements\n");
+    $$ = ASTfor($3, $5, $7, $10);
+  };
+
 
 param: type ID
   {
@@ -331,6 +371,12 @@ expr: constant
   | ID
   {
     $$ = ASTvar($1);
+  }
+
+  //used for the for expression: "int i = 1" in the for loop. Maybe place this inside of a vardec?
+  | type ID LET expr{
+    free($2);
+    $$ = $4;
   }
 
   //cast variable like bool test = (bool)0;
