@@ -49,7 +49,6 @@
 %type <node> intval floatval boolval constant expr
 %type <node> stmts stmt assign varlet program
 %type <cbinop> binop
-%type <node> args
 
 // enum Type 
 %token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
@@ -240,10 +239,22 @@ var_decl: type ID SEMICOLON
   {
     $$ = ASTvardecl($4, NULL, $2, $1);
   }
+  | type ID LET expr COMMA
+  {
+    $$ = ASTvardecl($4, NULL, $2, $1);
+  }
   | type ID LET expr SEMICOLON var_decl
   {
     $$ = ASTvardecl($4, $6, $2, $1);
   };
+  | type ID LET ID BRACKET_L param BRACKET_R SEMICOLON
+  {
+    $$ = ASTvardecl(NULL, NULL, $2, $1);
+  }
+  | type ID LET ID BRACKET_L BRACKET_R SEMICOLON
+  {
+    $$ = ASTvardecl(NULL, NULL, $2, $1);
+  }
 
 assign: varlet LET expr SEMICOLON
 {
@@ -290,31 +301,38 @@ do_while_stmt: DO CURLY_L stmts CURLY_R WHILE expr SEMICOLON
 for_stmt: 
 
   //no step size, default to 1, no statements
-  FOR BRACKET_L expr COMMA expr BRACKET_R CURLY_L CURLY_R
+  FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
-    printf("no step size, default to 1, no statements\n");
-    $$ = ASTfor($3, $5, ASTnum(1), NULL);
+    // printf("no step size, default to 1, no statements\n");
+    $$ = ASTfor($6, $8, ASTnum(1), NULL);
+        free($4);
+
   }
 
   //with step size, no statements
-  | FOR BRACKET_L expr COMMA expr COMMA expr BRACKET_R CURLY_L CURLY_R
+  | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
     printf("with step size, no statements\n");
-    $$ = ASTfor($3, $5, $7, NULL);
+    $$ = ASTfor($6, $8, $10, NULL);
+        free($4);
+
   }
 
   //no step size, default to 1, with statements
-  | FOR BRACKET_L expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
+  | FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
     printf("no step size, default to 1, with statements\n");
-    $$ = ASTfor($3, $5, ASTnum(1), $8);
+    $$ = ASTfor($6, $8, ASTnum(1), $11);
+        free($4);
+
   }
 
   //with step size, with statements
-  | FOR BRACKET_L expr COMMA expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
+  | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
-    printf("with step size, with statements\n");
-    $$ = ASTfor($3, $5, $7, $10);
+    // printf("with step size, with statements\n");
+    $$ = ASTfor($6, $8, $10, $13);
+        free($4);
   };
 
 
@@ -335,69 +353,37 @@ varlet: ID
     AddLocToNode($$, &@1, &@1);
   };
 
-args: expr
-  //single arg
-  {
-    $$ = ASTexprs($1, NULL); 
-  }
-  //multiple args
-  | expr COMMA args
-  {
-    $$ = ASTexprs($1, $3);
-  }
-  //empty
-  |
-  {
-    $$ = NULL;
-  };
+// args: expr
+//   //single arg
+//   {
+//     $$ = ASTexprs($1, NULL); 
+//   }
+//   //multiple args
+//   | expr COMMA args
+//   {
+//     $$ = ASTexprs($1, $3);
+//   }
+//   //empty
+//   |
+//   {
+//     $$ = NULL;
+//   };
 
 expr: constant
-  {
-    $$ = $1;
-  }
-  | ID
-  {
-    $$ = ASTvar($1);
-  }
-
-  //used for the for expression: "int i = 1" in the for loop. Maybe place this inside of a vardec?
-  | type ID LET expr{
-    free($2);
-    $$ = $4;
-  }
-
-  //cast variable like bool test = (bool)0;
-  | BRACKET_L type BRACKET_R expr
-  {
-    $$ = ASTcast($4, $2);
-  }
-
-  // Empty function call
-  | ID BRACKET_L BRACKET_R
-  {
-    $$ = ASTfuncall(NULL, $1);
-  }
-
-  // function call with args
-  | ID BRACKET_L args BRACKET_R
-  {
-    $$ = ASTfuncall($3, $1);
-  }
-
-  | BRACKET_L expr BRACKET_R
-  {
-    $$ = $2;
-  }
-  | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
-  {
-    $$ = ASTbinop( $left, $right, $type);
-    AddLocToNode($$, &@left, &@right);
-  }
-  | expr[left] binop[type] expr[right]
-  {
-    $$ = ASTbinop( $left, $right, $type);
-    AddLocToNode($$, &@left, &@right);
-  };
+      {
+        $$ = $1;
+      }
+    | ID
+      {
+        $$ = ASTvar($1);
+      }
+    | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
+      {
+        $$ = ASTbinop( $left, $right, $type);
+        AddLocToNode($$, &@left, &@right);
+      }
+    ;
+ 
 
 constant: floatval
   {
