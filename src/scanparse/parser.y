@@ -36,7 +36,6 @@
 %token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
 %token TRUEVAL FALSEVAL LET
 
-
 // %token 
 %token <cint> NUM
 %token <cflt> FLOAT
@@ -44,10 +43,10 @@
 
 // Functions
 %token EXPORT RETURN
-%type <node> fundef funbody param var_decl return_stmt
+%type <node> fundef funbody param var_decl return_stmt call
 
 %type <node> intval floatval boolval constant expr
-%type <node> stmts stmt assign varlet program
+%type <node> stmts stmt assign varlet program args comparison
 %type <cbinop> binop
 
 // enum Type 
@@ -73,7 +72,7 @@
 %token EXTERN
 %type <node> decls decl glob_decl glob_def
 
-%start program
+
 
 %left OR
 %left AND
@@ -81,6 +80,9 @@
 %left LT LE GT GE
 %left PLUS MINUS
 %left STAR SLASH PERCENT
+
+%start program
+
 // %right NOT
 
 %%
@@ -247,14 +249,14 @@ var_decl: type ID SEMICOLON
   {
     $$ = ASTvardecl($4, $6, $2, $1);
   };
-  | type ID LET ID BRACKET_L param BRACKET_R SEMICOLON
-  {
-    $$ = ASTvardecl(NULL, NULL, $2, $1);
-  }
-  | type ID LET ID BRACKET_L BRACKET_R SEMICOLON
-  {
-    $$ = ASTvardecl(NULL, NULL, $2, $1);
-  }
+  // | type ID LET call SEMICOLON
+  // {
+  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
+  // }
+  // | type ID LET ID BRACKET_L BRACKET_R SEMICOLON
+  // {
+  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
+  // }
 
 assign: varlet LET expr SEMICOLON
 {
@@ -353,21 +355,39 @@ varlet: ID
     AddLocToNode($$, &@1, &@1);
   };
 
-// args: expr
-//   //single arg
-//   {
-//     $$ = ASTexprs($1, NULL); 
-//   }
-//   //multiple args
-//   | expr COMMA args
-//   {
-//     $$ = ASTexprs($1, $3);
-//   }
-//   //empty
-//   |
-//   {
-//     $$ = NULL;
-//   };
+args: expr
+  //single arg
+  {
+    $$ = ASTexprs($1, NULL); 
+  }
+  //multiple args
+  | expr COMMA args
+  {
+    $$ = ASTexprs($1, $3);
+  }
+  // //empty
+  // |
+  // {
+  //   $$ = NULL;
+  // };
+
+call: ID BRACKET_L args BRACKET_R
+  {
+    $$ = ASTfuncall($3, $1);
+  }
+  |
+  ID BRACKET_L BRACKET_R
+  {
+    $$ = ASTfuncall(NULL, $1);
+  }
+  ;
+
+comparison: expr[left] binop[type] expr[right]
+      {
+        $$ = ASTbinop( $left, $right, $type);
+        AddLocToNode($$, &@left, &@right);
+      }
+      ;
 
 expr: constant
       {
@@ -377,10 +397,17 @@ expr: constant
       {
         $$ = ASTvar($1);
       }
-    | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
+    | call
       {
-        $$ = ASTbinop( $left, $right, $type);
-        AddLocToNode($$, &@left, &@right);
+        $$ = $1;
+      }
+    // | comparison
+    //   {
+    //     $$ = $1;
+    //   }
+    | BRACKET_L comparison BRACKET_R
+      {
+        $$ = $2;
       }
     ;
  

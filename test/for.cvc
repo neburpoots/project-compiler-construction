@@ -1,5 +1,5 @@
 export void test() {
-  // int x = other_test();
+  int x = other_test();
   if(i > 10) {
     t = 14;
   }
@@ -16,7 +16,7 @@ export void test() {
 export void test() {
   int x = 10;
   for(int i = 1, 10) {
-    // x = x + 1;
+    x = x + 1;
   }
 }
 
