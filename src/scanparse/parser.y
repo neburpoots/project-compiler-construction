@@ -46,7 +46,7 @@
 %token EXPORT RETURN
 %type <node> fundef funbody param var_decl return_stmt
 
-%type <node> intval floatval boolval constant expr
+%type <node> intval floatval boolval constant expr cast
 %type <node> stmts stmt assign varlet program
 %type <cbinop> binop
 
@@ -369,6 +369,13 @@ varlet: ID
 //     $$ = NULL;
 //   };
 
+//cast variable like bool test = (bool)0;
+cast: BRACKET_L type BRACKET_R expr
+  {
+    $$ = ASTcast($4, $2);
+  }
+
+
 expr: constant
       {
         $$ = $1;
@@ -376,6 +383,10 @@ expr: constant
     | ID
       {
         $$ = ASTvar($1);
+      }
+    | cast
+      {
+        $$ = $1;
       }
     | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
       {
