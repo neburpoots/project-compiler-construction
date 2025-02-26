@@ -18,7 +18,7 @@ export void test(){
 
 export void test(){
     do {
-      int x = 10;
+      test();
     } while(true);
 }
 

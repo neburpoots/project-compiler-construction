@@ -7,5 +7,5 @@ export void test() {
 }
 
 export void test() {
-  float a = (float)true;    
+  float a = (float)true;
 }

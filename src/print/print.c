@@ -337,3 +337,120 @@ node_st *PRTdecls(node_st *node)
     printf("NOT IMPLEMENTED");
     return node;
 }
+
+/**
+ * @fn PRTmod
+ */
+node_st *PRTmod(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTdiv
+ */
+node_st *PRTdiv(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTmul
+ */
+node_st *PRTmul(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTsub
+ */
+node_st *PRTsub(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTadd
+ */
+node_st *PRTadd(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTlogicalor
+ */
+node_st *PRTlogicalor(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTlogicaland
+ */
+node_st *PRTlogicaland(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTnotequal
+ */
+node_st *PRTnotequal(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTequal
+ */
+node_st *PRTequal(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTgreaterequal
+ */
+node_st *PRTgreaterequal(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTgreaterthan
+ */
+node_st *PRTgreaterthan(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTlessequal
+ */
+node_st *PRTlessequal(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTlessthan
+ */
+node_st *PRTlessthan(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}

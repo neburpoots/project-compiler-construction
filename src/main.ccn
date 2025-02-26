@@ -66,11 +66,13 @@ nodeset Constants = {Float, Bool, Num};
 
 nodeset Operations = {Binop, Monop};
 
+nodeset Arithmetics = {Add, Sub, Mul, Div, Mod, LessThan, LessEqual, GreaterThan, GreaterEqual, Equal, NotEqual, LogicalAnd, LogicalOr};
+
 nodeset Decl = {GlobDef, GlobDecl, FunDef};
 
 nodeset Vars = {VarDecl, Var, VarLet};
 
-nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations);
+nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations | Arithmetics);
 
 nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
 
@@ -307,6 +309,97 @@ node Binop {
 
     attributes {
         BinOpType op { constructor }
+    }
+};
+
+node Add {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node Sub {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node Mul {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node Div {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node Mod {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node LessThan {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node LessEqual {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node GreaterThan {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node GreaterEqual {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node Equal {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node NotEqual {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node LogicalAnd {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
+    }
+};
+
+node LogicalOr {
+    children {
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
     }
 };
 

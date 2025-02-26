@@ -29,12 +29,15 @@
 	 enum Type           ctype;
 	 node_st             *node;
 }
-
+%precedence CAST
 %locations
 
 %token BRACKET_L BRACKET_R COMMA SEMICOLON CURLY_L CURLY_R SQUARE_L SQUARE_R
 %token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
 %token TRUEVAL FALSEVAL LET
+
+//arithmetic 
+%type <node> plus minus div mul mod lt le gt ge eq ne and or
 
 // %token 
 %token <cint> NUM
@@ -46,8 +49,7 @@
 %type <node> fundef funbody param var_decl return_stmt call
 
 %type <node> intval floatval boolval constant expr cast
-%type <node> stmts stmt assign varlet program args comparison
-%type <cbinop> binop
+%type <node> stmts stmt assign varlet program args
 
 // enum Type 
 %token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
@@ -282,22 +284,22 @@ if_stmt: IF expr CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
     $$ = ASTifelse($2, $4, NULL);
   };
 
-while_stmt: WHILE expr CURLY_L stmts CURLY_R
+while_stmt: WHILE BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
   {
-    $$ = ASTwhile($2, $4);
+    $$ = ASTwhile($3, $6);
   }
-  | WHILE expr CURLY_L CURLY_R
+  | WHILE BRACKET_L expr BRACKET_R CURLY_L CURLY_R
   {
-    $$ = ASTwhile($2, NULL);
+    $$ = ASTwhile($3, NULL);
   };
 
-do_while_stmt: DO CURLY_L stmts CURLY_R WHILE expr SEMICOLON
+do_while_stmt: DO CURLY_L stmts CURLY_R WHILE BRACKET_L expr BRACKET_R SEMICOLON
   {
-    $$ = ASTdowhile($6, $3);
+    $$ = ASTdowhile($7, $3);
   }
-  | DO CURLY_L CURLY_R WHILE expr SEMICOLON
+  | DO CURLY_L CURLY_R WHILE BRACKET_L expr BRACKET_R SEMICOLON
   {
-    $$ = ASTdowhile($5, NULL);
+    $$ = ASTdowhile($6, NULL);
   };
 
 for_stmt: 
@@ -382,46 +384,141 @@ call: ID BRACKET_L args BRACKET_R
   }
   ;
 
-comparison: expr[left] binop[type] expr[right]
-      {
-        $$ = ASTbinop( $left, $right, $type);
-        AddLocToNode($$, &@left, &@right);
-      }
-      ;
+plus: expr PLUS expr
+{
+    $$ = ASTadd($1, $3); 
+}
+| BRACKET_L expr PLUS expr BRACKET_R
+{
+    $$ = ASTadd($2, $4); 
+}
+
+minus: expr MINUS expr
+{
+    $$ = ASTsub($1, $3);
+}
+| BRACKET_L expr MINUS expr BRACKET_R
+{
+    $$ = ASTsub($2, $4);
+}
+
+mul: expr STAR expr
+{
+    $$ = ASTmul($1, $3);
+}
+| BRACKET_L expr STAR expr BRACKET_R
+{
+    $$ = ASTmul($2, $4);  
+}
+
+div: expr SLASH expr
+{
+    $$ = ASTdiv($1, $3);
+}
+| BRACKET_L expr SLASH expr BRACKET_R
+{
+    $$ = ASTdiv($2, $4);
+}
+
+mod: expr PERCENT expr
+{
+    $$ = ASTmod($1, $3); 
+}
+| BRACKET_L expr PERCENT expr BRACKET_R
+{
+    $$ = ASTmod($2, $4); 
+}
+
+lt: expr LT expr
+{
+    $$ = ASTlessthan($1, $3);
+}
+| BRACKET_L expr LT expr BRACKET_R
+{
+    $$ = ASTlessthan($2, $4);
+}
+
+le: expr LE expr
+{
+    $$ = ASTlessequal($1, $3);
+}
+| BRACKET_L expr LE expr BRACKET_R
+{
+    $$ = ASTlessequal($2, $4);  
+}
+
+gt: expr GT expr
+{
+    $$ = ASTgreaterthan($1, $3);
+} 
+| BRACKET_L expr GT expr BRACKET_R
+{
+    $$ = ASTgreaterthan($2, $4);
+}
+
+ge: expr GE expr
+{
+    $$ = ASTgreaterequal($1, $3);
+}
+| BRACKET_L expr GE expr BRACKET_R
+{
+    $$ = ASTgreaterequal($2, $4);
+}
+
+eq: expr EQ expr
+{
+    $$ = ASTequal($1, $3);
+}
+| BRACKET_L expr EQ expr BRACKET_R
+{
+    $$ = ASTequal($2, $4);
+}
+
+ne: expr NE expr
+{
+    $$ = ASTnotequal($1, $3);
+}
+| BRACKET_L expr NE expr BRACKET_R
+{
+    $$ = ASTnotequal($2, $4);
+}
+
+and: expr AND expr
+{
+    $$ = ASTlogicaland($1, $3);
+}
+
+or: expr OR expr
+{
+    $$ = ASTlogicalor($1, $3);
+}
+
 
 //cast variable like bool test = (bool)0;
-cast: BRACKET_L type BRACKET_R expr
+cast: BRACKET_L type BRACKET_R expr %prec CAST
   {
     $$ = ASTcast($4, $2);
   }
 
 
-expr: constant
-      {
-        $$ = $1;
-      }
-    | ID
-      {
-        $$ = ASTvar($1);
-      }
-    | call
-      {
-        $$ = $1;
-      }
-    // | comparison
-    //   {
-    //     $$ = $1;
-    //   }
-    | cast
-      {
-        $$ = $1;
-      }
-    | BRACKET_L comparison BRACKET_R
-      {
-        $$ = $2;
-      }
-    ;
- 
+expr: constant { $$ = $1; }
+   | ID {$$ = ASTvar($1);}
+   | call
+   | cast
+   | plus
+   | minus
+   | mul
+   | div
+   | mod
+   | lt
+   | le
+   | gt
+   | ge
+   | eq
+   | ne
+   | and
+   | or
+;
 
 constant: floatval
   {
@@ -459,22 +556,6 @@ boolval: TRUEVAL
   {
     $$ = ASTbool(false);
   };
-
-
-binop: PLUS      { $$ = BO_add; }
-     | MINUS     { $$ = BO_sub; }
-     | STAR      { $$ = BO_mul; }
-     | SLASH     { $$ = BO_div; }
-     | PERCENT   { $$ = BO_mod; }
-     | LE        { $$ = BO_le; }
-     | LT        { $$ = BO_lt; }
-     | GE        { $$ = BO_ge; }
-     | GT        { $$ = BO_gt; }
-     | EQ        { $$ = BO_eq; }
-     | OR        { $$ = BO_or; }
-     | AND       { $$ = BO_and; }
-     ;
-
 %%
 
 void AddLocToNode(node_st *node, void *begin_loc, void *end_loc)
