@@ -37,7 +37,7 @@
 %token TRUEVAL FALSEVAL LET
 
 //arithmetic 
-%type <node> plus minus div mul mod lt le gt ge eq ne and or
+%type <node> arithmetic
 
 // %token 
 %token <cint> NUM
@@ -384,115 +384,62 @@ call: ID BRACKET_L args BRACKET_R
   }
   ;
 
-plus: expr PLUS expr
+arithmetic: expr PLUS expr
 {
-    $$ = ASTadd($1, $3); 
+    $$ = ASTbinop($1, $3, BO_add);
 }
-| BRACKET_L expr PLUS expr BRACKET_R
+| expr MINUS expr
 {
-    $$ = ASTadd($2, $4); 
+    $$ = ASTbinop($1, $3, BO_sub);
 }
-
-minus: expr MINUS expr
+| expr STAR expr
 {
-    $$ = ASTsub($1, $3);
+    $$ = ASTbinop($1, $3, BO_mul);
 }
-| BRACKET_L expr MINUS expr BRACKET_R
+| expr SLASH expr
 {
-    $$ = ASTsub($2, $4);
+    $$ = ASTbinop($1, $3, BO_div);
 }
-
-mul: expr STAR expr
+| expr PERCENT expr
 {
-    $$ = ASTmul($1, $3);
+    $$ = ASTbinop($1, $3, BO_mod);
 }
-| BRACKET_L expr STAR expr BRACKET_R
+| expr LT expr
 {
-    $$ = ASTmul($2, $4);  
+    $$ = ASTbinop($1, $3, BO_lt);
 }
-
-div: expr SLASH expr
+| expr LE expr
 {
-    $$ = ASTdiv($1, $3);
+    $$ = ASTbinop($1, $3, BO_le);
 }
-| BRACKET_L expr SLASH expr BRACKET_R
+| expr GT expr
 {
-    $$ = ASTdiv($2, $4);
+    $$ = ASTbinop($1, $3, BO_gt);
 }
-
-mod: expr PERCENT expr
+| expr GE expr
 {
-    $$ = ASTmod($1, $3); 
+    $$ = ASTbinop($1, $3, BO_ge);
 }
-| BRACKET_L expr PERCENT expr BRACKET_R
+| expr EQ expr
 {
-    $$ = ASTmod($2, $4); 
+    $$ = ASTbinop($1, $3, BO_eq);
 }
-
-lt: expr LT expr
+| expr NE expr
 {
-    $$ = ASTlessthan($1, $3);
+    $$ = ASTbinop($1, $3, BO_ne);
 }
-| BRACKET_L expr LT expr BRACKET_R
+| expr AND expr
 {
-    $$ = ASTlessthan($2, $4);
+    $$ = ASTbinop($1, $3, BO_and);
 }
-
-le: expr LE expr
+| expr OR expr
 {
-    $$ = ASTlessequal($1, $3);
+    $$ = ASTbinop($1, $3, BO_or);
 }
-| BRACKET_L expr LE expr BRACKET_R
+| BRACKET_L expr BRACKET_R
 {
-    $$ = ASTlessequal($2, $4);  
+    $$ = $2;
 }
-
-gt: expr GT expr
-{
-    $$ = ASTgreaterthan($1, $3);
-} 
-| BRACKET_L expr GT expr BRACKET_R
-{
-    $$ = ASTgreaterthan($2, $4);
-}
-
-ge: expr GE expr
-{
-    $$ = ASTgreaterequal($1, $3);
-}
-| BRACKET_L expr GE expr BRACKET_R
-{
-    $$ = ASTgreaterequal($2, $4);
-}
-
-eq: expr EQ expr
-{
-    $$ = ASTequal($1, $3);
-}
-| BRACKET_L expr EQ expr BRACKET_R
-{
-    $$ = ASTequal($2, $4);
-}
-
-ne: expr NE expr
-{
-    $$ = ASTnotequal($1, $3);
-}
-| BRACKET_L expr NE expr BRACKET_R
-{
-    $$ = ASTnotequal($2, $4);
-}
-
-and: expr AND expr
-{
-    $$ = ASTlogicaland($1, $3);
-}
-
-or: expr OR expr
-{
-    $$ = ASTlogicalor($1, $3);
-}
-
 
 //cast variable like bool test = (bool)0;
 cast: BRACKET_L type BRACKET_R expr %prec CAST
@@ -505,19 +452,7 @@ expr: constant { $$ = $1; }
    | ID {$$ = ASTvar($1);}
    | call
    | cast
-   | plus
-   | minus
-   | mul
-   | div
-   | mod
-   | lt
-   | le
-   | gt
-   | ge
-   | eq
-   | ne
-   | and
-   | or
+   | arithmetic
 ;
 
 constant: floatval
