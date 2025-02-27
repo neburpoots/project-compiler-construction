@@ -37,7 +37,7 @@ enum Type {
     // T_ collides with bison/flex generated stuff.
     prefix = CT,
     values {
-        int, float, bool, void
+        int, float, bool, void, array
     }
 };
 
@@ -127,13 +127,14 @@ node Exprs {
 
 node ArrExpr {
     children {
-        Exprs exprs { constructor, mandatory }
+        Exprs exprs { constructor, mandatory },
+        Exprs indices { constructor, mandatory }
     }
 };
 
 node Ids {
     children {
-        Ids next
+        Ids next { constructor }
     },
     attributes {
         string name { constructor }
@@ -237,7 +238,7 @@ node For {
 
 node GlobDecl {
     children {
-        Ids dims
+        Ids dims { constructor }
     },
 
     attributes {
@@ -248,7 +249,7 @@ node GlobDecl {
 
 node GlobDef {
     children {
-        Exprs dims,
+        Exprs dims { constructor },
         Expr init { constructor }
     },
 
@@ -261,7 +262,7 @@ node GlobDef {
 
 node Param {
     children {
-        Ids dims,
+        Ids dims { constructor },
         Param next { constructor }
     },
 
@@ -275,7 +276,7 @@ node Param {
 //Means parsing and filling in dims in the constructor if needed.
 node VarDecl {
     children {
-        Exprs dims,
+        Exprs dims { constructor },
         Expr init { constructor },
         VarDecl next { constructor }
     },
@@ -322,7 +323,7 @@ node Monop {
 
 node VarLet {
     children {
-        Exprs indices
+        Exprs indices { constructor }
     },
 
     attributes {

@@ -1,0 +1,105 @@
+//print int vec to stdout
+export void printIntVec(int[n] vec, int[n,m]test) {
+    int counter = 0;
+    printInt(vec[counter]);
+
+    while(counter < n){
+        printNewlines(1);
+        counter = counter + 1;
+    }
+}
+
+//print float vec to stdout
+// export void printFloatVec(float[n] vec){
+//   int counter = 0;
+
+//   while(counter < n){
+//     printFloat(vec[counter]);
+//     printNewlines(1);
+//     counter = counter + 1;
+//   }
+// }
+
+//print int matrix to stdout
+// export void printIntMat(int[m,n] matrix){
+//   int c1 = 0;
+//   int c2 = 0;
+
+//   while(c1 < n){
+//     c2 = 0;
+//     while(c2 < m){
+//       printInt(matrix[c1,c2]);
+//       printNewlines(1);
+//       c2 = c2 + 1;
+//     }
+//     c1 = c1 + 1;
+//   }
+// }
+
+//print float matrix to stdout
+// export void printFloatMat(float[m,n] matrix){
+//   int c1 = 0;
+//   int c2 = 0;
+
+//   while(c1 < n){
+//     c2 = 0;
+//     while(c2 < m){
+//       printFloat(matrix[c1,c2]);
+//       printNewlines(1);
+//       c2 = c2 + 1;
+//     }
+//     c1 = c1 + 1;
+//   }
+// }
+
+//scan int vec from stdin 
+// export void scanIntVec(int[n] vec){
+//   int c1 = 0;
+//   while(c1 < n){
+//     vec[c1] = scanInt();
+//     c1 = c1 + 1;
+//   }
+// }
+
+// //scan float vec from stdin 
+// export void scanFloatVec(float[n] vec){
+//   int c1 = 0;
+//   while(c1 < n){
+//     vec[c1] = scanFloat();
+//     c1 = c1 + 1;
+//   }
+// }
+
+// //scan int mat from stdin
+// export void scanIntMat(int[m,n] mat){
+//   int c1 = 0;
+//   int c2 = 0;
+
+//   while(c1 < m){
+//     c2 = 0;
+//     while(c2< n){
+//       mat[c1,c2] = scanInt();
+//       c2 = c2 + 1;
+//     }
+//     c1 = c1 + 1;
+//   }
+// }
+
+//scan int mat from stdin
+// export void scanFloatMat(float[m,n] mat){
+//   int c1 = 0;
+//   int c2 = 0;
+
+//   while(c1 < m){
+//     c2 = 0;
+//     while(c2< n){
+//       mat[c1,c2] = scanFloat();
+//       c2 = c2 + 1;
+//     }
+//     c1 = c1 + 1;
+//   }
+// }
+
+// export void matMul(float[m,n]a ,float[o,p] b, float[q,l] c){
+
+// }

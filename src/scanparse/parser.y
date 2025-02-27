@@ -46,7 +46,7 @@
 
 // Functions
 %token EXPORT RETURN
-%type <node> fundef funbody param var_decl return_stmt call
+%type <node> fundef funbody param var_decl return_stmt call ids
 
 %type <node> intval floatval boolval constant expr cast
 %type <node> stmts stmt assign varlet program args
@@ -105,6 +105,18 @@ decls: decl decls
 	}
 	;
 
+ids: ID
+  {
+    //single dimensions
+    $$ = ASTids(NULL, $1);
+  }
+  |
+  ID COMMA ids
+  {
+    //multi dimensional
+    $$ = ASTids($3, $1);  
+  };
+
 //TODO VRAGEN
 //WAAROM GEEN FunDec optie in nodeset DECL vanuit coconut
 //nodeset Decl = {GlobDef, GlobDecl, FunDef};
@@ -124,24 +136,24 @@ decl: glob_decl
 
 glob_decl: EXTERN type ID SEMICOLON
   {
-    $$ = ASTglobdecl($3, $2);
+    $$ = ASTglobdecl(NULL, $3, $2);
   };
 
 glob_def: EXPORT type ID LET expr SEMICOLON
   {
-    $$ = ASTglobdef($5, $3, $2, true);
+    $$ = ASTglobdef(NULL,$5, $3, $2, true);
   }
   | type ID LET expr SEMICOLON
   {
-    $$ = ASTglobdef($4, $2, $1, false);
+    $$ = ASTglobdef(NULL,$4, $2, $1, false);
   }
   | EXPORT type ID SEMICOLON
   {
-    $$ = ASTglobdef(NULL, $3, $2, true);
+    $$ = ASTglobdef(NULL,NULL, $3, $2, true);
   }
   | type ID SEMICOLON
   {
-    $$ = ASTglobdef(NULL, $2, $1, true);
+    $$ = ASTglobdef(NULL,NULL, $2, $1, true);
   };
 
 stmts: stmt stmts
@@ -234,22 +246,24 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
 //            }
 //          ;
 
+
+
 //TODO Handle Arrays
 var_decl: type ID SEMICOLON
   {
-    $$ = ASTvardecl(NULL, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, NULL, NULL, $2, $1);
   }
   | type ID LET expr SEMICOLON
   {
-    $$ = ASTvardecl($4, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
   }
   | type ID LET expr COMMA
   {
-    $$ = ASTvardecl($4, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
   }
   | type ID LET expr SEMICOLON var_decl
   {
-    $$ = ASTvardecl($4, $6, $2, $1);
+    $$ = ASTvardecl(NULL, $4, $6, $2, $1);
   };
   // | type ID LET call SEMICOLON
   // {
@@ -342,18 +356,29 @@ for_stmt:
 
 param: type ID
   {
-    $$ = ASTparam(NULL, $2, $1);
+    $$ = ASTparam(NULL, NULL, $2, $1);
   }
-  |
-  type ID COMMA param
+
+  | type ID COMMA param
   {
-    $$ = ASTparam($4, $2, $1);
-  };
+    $$ = ASTparam(NULL, $4, $2, $1);
+  }
+
+  //single dimension array
+  | type SQUARE_L ids SQUARE_R ID{
+      $$ = ASTparam($3, NULL, $5, $1);
+  }
+
+  // Array followed by another parameter
+  | type SQUARE_L ids SQUARE_R ID COMMA param
+  {
+    $$ = ASTparam($3, $7, $5, $1);  
+  };  
 
 
 varlet: ID
   {
-    $$ = ASTvarlet($1);
+    $$ = ASTvarlet(NULL, $1);
     AddLocToNode($$, &@1, &@1);
   };
 
