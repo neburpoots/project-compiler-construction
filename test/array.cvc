@@ -1,13 +1,34 @@
-//print int vec to stdout
-export void printIntVec(int[n] vec, int[n,m]test) {
-    int counter = 0;
-    printInt(vec[counter]);
+export void test(){
+  //empty vectors
+  int[5] empty_vec;
+  int[10] empty_vec2;
+  int[15] empty_vec3;
 
-    while(counter < n){
-        printNewlines(1);
-        counter = counter + 1;
-    }
+  //empty matrix
+  int[5,5] empty_vec;
+  int[10,10] empty_vec2;
+  int[15,10] empty_vec3;
 }
+
+//print int vec to stdout
+// export void printIntVec(int[n] vec, int[n,m]test) {
+//     int counter = 0;
+
+//     int[2] empty_vec;
+//     int[2] empty_vec2;
+
+//     // int[1,1] empty_matrix;
+//     // int[5] int_vec = [1,2,3,4,5];
+
+//     // printInt(vec[counter]);
+
+//     // counter += 1;
+
+//     while(counter < n){
+//         printNewlines(1);
+//         counter = counter + 1;
+//     }
+// }
 
 //print float vec to stdout
 // export void printFloatVec(float[n] vec){
@@ -52,7 +73,7 @@ export void printIntVec(int[n] vec, int[n,m]test) {
 //   }
 // }
 
-//scan int vec from stdin 
+//scan int vec from stdin
 // export void scanIntVec(int[n] vec){
 //   int c1 = 0;
 //   while(c1 < n){
@@ -61,7 +82,7 @@ export void printIntVec(int[n] vec, int[n,m]test) {
 //   }
 // }
 
-// //scan float vec from stdin 
+// //scan float vec from stdin
 // export void scanFloatVec(float[n] vec){
 //   int c1 = 0;
 //   while(c1 < n){

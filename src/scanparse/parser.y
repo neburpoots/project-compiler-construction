@@ -33,7 +33,7 @@
 %locations
 
 %token BRACKET_L BRACKET_R COMMA SEMICOLON CURLY_L CURLY_R SQUARE_L SQUARE_R
-%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
+%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND PLUSEQ MINUSEQ STAREQ SLASHEQ PERCENTEQ
 %token TRUEVAL FALSEVAL LET
 
 //arithmetic 
@@ -165,6 +165,7 @@ stmts: stmt stmts
     $$ = ASTstmts($1, NULL);
   };
 
+
 // exprs: expr exprs
     
 
@@ -236,18 +237,6 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
         //     }
        ;
 
-// var_decls: var_decl var_decls
-//            {
-//              $$ = ASTvardecls($1, $2);
-//            }
-//          | var_decl
-//            {
-//              $$ = ASTvardecls($1, NULL);
-//            }
-//          ;
-
-
-
 //TODO Handle Arrays
 var_decl: type ID SEMICOLON
   {
@@ -264,7 +253,66 @@ var_decl: type ID SEMICOLON
   | type ID LET expr SEMICOLON var_decl
   {
     $$ = ASTvardecl(NULL, $4, $6, $2, $1);
+  }
+
+  //var dec like int[5] empty_vec
+  | type SQUARE_L NUM SQUARE_R ID SEMICOLON
+  {
+        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+            NULL,
+            NULL,
+            $5,
+            $1
+        );
+  }
+
+  //var dec like int[5] empty_vec; int[10] empty_vec2;
+  | type SQUARE_L NUM SQUARE_R ID SEMICOLON var_decl
+  {
+        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+            NULL,
+            $7,
+            $5,
+            $1
+        );
+  }
+
+  //var dec like int[1,1] empty_matrix;
+  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON
+  {
+      $$ = ASTvardecl(
+          ASTexprs(
+              ASTnum($3),  
+              ASTexprs(
+                  ASTnum($5),
+                  NULL
+              )
+          ),
+          NULL,  
+          NULL,  
+          $7,    
+          $1
+      );
   };
+
+  //var dec like int[1,1] empty_matrix; int[15,10] empty_vec3
+  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON var_decl
+  {
+      $$ = ASTvardecl(
+          ASTexprs(
+              ASTnum($3), 
+              ASTexprs(
+                  ASTnum($5),
+                  NULL
+              )
+          ),
+          NULL,  
+          $9,
+          $7,   
+          $1
+      );
+  };
+
   // | type ID LET call SEMICOLON
   // {
   //   $$ = ASTvardecl(NULL, NULL, $2, $1);
@@ -277,8 +325,27 @@ var_decl: type ID SEMICOLON
 assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+}
+| varlet PLUSEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_add));
+}
+| varlet MINUSEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_sub));
+}
+| varlet STAREQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_mul));
+}
+| varlet SLASHEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_div));
+}
+| varlet PERCENTEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_mod));
 };
-
 
 return_stmt: RETURN expr SEMICOLON
   {
