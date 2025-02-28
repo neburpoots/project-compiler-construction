@@ -17,6 +17,7 @@
 	int yyerror(char *errname);
 	extern FILE *yyin;
 	void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
+  node_st *generate_indices(node_st *length_node);
 
 
 %}
@@ -48,7 +49,7 @@
 %token EXPORT RETURN
 %type <node> fundef funbody param var_decl return_stmt call ids
 
-%type <node> intval floatval boolval constant expr cast
+%type <node> intval floatval boolval constant expr cast exprs
 %type <node> stmts stmt assign varlet program args
 
 // enum Type 
@@ -237,6 +238,15 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
         //     }
        ;
 
+exprs: expr
+  {
+      $$ = ASTexprs($1, NULL);
+  }
+  | expr COMMA exprs
+  {
+      $$ = ASTexprs($1, $3);
+  };
+
 //TODO Handle Arrays
 var_decl: type ID SEMICOLON
   {
@@ -311,7 +321,35 @@ var_decl: type ID SEMICOLON
           $7,   
           $1
       );
+  }
+
+  //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
+  | type SQUARE_L NUM SQUARE_R ID LET SQUARE_L exprs SQUARE_R SEMICOLON
+  {
+      node_st *size_node = ASTnum($3);
+      $$ = ASTvardecl(
+          ASTexprs(size_node, NULL), 
+          ASTarrexpr($8, generate_indices(size_node)),
+          NULL,  
+          $5,
+          $1
+      );
+  }
+
+  //var dec for initializing a vector like int[5] vec = [1,2,3,4,5]; int[3] vec2 = [1,2,3];
+  | type SQUARE_L NUM SQUARE_R ID LET SQUARE_L exprs SQUARE_R SEMICOLON var_decl
+  {
+      node_st *size_node = ASTnum($3);
+      $$ = ASTvardecl(
+          ASTexprs(size_node, NULL), 
+          ASTarrexpr($8, generate_indices(size_node)),
+          $11,  
+          $5,
+          $1
+      );
   };
+
+
 
   // | type ID LET call SEMICOLON
   // {
@@ -654,6 +692,20 @@ int yyerror(char *error)
 //     CTIabortOnError();
 //     return 0;
 // }
+
+//own function to create the indices based on the array lenght
+node_st *generate_indices(node_st *length_node) {
+    node_st *expr_list = NULL;
+    for (int i = 0; i < NUM_VAL(length_node); i++) {
+        
+        node_st *num_node = ASTnum(i);
+        
+        expr_list = ASTexprs(num_node, expr_list);
+    }
+    return expr_list;
+}
+
+
 
 node_st *SPdoScanParse(node_st *root)
 {

@@ -127,7 +127,9 @@ node Exprs {
 
 node ArrExpr {
     children {
+        // like [1,2,3,4,5]
         Exprs exprs { constructor, mandatory },
+        // number to the i and j value?
         Exprs indices { constructor, mandatory }
     }
 };
