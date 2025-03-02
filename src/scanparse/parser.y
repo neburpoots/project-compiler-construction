@@ -18,7 +18,7 @@
 	extern FILE *yyin;
 	void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
   node_st *generate_indices(node_st *length_node);
-
+  node_st *generate_matrix_indices(int width, int height);
 
 %}
 
@@ -49,7 +49,7 @@
 %token EXPORT RETURN
 %type <node> fundef funbody param var_decl return_stmt call ids
 
-%type <node> intval floatval boolval constant expr cast exprs arrExpr
+%type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs
 %type <node> stmts stmt assign varlet program args
 
 // enum Type 
@@ -351,27 +351,40 @@ var_decl: type ID SEMICOLON
   }
 
   //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
-  | type SQUARE_L NUM COMMA NUM SQUARE_R ID LET BRACKET_L arrExpr BRACKET_R SEMICOLON
-  {
-      // node_st *size_node = ASTnum($3);
-      // $$ = ASTvardecl(
-      //     ASTexprs(size_node, NULL), 
-      //     $7,
-      //     $9,  
-      //     $5,
-      //     $1
-      // );
-  }
+| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
+{
+    //construct dimensions
+    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
 
+    //construct ArrExpr node
+    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
 
-  // | type ID LET call SEMICOLON
-  // {
-  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
-  // }
-  // | type ID LET ID BRACKET_L BRACKET_R SEMICOLON
-  // {
-  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
-  // }
+    //create vardecl
+    $$ = ASTvardecl(
+        dims,   
+        init,   
+        NULL,   
+        $7,  
+        $1
+    );
+}
+
+| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON var_decl
+{
+    printf("MATRIX DECLARATION DETECTED: %s\n", $7);
+
+    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
+
+    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
+
+    $$ = ASTvardecl(
+        dims,   
+        init, 
+        $13,   
+        $7,
+        $1
+    );
+}
 
 assign: varlet LET expr SEMICOLON
 {
@@ -595,6 +608,16 @@ arrExpr: SQUARE_L exprs SQUARE_R
     $$ = ASTarrexpr($2, generate_indices($2));
 }
 
+arrExprs: arrExpr
+{
+    $$ = ASTexprs($1, NULL);
+}
+| arrExpr COMMA arrExprs
+{
+    $$ = ASTexprs($1, $3);
+};
+
+
 expr: constant { $$ = $1; }
    | ID {$$ = ASTvar($1);}
    | call
@@ -711,18 +734,24 @@ int yyerror(char *error)
 //     return 0;
 // }
 
+//own function create indices for matrix
+node_st *generate_matrix_indices(int width, int height) {
+    // printf("Width: %d height: %d \n", width, height);
+    return ASTexprs(ASTnum(width), ASTexprs(ASTnum(height), NULL));
+}
+
 //own function to create the indices based on the array lenght
 node_st *generate_indices(node_st *exprs) {
     int length = 0;
     node_st *temp = exprs;
 
-    // Traverse the linked list of Exprs nodes to count them
+    //traverse the linked list of Exprs nodes to count them
     while (temp) {
         length++;
-        temp = EXPRS_NEXT(temp);  // Use the macro to access 'next'
+        temp = EXPRS_NEXT(temp);
     }
 
-    // Generate index nodes
+    //generate index nodes
     node_st *expr_list = NULL;
     for (int i = 0; i < length; i++) {
         node_st *num_node = ASTnum(i);
@@ -731,9 +760,6 @@ node_st *generate_indices(node_st *exprs) {
 
     return expr_list;
 }
-
-
-
 
 node_st *SPdoScanParse(node_st *root)
 {
