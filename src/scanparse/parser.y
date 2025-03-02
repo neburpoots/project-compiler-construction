@@ -33,7 +33,7 @@
 %locations
 
 %token BRACKET_L BRACKET_R COMMA SEMICOLON CURLY_L CURLY_R SQUARE_L SQUARE_R
-%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
+%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND PLUSEQ MINUSEQ STAREQ SLASHEQ PERCENTEQ
 %token TRUEVAL FALSEVAL LET
 
 //arithmetic 
@@ -260,11 +260,31 @@ var_decl: type ID SEMICOLON
   //   $$ = ASTvardecl(NULL, NULL, $2, $1);
   // }
 
+//Symbol table needed to retrieve the values itself and actually update the assigmnet?
 assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+}
+| varlet PLUSEQ expr SEMICOLON
+{
+    $$ = ASTassign($1, ASTbinop($1, $3, BO_add));
+}
+| varlet MINUSEQ expr SEMICOLON
+{
+    $$ = ASTassign($1, ASTbinop($1, $3, BO_sub));
+}
+| varlet STAREQ expr SEMICOLON
+{
+    $$ = ASTassign($1, ASTbinop($1, $3, BO_mul));
+}
+| varlet SLASHEQ expr SEMICOLON
+{
+    $$ = ASTassign($1, ASTbinop($1, $3, BO_div));
+}
+| varlet PERCENTEQ expr SEMICOLON
+{
+    $$ = ASTassign($1, ASTbinop($1, $3, BO_mod));
 };
-
 
 return_stmt: RETURN expr SEMICOLON
   {
