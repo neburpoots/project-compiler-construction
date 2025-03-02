@@ -17,7 +17,8 @@
 	int yyerror(char *errname);
 	extern FILE *yyin;
 	void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
-
+  node_st *generate_indices(node_st *length_node);
+  node_st *generate_matrix_indices(int width, int height);
 
 %}
 
@@ -33,7 +34,7 @@
 %locations
 
 %token BRACKET_L BRACKET_R COMMA SEMICOLON CURLY_L CURLY_R SQUARE_L SQUARE_R
-%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
+%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND PLUSEQ MINUSEQ STAREQ SLASHEQ PERCENTEQ
 %token TRUEVAL FALSEVAL LET
 
 //arithmetic 
@@ -46,9 +47,9 @@
 
 // Functions
 %token EXPORT RETURN
-%type <node> fundef funbody param var_decl return_stmt call
+%type <node> fundef funbody param var_decl return_stmt call ids
 
-%type <node> intval floatval boolval constant expr cast
+%type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
 %type <node> stmts stmt assign varlet program args
 
 // enum Type 
@@ -105,6 +106,18 @@ decls: decl decls
 	}
 	;
 
+ids: ID
+  {
+    //single dimensions
+    $$ = ASTids(NULL, $1);
+  }
+  |
+  ID COMMA ids
+  {
+    //multi dimensional
+    $$ = ASTids($3, $1);  
+  };
+
 //TODO VRAGEN
 //WAAROM GEEN FunDec optie in nodeset DECL vanuit coconut
 //nodeset Decl = {GlobDef, GlobDecl, FunDef};
@@ -124,24 +137,24 @@ decl: glob_decl
 
 glob_decl: EXTERN type ID SEMICOLON
   {
-    $$ = ASTglobdecl($3, $2);
+    $$ = ASTglobdecl(NULL, $3, $2);
   };
 
 glob_def: EXPORT type ID LET expr SEMICOLON
   {
-    $$ = ASTglobdef($5, $3, $2, true);
+    $$ = ASTglobdef(NULL,$5, $3, $2, true);
   }
   | type ID LET expr SEMICOLON
   {
-    $$ = ASTglobdef($4, $2, $1, false);
+    $$ = ASTglobdef(NULL,$4, $2, $1, false);
   }
   | EXPORT type ID SEMICOLON
   {
-    $$ = ASTglobdef(NULL, $3, $2, true);
+    $$ = ASTglobdef(NULL,NULL, $3, $2, true);
   }
   | type ID SEMICOLON
   {
-    $$ = ASTglobdef(NULL, $2, $1, true);
+    $$ = ASTglobdef(NULL,NULL, $2, $1, true);
   };
 
 stmts: stmt stmts
@@ -152,6 +165,7 @@ stmts: stmt stmts
   {
     $$ = ASTstmts($1, NULL);
   };
+
 
 // exprs: expr exprs
     
@@ -224,47 +238,188 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
         //     }
        ;
 
-// var_decls: var_decl var_decls
-//            {
-//              $$ = ASTvardecls($1, $2);
-//            }
-//          | var_decl
-//            {
-//              $$ = ASTvardecls($1, NULL);
-//            }
-//          ;
+exprs: expr
+  {
+      $$ = ASTexprs($1, NULL);
+  }
+  | expr COMMA exprs
+  {
+      $$ = ASTexprs($1, $3);
+  };
 
 //TODO Handle Arrays
 var_decl: type ID SEMICOLON
   {
-    $$ = ASTvardecl(NULL, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, NULL, NULL, $2, $1);
   }
   | type ID LET expr SEMICOLON
   {
-    $$ = ASTvardecl($4, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
   }
   | type ID LET expr COMMA
   {
-    $$ = ASTvardecl($4, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
   }
   | type ID LET expr SEMICOLON var_decl
   {
-    $$ = ASTvardecl($4, $6, $2, $1);
+    $$ = ASTvardecl(NULL, $4, $6, $2, $1);
+  }
+
+  //var dec like int[5] empty_vec
+  | type SQUARE_L NUM SQUARE_R ID SEMICOLON
+  {
+        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+            NULL,
+            NULL,
+            $5,
+            $1
+        );
+  }
+
+  //var dec like int[5] empty_vec; int[10] empty_vec2;
+  | type SQUARE_L NUM SQUARE_R ID SEMICOLON var_decl
+  {
+        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+            NULL,
+            $7,
+            $5,
+            $1
+        );
+  }
+
+  //var dec like int[1,1] empty_matrix;
+  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON
+  {
+      $$ = ASTvardecl(
+          ASTexprs(
+              ASTnum($3),  
+              ASTexprs(
+                  ASTnum($5),
+                  NULL
+              )
+          ),
+          NULL,  
+          NULL,  
+          $7,    
+          $1
+      );
   };
-  // | type ID LET call SEMICOLON
-  // {
-  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
-  // }
-  // | type ID LET ID BRACKET_L BRACKET_R SEMICOLON
-  // {
-  //   $$ = ASTvardecl(NULL, NULL, $2, $1);
-  // }
+
+  //var dec like int[1,1] empty_matrix; int[15,10] empty_vec3
+  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON var_decl
+  {
+      $$ = ASTvardecl(
+          ASTexprs(
+              ASTnum($3), 
+              ASTexprs(
+                  ASTnum($5),
+                  NULL
+              )
+          ),
+          NULL,  
+          $9,
+          $7,   
+          $1
+      );
+  }
+
+  //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
+  | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON
+  {
+      node_st *size_node = ASTnum($3);
+
+      $$ = ASTvardecl(
+          ASTexprs(size_node, NULL),  // Store the array size
+          $7,                         // Use arrExpr directly
+          NULL,  
+          $5,
+          $1
+      );
+  }
+
+  //var dec for initializing a vector like int[5] vec = [1,2,3,4,5]; int[3] vec2 = [1,2,3];
+  | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON var_decl
+  {
+      node_st *size_node = ASTnum($3);
+      $$ = ASTvardecl(
+          ASTexprs(size_node, NULL), 
+          $7,
+          $9,  
+          $5,
+          $1
+      );
+  }
+
+  //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
+| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
+{
+    //construct dimensions
+    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
+
+    //construct ArrExpr node
+    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
+
+    //create vardecl
+    $$ = ASTvardecl(
+        dims,   
+        init,   
+        NULL,   
+        $7,  
+        $1
+    );
+}
+
+| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON var_decl
+{
+    printf("MATRIX DECLARATION DETECTED: %s\n", $7);
+
+    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
+
+    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
+
+    $$ = ASTvardecl(
+        dims,   
+        init, 
+        $13,   
+        $7,
+        $1
+    );
+}
 
 assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+}
+//vec[c1] = scanInt()
+| arrVarlet LET expr SEMICOLON 
+{
+  $$ = ASTassign($1, $3);
+}
+//mat[x,y] = scanInt();
+| matVarlet LET expr SEMICOLON 
+{
+  $$ = ASTassign($1, $3);
 };
-
+| varlet PLUSEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_add));
+}
+| varlet MINUSEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_sub));
+}
+| varlet STAREQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_mul));
+}
+| varlet SLASHEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_div));
+}
+| varlet PERCENTEQ expr SEMICOLON
+{
+  $$ = ASTassign($1, ASTbinop($1, $3, BO_mod));
+};
 
 return_stmt: RETURN expr SEMICOLON
   {
@@ -342,18 +497,29 @@ for_stmt:
 
 param: type ID
   {
-    $$ = ASTparam(NULL, $2, $1);
+    $$ = ASTparam(NULL, NULL, $2, $1);
   }
-  |
-  type ID COMMA param
+
+  | type ID COMMA param
   {
-    $$ = ASTparam($4, $2, $1);
-  };
+    $$ = ASTparam(NULL, $4, $2, $1);
+  }
+
+  //single dimension array
+  | type SQUARE_L ids SQUARE_R ID{
+      $$ = ASTparam($3, NULL, $5, $1);
+  }
+
+  // Array followed by another parameter
+  | type SQUARE_L ids SQUARE_R ID COMMA param
+  {
+    $$ = ASTparam($3, $7, $5, $1);  
+  };  
 
 
 varlet: ID
   {
-    $$ = ASTvarlet($1);
+    $$ = ASTvarlet(NULL, $1);
     AddLocToNode($$, &@1, &@1);
   };
 
@@ -367,6 +533,7 @@ args: expr
   {
     $$ = ASTexprs($1, $3);
   }
+  
   // //empty
   // |
   // {
@@ -447,12 +614,50 @@ cast: BRACKET_L type BRACKET_R expr %prec CAST
     $$ = ASTcast($4, $2);
   }
 
+//catches vec[counter];
+arrVar: ID SQUARE_L expr SQUARE_R
+{
+    $$ = ASTvar(ASTexprs($3, NULL), $1);
+}
+
+//catches matrix[x,y];
+matVar: ID SQUARE_L expr COMMA expr SQUARE_R{
+    $$ = ASTvar(ASTexprs($3, ASTexprs($5, NULL)), $1);
+}
+
+arrVarlet: ID SQUARE_L expr SQUARE_R
+{
+    $$ = ASTvarlet(ASTexprs($3, NULL), $1);  // ✅ Use VarLet instead of Var
+}
+
+matVarlet: ID SQUARE_L expr COMMA expr SQUARE_R
+{
+    $$ = ASTvarlet(ASTexprs($3, ASTexprs($5, NULL)), $1);  // ✅ Use VarLet instead of Var
+}
+
+arrExpr: SQUARE_L exprs SQUARE_R
+{
+    $$ = ASTarrexpr($2, generate_indices($2));
+}
+| arrVar
+| matVar
+
+arrExprs: arrExpr
+{
+    $$ = ASTexprs($1, NULL);
+}
+| arrExpr COMMA arrExprs
+{
+    $$ = ASTexprs($1, $3);
+};
+
 
 expr: constant { $$ = $1; }
-   | ID {$$ = ASTvar($1);}
+   | ID {$$ = ASTvar(NULL, $1);}
    | call
    | cast
    | arithmetic
+   | arrExpr
 ;
 
 constant: floatval
@@ -562,6 +767,33 @@ int yyerror(char *error)
 //     CTIabortOnError();
 //     return 0;
 // }
+
+//own function create indices for matrix
+node_st *generate_matrix_indices(int width, int height) {
+    // printf("Width: %d height: %d \n", width, height);
+    return ASTexprs(ASTnum(width), ASTexprs(ASTnum(height), NULL));
+}
+
+//own function to create the indices based on the array lenght
+node_st *generate_indices(node_st *exprs) {
+    int length = 0;
+    node_st *temp = exprs;
+
+    //traverse the linked list of Exprs nodes to count them
+    while (temp) {
+        length++;
+        temp = EXPRS_NEXT(temp);
+    }
+
+    //generate index nodes
+    node_st *expr_list = NULL;
+    for (int i = 0; i < length; i++) {
+        node_st *num_node = ASTnum(i);
+        expr_list = ASTexprs(num_node, expr_list);
+    }
+
+    return expr_list;
+}
 
 node_st *SPdoScanParse(node_st *root)
 {
