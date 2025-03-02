@@ -337,3 +337,12 @@ node_st *PRTdecls(node_st *node)
     printf("NOT IMPLEMENTED");
     return node;
 }
+
+/**
+ * @fn PRTfundec
+ */
+node_st *PRTfundec(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}

@@ -50,7 +50,7 @@
 %type <node> fundef funbody param var_decl return_stmt call ids
 
 %type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
-%type <node> stmts stmt assign varlet program args
+%type <node> stmts stmt assign varlet program args 
 
 // enum Type 
 %token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
@@ -73,7 +73,7 @@
 %type <node> for_stmt
 
 %token EXTERN
-%type <node> decls decl glob_decl glob_def
+%type <node> decls decl glob_decl glob_def fun_dec
 
 
 
@@ -133,7 +133,21 @@ decl: glob_decl
   | glob_def
   {
     $$ = $1;
+  }
+  | fun_dec
+  {
+    $$ = $1;
   };
+
+fun_dec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
+  {
+    $$ = ASTfundec($5, $3, $2);
+  }
+  |  EXTERN type ID BRACKET_L BRACKET_R SEMICOLON
+  {
+    $$ = ASTfundec(NULL, $3, $2);
+  };
+
 
 glob_decl: EXTERN type ID SEMICOLON
   {
