@@ -49,7 +49,7 @@
 %token EXPORT RETURN
 %type <node> fundef funbody param var_decl return_stmt call ids
 
-%type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs
+%type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
 %type <node> stmts stmt assign varlet program args
 
 // enum Type 
@@ -390,6 +390,16 @@ assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
 }
+//vec[c1] = scanInt()
+| arrVarlet LET expr SEMICOLON 
+{
+  $$ = ASTassign($1, $3);
+}
+//mat[x,y] = scanInt();
+| matVarlet LET expr SEMICOLON 
+{
+  $$ = ASTassign($1, $3);
+};
 | varlet PLUSEQ expr SEMICOLON
 {
   $$ = ASTassign($1, ASTbinop($1, $3, BO_add));
@@ -523,6 +533,7 @@ args: expr
   {
     $$ = ASTexprs($1, $3);
   }
+  
   // //empty
   // |
   // {
@@ -603,10 +614,33 @@ cast: BRACKET_L type BRACKET_R expr %prec CAST
     $$ = ASTcast($4, $2);
   }
 
+//catches vec[counter];
+arrVar: ID SQUARE_L expr SQUARE_R
+{
+    $$ = ASTvar(ASTexprs($3, NULL), $1);
+}
+
+//catches matrix[x,y];
+matVar: ID SQUARE_L expr COMMA expr SQUARE_R{
+    $$ = ASTvar(ASTexprs($3, ASTexprs($5, NULL)), $1);
+}
+
+arrVarlet: ID SQUARE_L expr SQUARE_R
+{
+    $$ = ASTvarlet(ASTexprs($3, NULL), $1);  // ✅ Use VarLet instead of Var
+}
+
+matVarlet: ID SQUARE_L expr COMMA expr SQUARE_R
+{
+    $$ = ASTvarlet(ASTexprs($3, ASTexprs($5, NULL)), $1);  // ✅ Use VarLet instead of Var
+}
+
 arrExpr: SQUARE_L exprs SQUARE_R
 {
     $$ = ASTarrexpr($2, generate_indices($2));
 }
+| arrVar
+| matVar
 
 arrExprs: arrExpr
 {
@@ -619,7 +653,7 @@ arrExprs: arrExpr
 
 
 expr: constant { $$ = $1; }
-   | ID {$$ = ASTvar($1);}
+   | ID {$$ = ASTvar(NULL, $1);}
    | call
    | cast
    | arithmetic
