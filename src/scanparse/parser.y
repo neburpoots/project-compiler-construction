@@ -275,13 +275,13 @@ return_stmt: RETURN expr SEMICOLON
     $$ = ASTreturn(NULL);
   };
 
-if_stmt: IF expr CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
+if_stmt: IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
   {
-    $$ = ASTifelse($2, $4, $8);
+    $$ = ASTifelse($3, $6, $10);
   }
-  | IF expr CURLY_L stmts CURLY_R
+  | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
   {
-    $$ = ASTifelse($2, $4, NULL);
+    $$ = ASTifelse($3, $6, NULL);
   };
 
 while_stmt: WHILE BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
