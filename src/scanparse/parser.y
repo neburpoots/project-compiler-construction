@@ -415,26 +415,6 @@ assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
 };
-| varlet PLUSEQ expr SEMICOLON
-{
-  $$ = ASTassign($1, ASTbinop($1, $3, BO_add));
-}
-| varlet MINUSEQ expr SEMICOLON
-{
-  $$ = ASTassign($1, ASTbinop($1, $3, BO_sub));
-}
-| varlet STAREQ expr SEMICOLON
-{
-  $$ = ASTassign($1, ASTbinop($1, $3, BO_mul));
-}
-| varlet SLASHEQ expr SEMICOLON
-{
-  $$ = ASTassign($1, ASTbinop($1, $3, BO_div));
-}
-| varlet PERCENTEQ expr SEMICOLON
-{
-  $$ = ASTassign($1, ASTbinop($1, $3, BO_mod));
-};
 
 return_stmt: RETURN expr SEMICOLON
   {
@@ -618,10 +598,30 @@ arithmetic: expr PLUS expr
 {
     $$ = ASTbinop($1, $3, BO_or);
 }
+| ID PLUSEQ expr 
+{
+  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_add);
+}
+| ID MINUSEQ expr 
+{
+  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_sub);
+}
+| ID STAREQ expr 
+{
+  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_mul);
+}
+| ID SLASHEQ expr 
+{
+  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_div);
+}
+| ID PERCENTEQ expr 
+{
+  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_mod);
+}
 | BRACKET_L expr BRACKET_R
 {
     $$ = $2;
-}
+};
 
 //cast variable like bool test = (bool)0;
 cast: BRACKET_L type BRACKET_R expr %prec CAST

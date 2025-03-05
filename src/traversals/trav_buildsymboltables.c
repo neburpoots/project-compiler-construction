@@ -22,7 +22,7 @@ void BSTinit()
     printf("\nINITIALIZING SYMBOL TABLE TRAVERSAL\n");
     printf("Creating traversal stack\n");
     struct data_bst *data = DATA_BST_GET();
-    data->symbol_table_stack_ptr = Stacknew(10);;
+    data->symbol_table_stack_ptr = Stacknew(10);
     printf("Created traversal stack, entering traversals\n\n");
 
     return;
