@@ -7,9 +7,18 @@
 start phase RootPhase {
     actions {
         pass SPdoScanParse;
+        ConstructSymbolTable;
         TestIfStatement;
 		TestWhileStatements;
         // print;
+    }
+};
+
+traversal ConstructSymbolTable {
+    uid = CST,
+    nodes = { Program, FunDef, FunDec, GlobDef, GlobDecl },
+    travdata {
+        SymbolTableList symbolTables
     }
 };
 
@@ -108,6 +117,41 @@ nodeset Linked {
 root node Program {
     children {
         Decls decls { constructor, mandatory }
+        // SymbolTable table
+    },
+    attributes {
+        SymbolTable table,
+        int test
+    }
+};
+
+node SymbolTableList {
+    children {
+        SymbolTable table { constructor },
+        SymbolTableList next { constructor }
+    }
+};
+
+node SymbolTable {
+    children {
+        TableEntryList list { constructor }
+    },
+    attributes {
+        string scope { constructor }
+    }
+};
+
+node TableEntryList {
+    children {
+        TableEntry entry { constructor },
+        TableEntryList next { constructor }
+    }
+};
+
+node TableEntry {
+    attributes {
+        string name { constructor },
+        Type type { constructor }
     }
 };
 
@@ -179,7 +223,7 @@ node FunDefs {
     children {
         FunDef fundef { constructor, mandatory },
         FunDefs next { constructor }
-    }
+    },
 };
 
 node FunDef {
@@ -191,7 +235,9 @@ node FunDef {
     attributes {
         string name { constructor },
         Type type { constructor },
-        bool export { constructor }
+        bool export { constructor },
+        SymbolTable symbolTable,
+        SymbolTableList parentSymbolTables
     }
 };
 

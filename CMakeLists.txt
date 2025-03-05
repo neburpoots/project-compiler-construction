@@ -33,6 +33,7 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/print/print.c 
     src/traversals/trav_testifstatement.c 
     src/traversals/trav_whilestatements.c
+    src/traversals/trav_constructsymboltable.c
     src/scanparse/scanParse.c 
     src/global/globals.c 
     src/global/globals.h

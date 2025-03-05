@@ -5,6 +5,7 @@ export void test(){
 
 export void test(){
     int x = calc_x(10);
+
 }
 
 export void test(){

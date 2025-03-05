@@ -346,3 +346,46 @@ node_st *PRTfundec(node_st *node)
     printf("NOT IMPLEMENTED");
     return node;
 }
+
+/**
+ * @fn PRTtableentry
+ */
+node_st *PRTtableentry(node_st *node)
+{
+    TRAVchildren(node);
+    printf("%e", TABLEENTRY_TYPE(node));
+    printf(TABLEENTRY_NAME(node));
+    printf("\n");
+    return node;
+}
+
+/**
+ * @fn PRTsymboltable
+ */
+node_st *PRTsymboltable(node_st *node)
+{
+    printf(SYMBOLTABLE_SCOPE(node));
+    TRAVchildren(node);
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTsymboltablelist
+ */
+node_st *PRTsymboltablelist(node_st *node)
+{
+    TRAVchildren(node);
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTtableentrylist
+ */
+node_st *PRTtableentrylist(node_st *node)
+{
+    TRAVchildren(node);
+    printf("NOT IMPLEMENTED");
+    return node;
+}
