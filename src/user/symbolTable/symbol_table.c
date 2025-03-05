@@ -6,9 +6,11 @@ struct stable {
     size_t size;
 };
 
-struct stable *STnew(size_t size)
-{
-    struct stable *table = MEMmalloc(sizeof(struct stable));
+struct stable *STnew(size_t size) {
+    struct stable *table = malloc(sizeof(struct stable)); 
+    if (table == NULL) {
+        return NULL;
+    }
     table->size = size;
     return table;
 }

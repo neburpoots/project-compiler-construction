@@ -15,8 +15,18 @@
 #include <stdlib.h>
 #include "user/symbolTable/symbol_table.h"
 
- void BSTinit() { return; }
- void BSTfini() { return; }
+void BSTinit() 
+{
+    printf("Init statement\n");
+
+    return;
+}
+
+void BSTfini() 
+{
+    printf("Finish statement\n");
+    return;
+}
 
 /**
  * @fn BSTprogram
@@ -24,11 +34,15 @@
 node_st *BSTprogram(node_st *node)
 {
     printf("Started traversal\n");
-
-    struct data_bst *data = DATA_BST_GET();
+    //create initial symbol table
 
     printf("Creating symbol table\n");
+    stable_st *t = STnew(0);
 
+    struct data_bst *data = DATA_BST_GET();
+    data->symbol_table_ptr = t;
+
+    free(t);
     // SymbolTable *t = createSymbolTable(NULL);
 
     TRAVchildren(node);
