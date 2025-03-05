@@ -7,9 +7,17 @@
 start phase RootPhase {
     actions {
         pass SPdoScanParse;
-        TestIfStatement;
-		TestWhileStatements;
+        BuildSymbolTables;
         // print;
+    }
+};
+
+traversal BuildSymbolTables{
+    uid = BST,
+    nodes = { Program, FunDef, FunBody, IfElse, While, DoWhile, For },
+    travdata { 
+        user htable_stptr hash_table_ptr,
+        user stable_stptr symbol_table_ptr
     }
 };
 
@@ -110,6 +118,8 @@ root node Program {
         Decls decls { constructor, mandatory }
     }
 };
+
+
 
 node Decls {
     children {

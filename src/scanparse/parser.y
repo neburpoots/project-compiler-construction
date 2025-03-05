@@ -400,6 +400,7 @@ var_decl: type ID SEMICOLON
     );
 }
 
+//Symbol table needed to retrieve the values itself and actually update the assigmnet?
 assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);

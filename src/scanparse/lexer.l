@@ -50,6 +50,12 @@ int yycolumn = 1;
 ","                        { FILTER( COMMA); }
 ";"                        { FILTER( SEMICOLON); }
 
+"-="                       { FILTER( MINUSEQ); }
+"+="                       { FILTER( PLUSEQ); }
+"*="                       { FILTER( STAREQ); }
+"/="                       { FILTER( SLASHEQ); }
+"%="                       { FILTER( PERCENTEQ); }
+
 "-"                        { FILTER( MINUS); }
 "+"                        { FILTER( PLUS);  }
 "*"                        { FILTER( STAR);  }
