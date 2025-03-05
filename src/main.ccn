@@ -16,8 +16,7 @@ traversal BuildSymbolTables{
     uid = BST,
     nodes = { Program, FunDef, FunBody, IfElse, While, DoWhile, For },
     travdata { 
-        user htable_stptr hash_table_ptr,
-        user stable_stptr symbol_table_ptr
+        user stack_stptr symbol_table_stack_ptr
     }
 };
 
@@ -113,9 +112,20 @@ nodeset Linked {
  *                                                                           *
  *****************************************************************************/
 
+//added the symbol table node but i think it should be attribute but i'll leavve it here for now. Its also still atached
+node SymbolTable {
+    attributes {
+        user stable_stptr table { constructor }
+    }
+};
+
 root node Program {
     children {
-        Decls decls { constructor, mandatory }
+        Decls decls { constructor, mandatory },
+        SymbolTable SymbolTable {}
+    },
+    attributes{
+        user stable_stptr table
     }
 };
 

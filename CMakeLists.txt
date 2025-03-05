@@ -40,6 +40,9 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
 
     src/user/symbolTable/symbol_table.h
     src/user/symbolTable/symbol_table.c
+    src/user/stack/stack.c
+    src/user/stack/stack.h
+
 )
 
 target_compile_options(civicc PRIVATE

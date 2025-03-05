@@ -14,17 +14,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "user/symbolTable/symbol_table.h"
+#include "user/stack/stack.h"
 
+//used to create the stack
 void BSTinit() 
 {
-    printf("Init statement\n");
+    printf("\nINITIALIZING SYMBOL TABLE TRAVERSAL\n");
+    printf("Creating traversal stack\n");
+    struct data_bst *data = DATA_BST_GET();
+    data->symbol_table_stack_ptr = Stacknew(10);;
+    printf("Created traversal stack, entering traversals\n\n");
 
     return;
 }
 
+//used for cleanup
 void BSTfini() 
 {
-    printf("Finish statement\n");
+    printf("\nFINISHING SYMBOL TABLE TRAVERSAL\n");
+
+    printf("Getting symbol table stack\n");
+    struct data_bst *data = DATA_BST_GET();
+
+    printf("Freeing up symbol table stack\n");
+    Stackfree(data->symbol_table_stack_ptr);
+
     return;
 }
 
@@ -39,13 +53,23 @@ node_st *BSTprogram(node_st *node)
     printf("Creating symbol table\n");
     stable_st *t = STnew(0);
 
+    //get traversal data
     struct data_bst *data = DATA_BST_GET();
-    data->symbol_table_ptr = t;
 
-    free(t);
-    // SymbolTable *t = createSymbolTable(NULL);
+    //add new symbol table to the stack
+    Stackpush(data->symbol_table_stack_ptr, t);
+
+    //attaching as child
+    //PROGRAM_SYMBOLTABLE(node) = t;
+
+    //attaching as attribute
+    PROGRAM_TABLE(node) = t;
 
     TRAVchildren(node);
+
+    //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
+    free(Stackpop(data->symbol_table_stack_ptr));
+
     return node;
 }
 

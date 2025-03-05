@@ -6,4 +6,3 @@
 typedef struct stable stable_st;
 
 stable_st *STnew(size_t size);
-
