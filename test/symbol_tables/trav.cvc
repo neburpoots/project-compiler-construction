@@ -1,7 +1,7 @@
-extern int externalGlobDecl;
-export int test_funcdev_trav() {}
-export float glob_def_trav = 14.4 + 28.4;
-extern int calc_someting(int x, int y);
+extern int GlobDecl;
+export float globdef = 14.4 + 28.4;
+export int fundef() {}
+extern int fundec(int x, int y);
 
-// EXPORT type ID BRACKET_L BRACKET_R funbody
+// // EXPORT type ID BRACKET_L BRACKET_R funbody
 export void printAgeAndWeight(int age, float weight){}

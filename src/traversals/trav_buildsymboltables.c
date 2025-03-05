@@ -22,7 +22,7 @@ void BSTinit()
     printf("\nINITIALIZING SYMBOL TABLE TRAVERSAL\n");
     printf("Creating traversal stack\n");
     struct data_bst *data = DATA_BST_GET();
-    data->symbol_table_stack_ptr = Stacknew(10);;
+    data->symbol_table_stack_ptr = Stacknew(10);
     printf("Created traversal stack, entering traversals\n\n");
 
     return;
@@ -70,6 +70,8 @@ node_st *BSTprogram(node_st *node)
 
     //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
     // free(Stackpop(data->symbol_table_stack_ptr));
+
+    printSymbolTableContent(t);
 
     return node;
 }
@@ -143,7 +145,7 @@ node_st *BSTfundef(node_st *node)
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
-    Stackpush(data->symbol_table_stack_ptr, new_table);
+    // Stackpush(data->symbol_table_stack_ptr, new_table);
 
     //get nodes
     node_st *params_node = FUNDEF_PARAMS(node);
@@ -161,7 +163,7 @@ node_st *BSTfundef(node_st *node)
         }
     }
 
-    //attaching as attribute
+    // //attaching as attribute
     FUNDEF_TABLE(node) = new_table;
     printf("Attached symbol table to fun def\n");
 
@@ -171,7 +173,7 @@ node_st *BSTfundef(node_st *node)
       TRAVchildren(body_node);
     }
 
-    printSymbolTableContent(new_table);
+    STfree(new_table);
     
     return node;
 }
@@ -183,7 +185,7 @@ node_st *BSTfundec(node_st *node)
 {
     printf("\nTraversing func dec\n");
 
-    //get traversal data
+    // get traversal data
     struct data_bst *data = DATA_BST_GET();
 
     //peek the current scope
@@ -193,11 +195,26 @@ node_st *BSTfundec(node_st *node)
     printf("inserting '%s' into symbol table\n", FUNDEC_NAME(node));
     STinsertFunc(t, FUNDEC_NAME(node));
 
-    //attaching as attribute
-    FUNDEC_TABLE(node) = t;
-    printf("Attached symbol table to fun dec\n");
+    //create symbol table for own function and push onto stack
+    stable_st *new_table = STnew(t);
 
-    TRAVchildren(node);
+    //get nodes
+    node_st *params_node = FUNDEC_PARAMS(node);
+
+    if (params_node)
+    {
+      node_st *param = params_node;
+      while (param != NULL)
+        {
+          STinsertVar(new_table, PARAM_NAME(param)); 
+          param = PARAM_NEXT(param); 
+        }
+    }
+
+    //attaching as attribute
+    FUNDEC_TABLE(node) = new_table;
+    printf("Attached symbol table to fun def\n");
+    STfree(new_table);
     return node;
 }
 
@@ -209,8 +226,16 @@ node_st *BSTfunbody(node_st *node)
 {
     printf("\nTraversing fun body\n");
 
-  
-    TRAVchildren(node);
+    // //get traversal data
+    // struct data_bst *data = DATA_BST_GET();
+
+    // //pop the current scope
+    // stable_st *t = Stackpop(data->symbol_table_stack_ptr);
+
+    // //freeing for now (SHOULD BE REMOVED)
+    // free(t);
+
+    // TRAVchildren(node);
     return node;
 }
 
@@ -219,17 +244,17 @@ node_st *BSTfunbody(node_st *node)
  */
 node_st *BSTparam(node_st *node)
 {
-    printf("\nTraversing param\n");
+    // printf("\nTraversing param\n");
 
-    //get traversal data
-    struct data_bst *data = DATA_BST_GET();
+    // //get traversal data
+    // struct data_bst *data = DATA_BST_GET();
 
-    //peek the current scope
-    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+    // //peek the current scope
+    // stable_st *t = StackPeek(data->symbol_table_stack_ptr);
  
-    //insert the funcname into the symbol table
-    printf("inserting '%s' into symbol table\n", PARAM_NAME(node));
-    STinsertFunc(t, PARAM_NAME(node));
+    // //insert the funcname into the symbol table
+    // printf("inserting '%s' into symbol table\n", PARAM_NAME(node));
+    // STinsertVar(t, PARAM_NAME(node));
 
     TRAVchildren(node);
     return node;
