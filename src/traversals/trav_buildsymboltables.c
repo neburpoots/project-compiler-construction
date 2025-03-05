@@ -137,16 +137,42 @@ node_st *BSTfundef(node_st *node)
     //peek the current scope
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
-    //insert the funcname into the symbol table
+    //insert the funcname into the parent symbol table
     printf("inserting '%s' into symbol table\n", FUNDEF_NAME(node));
     STinsertFunc(t, FUNDEF_NAME(node));
 
+    //create symbol table for own function and push onto stack
+    stable_st *new_table = STnew(t);
+    Stackpush(data->symbol_table_stack_ptr, new_table);
+
+    //get nodes
+    node_st *params_node = FUNDEF_PARAMS(node);
+    node_st *body_node = FUNDEF_BODY(node);
+
+    //traverse if params. Its possible to change the ast structure to set params first.
+    //Otherwise we need to set the traversal manually like this
+    if (params_node)
+    {
+      node_st *param = params_node;
+      while (param != NULL)
+        {
+          STinsertVar(new_table, PARAM_NAME(param)); 
+          param = PARAM_NEXT(param); 
+        }
+    }
+
     //attaching as attribute
-    FUNDEF_TABLE(node) = t;
+    FUNDEF_TABLE(node) = new_table;
     printf("Attached symbol table to fun def\n");
 
-    TRAVchildren(node);
+    //traverse if body
+    if (body_node)
+    {
+      TRAVchildren(body_node);
+    }
 
+    printSymbolTableContent(new_table);
+    
     return node;
 }
 
@@ -181,6 +207,30 @@ node_st *BSTfundec(node_st *node)
  */
 node_st *BSTfunbody(node_st *node)
 {
+    printf("\nTraversing fun body\n");
+
+  
+    TRAVchildren(node);
+    return node;
+}
+
+/**
+ * @fn BSTparam
+ */
+node_st *BSTparam(node_st *node)
+{
+    printf("\nTraversing param\n");
+
+    //get traversal data
+    struct data_bst *data = DATA_BST_GET();
+
+    //peek the current scope
+    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+ 
+    //insert the funcname into the symbol table
+    printf("inserting '%s' into symbol table\n", PARAM_NAME(node));
+    STinsertFunc(t, PARAM_NAME(node));
+
     TRAVchildren(node);
     return node;
 }

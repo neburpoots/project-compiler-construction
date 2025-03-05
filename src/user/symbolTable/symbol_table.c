@@ -109,6 +109,42 @@ func_entry_st *STlookupFunc(stable_st *table, const char *name) {
   return NULL;
 }
 
+void printSymbolTableContent(stable_st *table) {
+  if (!table) {
+      printf("Symbol table is NULL.\n");
+      return;
+  }
+
+  printf("\nSymbol Table Contents:\n");
+
+  if (table->var_entries) {
+      printf("Variables:\n");
+      var_entry_st *var_entry = table->var_entries;
+      while (var_entry) {
+          printf("  %s\n", var_entry->name);
+          var_entry = var_entry->next;
+      }
+  } else {
+      printf("No variables in this table.\n");
+  }
+
+  if (table->func_entries) {
+      printf("Functions:\n");
+      func_entry_st *func_entry = table->func_entries;
+      while (func_entry) {
+          printf("  %s\n", func_entry->name);
+          func_entry = func_entry->next;
+      }
+  } else {
+      printf("No functions in this table.\n");
+  }
+
+  if (table->parent) {
+      printf("\nParent Symbol Table:\n");
+      printSymbolTableContent(table->parent);
+  }
+}
+
 //free symbol table and all its entries
 void STfree(stable_st *table) {
   if (!table) return;

@@ -22,5 +22,8 @@ var_entry_st *STlookupVar(stable_st *table, const char *name);
 //lookup a func in the symbol table
 func_entry_st *STlookupFunc(stable_st *table, const char *name);
 
+//test log function
+void printSymbolTableContent(stable_st *table);
+
 //free the symbol table vars and fucns
 void STfree(stable_st *table);
