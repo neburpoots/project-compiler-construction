@@ -14,7 +14,7 @@ start phase RootPhase {
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, FunDef, FunBody, IfElse, While, DoWhile, For },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }

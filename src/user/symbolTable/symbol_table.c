@@ -2,15 +2,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct stable {
-    size_t size;
+//var enties
+struct var_entry {
+  char *name;
+  struct var_entry *next;
 };
 
-struct stable *STnew(size_t size) {
-    struct stable *table = malloc(sizeof(struct stable)); 
-    if (table == NULL) {
-        return NULL;
-    }
-    table->size = size;
-    return table;
+//func entries
+struct func_entry {
+  char *name;
+  struct func_entry *next;
+};
+
+//symbol table holding the vars and funcs
+struct stable {
+  var_entry_st *var_entries;
+  func_entry_st *func_entries;
+  struct stable *parent;
+};
+
+//create new symbol table
+stable_st *STnew(stable_st *parent) {
+  stable_st *table = malloc(sizeof(stable_st)); 
+  if (table == NULL) {
+      return NULL;
+  }
+  table->var_entries = NULL;
+  table->func_entries = NULL;
+  table->parent = parent;
+  return table;
 }

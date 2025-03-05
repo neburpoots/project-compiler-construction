@@ -74,6 +74,42 @@ node_st *BSTprogram(node_st *node)
 }
 
 /**
+ * @fn BSTfundef
+ */
+node_st *BSTfundef(node_st *node)
+{
+    TRAVchildren(node);
+    return node;
+}
+
+/**
+ * @fn BSTglobdef
+ */
+node_st *BSTglobdef(node_st *node)
+{
+    TRAVchildren(node);
+    return node;
+}
+
+/**
+ * @fn BSTfundec
+ */
+node_st *BSTfundec(node_st *node)
+{
+    TRAVchildren(node);
+    return node;
+}
+
+/**
+ * @fn BSTglobdecl
+ */
+node_st *BSTglobdecl(node_st *node)
+{
+    TRAVchildren(node);
+    return node;
+}
+
+/**
  * @fn BSTfunbody
  */
 node_st *BSTfunbody(node_st *node)
@@ -113,15 +149,6 @@ node_st *BSTifelse(node_st *node)
  * @fn BSTwhile
  */
 node_st *BSTwhile(node_st *node)
-{
-    TRAVchildren(node);
-    return node;
-}
-
-/**
- * @fn BSTfundef
- */
-node_st *BSTfundef(node_st *node)
 {
     TRAVchildren(node);
     return node;
