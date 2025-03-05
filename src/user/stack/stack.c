@@ -48,9 +48,20 @@ bool StackisEmpty(stack_st *stack) {
   return stack->top == 0;
 }
 
+stable_st *StackPeek(stack_st *stack) {
+  if (stack->top == 0) {
+      return NULL;
+  }
+  return stack->data[stack->top - 1];
+}
+
 //free the stack memory
 void Stackfree(stack_st *stack) {
   if (stack) {
+      for (size_t i = 0; i < stack->top; i++) {
+          stable_st *table = (stable_st *)stack->data[i];
+          STfree(table);
+      }
       free(stack->data);
       free(stack);
   }

@@ -65,10 +65,10 @@ node_st *BSTprogram(node_st *node)
     //attaching as attribute
     PROGRAM_TABLE(node) = t;
 
-    TRAVchildren(node);
+    TRAVdecls(node);
 
     //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
-    free(Stackpop(data->symbol_table_stack_ptr));
+    // free(Stackpop(data->symbol_table_stack_ptr));
 
     return node;
 }
@@ -78,6 +78,18 @@ node_st *BSTprogram(node_st *node)
  */
 node_st *BSTfundef(node_st *node)
 {
+    printf("\nTraversing func def\n");
+
+    //get traversal data
+    struct data_bst *data = DATA_BST_GET();
+
+    //peek the current scope
+    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+    //insert the funcname into the symbol table
+    printf("inserting '%s' into symbol table\n", FUNDEF_NAME(node));
+    STinsertFunc(t, FUNDEF_NAME(node));
+
     TRAVchildren(node);
     return node;
 }
