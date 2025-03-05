@@ -65,11 +65,62 @@ node_st *BSTprogram(node_st *node)
     //attaching as attribute
     PROGRAM_TABLE(node) = t;
 
+    //results in traversal of GlobDef, GlobDecl, FunDef, FunDec (basically same as travchildren)
     TRAVdecls(node);
 
     //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
     // free(Stackpop(data->symbol_table_stack_ptr));
 
+    return node;
+}
+
+/**
+ * @fn BSTglobdecl
+ */
+node_st *BSTglobdecl(node_st *node)
+{
+    printf("\nTraversing glob decl\n");
+
+    //get traversal data
+    struct data_bst *data = DATA_BST_GET();
+
+    //peek the current scope
+    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+    //insert the funcname into the symbol table
+    printf("inserting '%s' into symbol table\n", GLOBDECL_NAME(node));
+    STinsertVar(t, GLOBDECL_NAME(node));
+
+    //attaching as attribute
+    GLOBDECL_TABLE(node) = t;
+    printf("Attached symbol table to glob decl\n");
+
+    TRAVchildren(node);
+    return node;
+}
+
+/**
+ * @fn BSTglobdef
+ */
+node_st *BSTglobdef(node_st *node)
+{
+    printf("\nTraversing glob def\n");
+
+    //get traversal data
+    struct data_bst *data = DATA_BST_GET();
+
+    //peek the current scope
+    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+    //insert the funcname into the symbol table
+    printf("inserting '%s' into symbol table\n", GLOBDEF_NAME(node));
+    STinsertVar(t, GLOBDEF_NAME(node));
+
+    //attaching as attribute
+    GLOBDEF_TABLE(node) = t;
+    printf("Attached symbol table to glob def\n");
+
+    TRAVchildren(node);
     return node;
 }
 
@@ -90,16 +141,12 @@ node_st *BSTfundef(node_st *node)
     printf("inserting '%s' into symbol table\n", FUNDEF_NAME(node));
     STinsertFunc(t, FUNDEF_NAME(node));
 
-    TRAVchildren(node);
-    return node;
-}
+    //attaching as attribute
+    FUNDEF_TABLE(node) = t;
+    printf("Attached symbol table to fun def\n");
 
-/**
- * @fn BSTglobdef
- */
-node_st *BSTglobdef(node_st *node)
-{
     TRAVchildren(node);
+
     return node;
 }
 
@@ -108,18 +155,26 @@ node_st *BSTglobdef(node_st *node)
  */
 node_st *BSTfundec(node_st *node)
 {
+    printf("\nTraversing func dec\n");
+
+    //get traversal data
+    struct data_bst *data = DATA_BST_GET();
+
+    //peek the current scope
+    stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+    //insert the funcname into the symbol table
+    printf("inserting '%s' into symbol table\n", FUNDEC_NAME(node));
+    STinsertFunc(t, FUNDEC_NAME(node));
+
+    //attaching as attribute
+    FUNDEC_TABLE(node) = t;
+    printf("Attached symbol table to fun dec\n");
+
     TRAVchildren(node);
     return node;
 }
 
-/**
- * @fn BSTglobdecl
- */
-node_st *BSTglobdecl(node_st *node)
-{
-    TRAVchildren(node);
-    return node;
-}
 
 /**
  * @fn BSTfunbody

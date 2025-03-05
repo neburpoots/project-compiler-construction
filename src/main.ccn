@@ -211,7 +211,8 @@ node FunDef {
     attributes {
         string name { constructor },
         Type type { constructor },
-        bool export { constructor }
+        bool export { constructor },
+        user stable_stptr table
     }
 };
 
@@ -265,7 +266,8 @@ node GlobDecl {
 
     attributes {
         string name { constructor },
-        Type type { constructor }
+        Type type { constructor },
+        user stable_stptr table
     }
 };
 
@@ -275,7 +277,8 @@ node FunDec {
     },
     attributes {
         string name { constructor },
-        Type type { constructor }
+        Type type { constructor },
+        user stable_stptr table
     }
 };
 
@@ -288,7 +291,8 @@ node GlobDef {
     attributes {
         string name { constructor },
         Type type { constructor },
-        bool export { constructor }
+        bool export { constructor },
+        user stable_stptr table
     }
 };
 
