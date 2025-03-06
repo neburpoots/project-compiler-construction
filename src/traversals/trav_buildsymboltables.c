@@ -90,8 +90,8 @@ node_st *BSTglobdecl(node_st *node)
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
     //insert the funcname into the symbol table
-    printf("inserting '%s' into symbol table\n", GLOBDECL_NAME(node));
-    STinsertVar(t, GLOBDECL_NAME(node));
+    printf("inserting '%s' (%s) into symbol table\n", GLOBDECL_NAME(node), typeToString(GLOBDECL_TYPE(node)));
+    STinsertVar(t, GLOBDECL_NAME(node), GLOBDECL_TYPE(node));
 
     //attaching as attribute
     GLOBDECL_TABLE(node) = t;
@@ -115,8 +115,8 @@ node_st *BSTglobdef(node_st *node)
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
     //insert the funcname into the symbol table
-    printf("inserting '%s' into symbol table\n", GLOBDEF_NAME(node));
-    STinsertVar(t, GLOBDEF_NAME(node));
+    printf("inserting '%s' (%s) into symbol table\n", GLOBDEF_NAME(node), typeToString(GLOBDEF_TYPE(node)));
+    STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node));
 
     //attaching as attribute
     GLOBDEF_TABLE(node) = t;
@@ -140,8 +140,8 @@ node_st *BSTfundef(node_st *node)
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
     //insert the funcname into the parent symbol table
-    printf("inserting '%s' into symbol table\n", FUNDEF_NAME(node));
-    STinsertFunc(t, FUNDEF_NAME(node));
+    printf("inserting '%s' (%s) into symbol table\n", FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
+    STinsertFunc(t, FUNDEF_NAME(node), FUNDEF_TYPE(node));
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
@@ -158,7 +158,8 @@ node_st *BSTfundef(node_st *node)
       node_st *param = params_node;
       while (param != NULL)
         {
-          STinsertVar(new_table, PARAM_NAME(param)); 
+          printf("inserting '%s' (%s) into symbol table\n", PARAM_NAME(param), typeToString(PARAM_TYPE(param)));
+          STinsertVar(new_table, PARAM_NAME(param), PARAM_TYPE(param)); 
           param = PARAM_NEXT(param); 
         }
     }
@@ -192,8 +193,8 @@ node_st *BSTfundec(node_st *node)
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
     //insert the funcname into the symbol table
-    printf("inserting '%s' into symbol table\n", FUNDEC_NAME(node));
-    STinsertFunc(t, FUNDEC_NAME(node));
+    printf("inserting '%s' (%s) into symbol table\n", FUNDEC_NAME(node), typeToString(FUNDEC_TYPE(node)));
+    STinsertFunc(t, FUNDEC_NAME(node), FUNDEC_TYPE(node));
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
@@ -206,7 +207,8 @@ node_st *BSTfundec(node_st *node)
       node_st *param = params_node;
       while (param != NULL)
         {
-          STinsertVar(new_table, PARAM_NAME(param)); 
+          printf("inserting '%s' (%s) into symbol table\n", PARAM_NAME(param), typeToString(PARAM_TYPE(param)));
+          STinsertVar(new_table, PARAM_NAME(param), PARAM_TYPE(param)); 
           param = PARAM_NEXT(param); 
         }
     }

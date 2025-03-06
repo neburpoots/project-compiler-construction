@@ -2,16 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "ccngen/enum.h"
 
 //var enties
 struct var_entry {
   char *name;
+  enum Type type;
   struct var_entry *next;
 };
 
 //func entries
 struct func_entry {
   char *name;
+  enum Type returnType;
   struct func_entry *next;
 };
 
@@ -28,6 +31,7 @@ stable_st *STnew(stable_st *parent) {
   if (table == NULL) {
       return NULL;
   }
+  
   table->var_entries = NULL;
   table->func_entries = NULL;
   table->parent = parent;
@@ -35,13 +39,14 @@ stable_st *STnew(stable_st *parent) {
 }
 
 //insert a variable into the symbol table
-var_entry_st *STinsertVar(stable_st *table, const char *name) {
+var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
   if (!table || !name) return NULL;
 
   var_entry_st *entry = malloc(sizeof(var_entry_st));
   if (!entry) return NULL;
 
   entry->name = strdup(name);
+  entry->type = type;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
@@ -49,13 +54,14 @@ var_entry_st *STinsertVar(stable_st *table, const char *name) {
 }
 
 //insert a function into the symbol table
-func_entry_st *STinsertFunc(stable_st *table, const char *name) {
+func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type returnType) {
   if (!table || !name) return NULL;
 
   func_entry_st *entry = malloc(sizeof(func_entry_st));
   if (!entry) return NULL;
 
   entry->name = strdup(name);
+  entry->returnType = returnType;
   entry->next = table->func_entries;
   table->func_entries = entry;
 
@@ -109,6 +115,18 @@ func_entry_st *STlookupFunc(stable_st *table, const char *name) {
   return NULL;
 }
 
+const char *typeToString(enum Type t) {
+    switch (t) {
+        case CT_NULL:  return "NULL";
+        case CT_int:   return "int";
+        case CT_float: return "float";
+        case CT_bool:  return "bool";
+        case CT_void:  return "void";
+        case CT_array: return "array";
+        default:       return "UNKNOWN_TYPE";
+    }
+}
+
 void printSymbolTableContent(stable_st *table) {
   if (!table) {
       printf("Symbol table is NULL.\n");
@@ -121,7 +139,7 @@ void printSymbolTableContent(stable_st *table) {
       printf("Variables:\n");
       var_entry_st *var_entry = table->var_entries;
       while (var_entry) {
-          printf("  %s\n", var_entry->name);
+          printf("  %s (%s)\n", var_entry->name, typeToString(var_entry->type));
           var_entry = var_entry->next;
       }
   } else {
@@ -132,7 +150,7 @@ void printSymbolTableContent(stable_st *table) {
       printf("Functions:\n");
       func_entry_st *func_entry = table->func_entries;
       while (func_entry) {
-          printf("  %s\n", func_entry->name);
+          printf("  %s (%s)\n", func_entry->name, typeToString(func_entry->returnType));
           func_entry = func_entry->next;
       }
   } else {
