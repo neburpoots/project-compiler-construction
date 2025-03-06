@@ -1,0 +1,14 @@
+export int calculate_age() {
+    int age = 0;
+
+    if(age < 18){
+        int test() {
+            return 10;
+        }
+        return test();
+    } else {
+        return 30;
+    }
+
+    return age;
+}

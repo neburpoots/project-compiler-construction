@@ -8,7 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         BuildSymbolTables;
-        // print;
+        TypeChecking;
     }
 };
 
@@ -18,6 +18,11 @@ traversal BuildSymbolTables{
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
+};
+
+traversal TypeChecking {
+    uid = TC,
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl }
 };
 
 traversal TestIfStatement {
@@ -125,7 +130,8 @@ root node Program {
         SymbolTable SymbolTable {}
     },
     attributes{
-        user stable_stptr table
+        user stable_stptr table,
+        user stack_stptr symbolTableStackPtr
     }
 };
 
@@ -308,8 +314,6 @@ node Param {
     }
 };
 
-//TODO HANDLE ARRAYS
-//Means parsing and filling in dims in the constructor if needed.
 node VarDecl {
     children {
         Exprs dims { constructor },

@@ -37,7 +37,7 @@ void BSTfini()
     struct data_bst *data = DATA_BST_GET();
 
     printf("Freeing up symbol table stack\n");
-    Stackfree(data->symbol_table_stack_ptr);
+    // Stackfree(data->symbol_table_stack_ptr);
 
     return;
 }
@@ -64,6 +64,7 @@ node_st *BSTprogram(node_st *node)
 
     //attaching as attribute
     PROGRAM_TABLE(node) = t;
+    PROGRAM_SYMBOLTABLESTACKPTR(node) = data->symbol_table_stack_ptr;
 
     //results in traversal of GlobDef, GlobDecl, FunDef, FunDec (basically same as travchildren)
     TRAVdecls(node);

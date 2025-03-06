@@ -1,0 +1,7 @@
+extern int calculate_age();
+
+export int test() {
+    int test2() {
+        
+    }
+}
