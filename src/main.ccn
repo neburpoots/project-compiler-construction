@@ -14,7 +14,7 @@ start phase RootPhase {
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
@@ -204,8 +204,8 @@ node FunDefs {
 
 node FunDef {
     children {
-        FunBody body { constructor },
-        Param params { constructor }
+        Param params { constructor },
+        FunBody body { constructor }
     },
 
     attributes {
@@ -255,7 +255,7 @@ node For {
     },
 
     attributes {
-        string var
+        string var {constructor}
     }
 };
 

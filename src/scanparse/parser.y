@@ -199,19 +199,19 @@ stmt: assign { $$ = $1; }
 
 fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
   {
-    $$ = ASTfundef($7, $5, $3, $2, true); // Exported function
+    $$ = ASTfundef($5, $7, $3, $2, true); // Exported function
   }
   | EXPORT type ID BRACKET_L BRACKET_R funbody
   {
-    $$ = ASTfundef($6, NULL, $3, $2, true);
+    $$ = ASTfundef(NULL, $6, $3, $2, true);
   }
   | type ID BRACKET_L param BRACKET_R funbody
   {
-    $$ = ASTfundef($6, $4, $2, $1, false); // Non-exported function
+    $$ = ASTfundef($4, $6, $2, $1, false); // Non-exported function
   }
   | type ID BRACKET_L BRACKET_R funbody
   {
-    $$ = ASTfundef($5, NULL, $2, $1, false);
+    $$ = ASTfundef(NULL, $5, $2, $1, false);
   };
 
 funbody: CURLY_L var_decl stmts return_stmt CURLY_R
@@ -458,35 +458,28 @@ for_stmt:
   FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
     // printf("no step size, default to 1, no statements\n");
-    $$ = ASTfor($6, $8, ASTnum(1), NULL);
-        free($4);
-
+    $$ = ASTfor($6, $8, ASTnum(1), NULL, $4);
   }
 
   //with step size, no statements
   | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
     printf("with step size, no statements\n");
-    $$ = ASTfor($6, $8, $10, NULL);
-        free($4);
-
+    $$ = ASTfor($6, $8, $10, NULL, $4);
   }
 
   //no step size, default to 1, with statements
   | FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
     printf("no step size, default to 1, with statements\n");
-    $$ = ASTfor($6, $8, ASTnum(1), $11);
-        free($4);
-
+    $$ = ASTfor($6, $8, ASTnum(1), $11, $4);
   }
 
   //with step size, with statements
   | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
     // printf("with step size, with statements\n");
-    $$ = ASTfor($6, $8, $10, $13);
-        free($4);
+    $$ = ASTfor($6, $8, $10, $13, $4);
   };
 
 
