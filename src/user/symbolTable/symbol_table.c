@@ -127,7 +127,7 @@ const char *typeToString(enum Type t) {
     }
 }
 
-void printSymbolTableContent(stable_st *table) {
+void printSymbolTableContent(stable_st *table, bool printParent) {
   if (!table) {
       printf("Symbol table is NULL.\n");
       return;
@@ -157,9 +157,14 @@ void printSymbolTableContent(stable_st *table) {
       printf("No functions in this table.\n");
   }
 
+  if (!printParent)
+  {
+    return;
+  }
+  
   if (table->parent) {
       printf("\nParent Symbol Table:\n");
-      printSymbolTableContent(table->parent);
+      printSymbolTableContent(table->parent, true);
   }
 }
 
