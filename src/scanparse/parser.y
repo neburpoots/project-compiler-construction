@@ -76,7 +76,7 @@
 %type <node> decls decl glob_decl glob_def fun_dec
 
 
-
+%right '=' PLUSEQ MINUSEQ STAREQ SLASHEQ PERCENTEQ
 %left OR
 %left AND
 %left EQ NE
@@ -216,15 +216,19 @@ fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
 
 funbody: CURLY_L var_decl stmts return_stmt CURLY_R
   {
-    $$ = ASTfunbody($2, NULL, ASTstmts($3, $4));
+    $$ = ASTfunbody($2, NULL, ASTstmts($4, $3));
   }
   | CURLY_L stmts return_stmt CURLY_R
   {
-    $$ = ASTfunbody(NULL, NULL, ASTstmts($2, $3));
+    $$ = ASTfunbody(NULL, NULL, ASTstmts($3, $2));
   }
   | CURLY_L var_decl stmts CURLY_R
   {
     $$ = ASTfunbody($2, NULL, $3);
+  }
+  | CURLY_L var_decl return_stmt CURLY_R
+  {
+    $$ = ASTfunbody($2, NULL, ASTstmts($3, NULL));
   }
   | CURLY_L CURLY_R
   {
@@ -238,19 +242,10 @@ funbody: CURLY_L var_decl stmts return_stmt CURLY_R
   {
     $$ = ASTfunbody(NULL, NULL, $2);
   }
-        // | CURLY_L var_decl fundefs stmts return_stmt CURLY_R
-        //     {
-        //         $$ = ASTfunbody($2, $3, ASTstmts($4, $5));
-        //     }
-        // | CURLY_L fundefs stmts return_stmt CURLY_R
-        //     {
-        //         $$ = ASTfunbody(NULL, $2, ASTstmts($3, $4));
-        //     }
-        // | CURLY_L var_decl fundefs stmts CURLY_R
-        //     {
-        //         $$ = ASTfunbody($2, $3, ASTstmts($4, NULL));
-        //     }
-       ;
+  | CURLY_L return_stmt CURLY_R
+  {
+    $$ = ASTfunbody(NULL, NULL, ASTstmts($2, NULL));
+  };
 
 exprs: expr
   {
@@ -598,25 +593,25 @@ arithmetic: expr PLUS expr
 {
     $$ = ASTbinop($1, $3, BO_or);
 }
-| ID PLUSEQ expr 
+| expr PLUSEQ expr 
 {
-  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_add);
+  $$ = ASTbinop($1, $3, BO_add);
 }
-| ID MINUSEQ expr 
+| expr MINUSEQ expr 
 {
-  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_sub);
+  $$ = ASTbinop($1, $3, BO_sub);
 }
-| ID STAREQ expr 
+| expr STAREQ expr 
 {
-  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_mul);
+  $$ = ASTbinop($1, $3, BO_mul);
 }
-| ID SLASHEQ expr 
+| expr SLASHEQ expr 
 {
-  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_div);
+  $$ = ASTbinop($1, $3, BO_div);
 }
-| ID PERCENTEQ expr 
+| expr PERCENTEQ expr 
 {
-  $$ = ASTbinop(ASTvar(NULL, $1), $3, BO_mod);
+  $$ = ASTbinop($1, $3, BO_mod);
 }
 | BRACKET_L expr BRACKET_R
 {

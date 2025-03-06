@@ -1,0 +1,4 @@
+export int calculate_age() {
+    int age = 1.222;
+    int test = 10 + 10 * 100;
+}

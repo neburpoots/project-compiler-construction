@@ -1,0 +1,10 @@
+
+export bool test() {
+    bool test = false;
+    return false;
+}
+
+export int main() {
+    test();
+    return 0;
+}
