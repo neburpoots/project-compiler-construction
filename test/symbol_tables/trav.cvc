@@ -4,4 +4,20 @@ export int fundef() {}
 extern int fundec(int x, int y);
 
 // // EXPORT type ID BRACKET_L BRACKET_R funbody
-export void printAgeAndWeight(int age, float weight){}
+// export void printAgeAndWeight(int age, float weight){}
+
+export bool loginUser(int usedId, int pincode){
+  bool userExists = false;
+
+  int x = 10;
+  for(int i = 1, 10) {
+    x = x + 1;
+    timeOut();
+  }
+
+  // void check_user_exists(int userId){
+  //   userExists = true;
+  // }
+
+  check_user_exists(userId);
+}

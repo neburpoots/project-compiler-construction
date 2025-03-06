@@ -24,7 +24,7 @@ var_entry_st *STlookupVar(stable_st *table, const char *name);
 func_entry_st *STlookupFunc(stable_st *table, const char *name);
 
 //test log function
-void printSymbolTableContent(stable_st *table);
+void printSymbolTableContent(stable_st *table, bool printParent);
 
 //convert enum type to string
 const char *typeToString(enum Type type);
