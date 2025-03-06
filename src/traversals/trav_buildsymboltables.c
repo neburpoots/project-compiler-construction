@@ -294,6 +294,27 @@ node_st *BSTfor(node_st *node)
 }
 
 /**
+ * @fn BSTreturn
+ */
+node_st *BSTreturn(node_st *node)
+{
+	printf("\nTraversing return\n");
+
+	//get traversal data
+	struct data_bst *data = DATA_BST_GET();
+
+	//peek the current scope
+	stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+	
+	//insert relevant data from the for loop
+	printf("inserting '%s' (%s) into symbol table\n", "RETURN", typeToString(RETURN_TYPE(node)));
+	STinsertVar(t, "RETURN", RETURN_TYPE(node));
+
+	printSymbolTableContent(t, false);
+    return node;
+}
+
+/**
  * @fn BSTifelse
  */
 node_st *BSTifelse(node_st *node)
