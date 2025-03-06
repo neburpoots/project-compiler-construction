@@ -1,7 +1,17 @@
-extern int GlobDecl;
-export float globdef = 14.4 + 28.4;
-export int fundef() {}
-extern int fundec(int x, int y);
+// extern int GlobDecl;
+// export float globdef = 14.4 + 28.4;
+// export int fundef() {}
+// extern int fundec(int x, int y);
 
 // // EXPORT type ID BRACKET_L BRACKET_R funbody
-export void printAgeAndWeight(int age, float weight){}
+// export void printAgeAndWeight(int age, float weight){}
+
+export bool loginUser(int usedId, int pincode){
+  bool userExists = false;
+
+  // void check_user_exists(int userId){
+  //   userExists = true;
+  // }
+
+  check_user_exists(userId);
+}

@@ -71,7 +71,7 @@ node_st *BSTprogram(node_st *node)
     //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
     // free(Stackpop(data->symbol_table_stack_ptr));
 
-    printSymbolTableContent(t);
+    printSymbolTableContent(t, false);
 
     return node;
 }
