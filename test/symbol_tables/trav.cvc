@@ -1,23 +1,44 @@
-extern int GlobDecl;
-export float globdef = 14.4 + 28.4;
-export int fundef() {}
-extern int fundec(int x, int y);
+// extern int GlobDecl;
+// export float globdef = 14.4 + 28.4;
+// export int fundef() {}
+// extern int fundec(int x, int y);
 
-// // EXPORT type ID BRACKET_L BRACKET_R funbody
-// export void printAgeAndWeight(int age, float weight){}
+// // // EXPORT type ID BRACKET_L BRACKET_R funbody
+// // export void printAgeAndWeight(int age, float weight){}
 
-export bool loginUser(int usedId, int pincode){
-  bool userExists = false;
+// export bool loginUser(int usedId, int pincode){
+//   bool userExists = false;
 
-  int x = 10;
-  for(int i = 1, 10) {
-    x = x + 1;
-    timeOut();
-  }
+//   int x = 10;
+//   for(int i = 1, 10) {
+//     x = x + 1;
+//     timeOut();
+//   }
 
-  // void check_user_exists(int userId){
-  //   userExists = true;
-  // }
+//   // void check_user_exists(int userId){
+//   //   userExists = true;
+//   // }
 
-  check_user_exists(userId);
+//   check_user_exists(userId);
+// }
+
+export bool testBoolReturn(){
+  return;
 }
+
+//  1. creates global scope.
+//  2. creates functions inside global scope with return types
+//  3. funtions have return types
+// export void multipleScopes(){
+//   bool returnBool(){
+//     return bool;
+//   }
+
+//   int returnInt(){
+//     return 1;
+//   }
+
+//   float returnFload(){
+//     return 1.5;
+//   }
+// }
