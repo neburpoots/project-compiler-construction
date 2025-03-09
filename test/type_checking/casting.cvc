@@ -1,7 +1,11 @@
 
 export bool test() {
-    bool test = false;
-    return false;
+    int test = 10;
+    bool test2 = false;
+
+    test2 = (bool)test;
+
+    return test2;
 }
 
 export int main() {

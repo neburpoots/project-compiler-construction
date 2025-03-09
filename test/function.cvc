@@ -10,3 +10,23 @@ export void test(){
 export void test(){
     bool y = is_true(20 > 10);
 }
+
+export void test123() {
+    int x = 10;
+    int y = 20;
+    int z = x + y;
+
+    int inner_function(int a) {
+        int b = 20;
+        int c = a + b;
+
+        return c;
+    }
+
+    if(z == 30) {
+        return inner_function(10);
+    }
+
+    return 100;
+
+}
