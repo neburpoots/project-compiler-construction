@@ -72,7 +72,7 @@ node_st *BSTprogram(node_st *node)
     //Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
     // free(Stackpop(data->symbol_table_stack_ptr));
 
-    printSymbolTableContent(t, false);
+    // printSymbolTableContent(t, false);
 
     return node;
 }
@@ -155,7 +155,7 @@ node_st *BSTfundef(node_st *node)
     FUNDEF_TABLE(node) = new_table;
     printf("Attached symbol table to fun def\n");
 
-    printSymbolTableContent(new_table, false);
+    printSymbolTableContent(new_table, true);
 
     //pop current fun def scope from stack
     new_table = Stackpop(data->symbol_table_stack_ptr);  
@@ -299,19 +299,19 @@ node_st *BSTfor(node_st *node)
  */
 node_st *BSTreturn(node_st *node)
 {
-	printf("\nTraversing return\n");
+	// printf("\nTraversing return\n");
 
-	//get traversal data
-	struct data_bst *data = DATA_BST_GET();
+	// //get traversal data
+	// struct data_bst *data = DATA_BST_GET();
 
-	//peek the current scope
-	stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+	// //peek the current scope
+	// stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 	
-	//insert relevant data from the for loop
-	printf("inserting '%s' (%s) into symbol table\n", "RETURN", typeToString(RETURN_TYPE(node)));
-	STinsertVar(t, "RETURN", RETURN_TYPE(node));
+	// //insert relevant data from the for loop
+	// printf("inserting '%s' (%s) into symbol table\n", "RETURN", typeToString(RETURN_TYPE(node)));
+	// STinsertVar(t, "RETURN", RETURN_TYPE(node));
 
-	printSymbolTableContent(t, false);
+	// printSymbolTableContent(t, false);
     return node;
 }
 

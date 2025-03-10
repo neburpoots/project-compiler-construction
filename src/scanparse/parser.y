@@ -49,7 +49,7 @@
 
 // Functions
 %token EXPORT RETURN
-%type <node> fundef fundefs funbody param var_decl return_stmt call ids
+%type <node> fundef funbody funHeadAndVarDec funHeadAndVarDecs param var_decl return_stmt call ids
 
 %type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
 %type <node> stmts stmt assign varlet program args 
@@ -188,7 +188,8 @@ stmts: stmt stmts
   | stmt
   {
     $$ = ASTstmts($1, NULL);
-  };
+  }
+  ;
 
 
 // exprs: expr exprs
@@ -203,19 +204,19 @@ stmt: assign { $$ = $1; }
     | expr SEMICOLON { $$ = ASTexprstmt($1); 
 };
 
-// fundec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
-//       {
-        
-//       }
-
-fundefs: fundef fundefs
+funHeadAndVarDecs: funHeadAndVarDec funHeadAndVarDecs
   {
-    $$ = ASTfundefs($1, $2);
+    $$ = ASTfunheadandvardecs($1, $2);
   }
-  | fundef
+  | %empty
   {
-    $$ = ASTfundefs($1, NULL);
+    $$ = NULL;
   };
+
+funHeadAndVarDec: fundef { $$ = $1; }
+                | stmt { $$ = $1; }
+                | var_decl { $$ = $1; }
+
 
 fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
   %prec FUNDEC
@@ -238,38 +239,11 @@ fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
     $$ = ASTfundef(NULL, $5, $2, $1, false);
   };
 
-funbody:  CURLY_L var_decl fundefs stmts CURLY_R
+funbody:  CURLY_L funHeadAndVarDecs CURLY_R
   {
-    $$ = ASTfunbody($2, $3, $4);
-  }
-  | CURLY_L fundefs stmts CURLY_R
-  {
-    $$ = ASTfunbody(NULL, $2, $3);
-  }
-  | CURLY_L var_decl fundefs CURLY_R
-  {
-    $$ = ASTfunbody($2, $3, NULL);
-  }
-  | CURLY_L var_decl stmts CURLY_R
-  {
-    $$ = ASTfunbody($2, NULL, $3);
-  }
-  | CURLY_L CURLY_R
-  {
-    $$ = ASTfunbody(NULL, NULL, NULL);
-  }
-  | CURLY_L var_decl CURLY_R
-  {
-    $$ = ASTfunbody($2, NULL, NULL);
-  }
-  | CURLY_L stmts CURLY_R
-  {
-    $$ = ASTfunbody(NULL, NULL, $2);
-  }
-  | CURLY_L fundefs CURLY_R
-  {
-    $$ = ASTfunbody(NULL, $2, NULL);
+    $$ = ASTfunbody($2);
   };
+
 
 exprs: expr
   {
@@ -284,22 +258,22 @@ exprs: expr
 var_decl: type ID SEMICOLON
   %prec LOWER
   {
-    $$ = ASTvardecl(NULL, NULL, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, NULL, $2, $1);
   }
   | type ID LET expr SEMICOLON
   %prec LOWER
   {
-    $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
+    $$ = ASTvardecl(NULL, $4, $2, $1);
   }
   // | type ID LET expr COMMA 
   // {
   //   $$ = ASTvardecl(NULL, $4, NULL, $2, $1);
   // }
-  | type ID LET expr SEMICOLON var_decl
-  %prec LOWER
-  {
-    $$ = ASTvardecl(NULL, $4, $6, $2, $1);
-  }
+  // | type ID LET expr SEMICOLON var_decl
+  // %prec LOWER
+  // {
+  //   $$ = ASTvardecl(NULL, $4, $6, $2, $1);
+  // }
 
   //var dec like int[5] empty_vec
   | type SQUARE_L NUM SQUARE_R ID SEMICOLON
@@ -307,23 +281,22 @@ var_decl: type ID SEMICOLON
   {
         $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
             NULL,
-            NULL,
             $5,
             $1
         );
   }
 
   //var dec like int[5] empty_vec; int[10] empty_vec2;
-  | type SQUARE_L NUM SQUARE_R ID SEMICOLON var_decl 
-  %prec LOWER
-  {
-        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
-            NULL,
-            $7,
-            $5,
-            $1
-        );
-  }
+  // | type SQUARE_L NUM SQUARE_R ID SEMICOLON var_decl 
+  // %prec LOWER
+  // {
+  //       $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+  //           NULL,
+  //           $7,
+  //           $5,
+  //           $1
+  //       );
+  // }
 
   //var dec like int[1,1] empty_matrix;
   | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON
@@ -338,30 +311,29 @@ var_decl: type ID SEMICOLON
               )
           ),
           NULL,  
-          NULL,  
           $7,    
           $1
       );
   };
 
   // //var dec like int[1,1] empty_matrix; int[15,10] empty_vec3
-  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON var_decl
-  %prec LOWER
-  {
-      $$ = ASTvardecl(
-          ASTexprs(
-              ASTnum($3), 
-              ASTexprs(
-                  ASTnum($5),
-                  NULL
-              )
-          ),
-          NULL,  
-          $9,
-          $7,   
-          $1
-      );
-  }
+  // | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON var_decl
+  // %prec LOWER
+  // {
+  //     $$ = ASTvardecl(
+  //         ASTexprs(
+  //             ASTnum($3), 
+  //             ASTexprs(
+  //                 ASTnum($5),
+  //                 NULL
+  //             )
+  //         ),
+  //         NULL,  
+  //         $9,
+  //         $7,   
+  //         $1
+  //     );
+  // }
 
   //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
   | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON
@@ -372,25 +344,24 @@ var_decl: type ID SEMICOLON
       $$ = ASTvardecl(
           ASTexprs(size_node, NULL),  // Store the array size
           $7,                         // Use arrExpr directly
-          NULL,  
           $5,
           $1
       );
   }
 
   // var dec for initializing a vector like int[5] vec = [1,2,3,4,5]; int[3] vec2 = [1,2,3];
-  | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON var_decl 
-    %prec LOWER
-  {
-      node_st *size_node = ASTnum($3);
-      $$ = ASTvardecl(
-          ASTexprs(size_node, NULL), 
-          $7,
-          $9,  
-          $5,
-          $1
-      );
-  }
+  // | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON var_decl 
+  //   %prec LOWER
+  // {
+  //     node_st *size_node = ASTnum($3);
+  //     $$ = ASTvardecl(
+  //         ASTexprs(size_node, NULL), 
+  //         $7,
+  //         $9,  
+  //         $5,
+  //         $1
+  //     );
+  // }
 
   //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
 | type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
@@ -407,28 +378,27 @@ var_decl: type ID SEMICOLON
     $$ = ASTvardecl(
         dims,   
         init,   
-        NULL,   
         $7,  
         $1
     );
 }
 
-| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON var_decl
-{
-    printf("MATRIX DECLARATION DETECTED: %s\n", $7);
+// | type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON var_decl
+// {
+//     printf("MATRIX DECLARATION DETECTED: %s\n", $7);
 
-    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
+//     node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
 
-    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
+//     node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
 
-    $$ = ASTvardecl(
-        dims,   
-        init, 
-        $13,   
-        $7,
-        $1
-    );
-}
+//     $$ = ASTvardecl(
+//         dims,   
+//         init, 
+//         $13,   
+//         $7,
+//         $1
+//     );
+// }
 
 //Symbol table needed to retrieve the values itself and actually update the assigmnet?
 assign: varlet LET expr SEMICOLON

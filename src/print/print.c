@@ -17,7 +17,7 @@
  */
 node_st *PRTprogram(node_st *node)
 {
-    TRAVstmts(node);
+    // Tr(node);
     return node;
 }
 
@@ -351,6 +351,25 @@ node_st *PRTfundec(node_st *node)
  * @fn PRTsymboltable
  */
 node_st *PRTsymboltable(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTvardecls
+ */
+node_st *PRTvardecls(node_st *node)
+{
+    printf("NOT IMPLEMENTED");
+    return node;
+}
+
+/**
+ * @fn PRTfunheadandvardecs
+ */
+
+node_st *PRTfunheadandvardecs(node_st *node)
 {
     printf("NOT IMPLEMENTED");
     return node;
