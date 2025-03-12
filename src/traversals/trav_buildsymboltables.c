@@ -222,7 +222,7 @@ node_st *BSTfundef(node_st *node)
     FUNDEF_TABLE(node) = new_table;
     printf("Attached symbol table to fun def\n");
 
-    printSymbolTableContent(new_table, true);
+    // printSymbolTableContent(new_table, true);
 
     //pop current fun def scope from stack
     new_table = Stackpop(data->symbol_table_stack_ptr);
@@ -370,7 +370,7 @@ node_st *BSTfor(node_st *node)
 
 	new_table = Stackpop(data->symbol_table_stack_ptr);
 
-	printSymbolTableContent(new_table, false);
+	// printSymbolTableContent(new_table, false);
 
 	STfree(new_table);
 
@@ -403,8 +403,26 @@ node_st *BSTreturn(node_st *node)
  */
 node_st *BSTifelse(node_st *node)
 {
-    TRAVchildren(node);
-    return node;
+  //create empty symbol table that links to parent scope
+  printf("\nTraversing if else\n");
+
+  //get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  //peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+  //create symbol table for own function and push onto stack
+  stable_st *new_table = STnew(t);
+
+  //attaching as attribute
+  IFELSE_TABLE(node) = t;
+
+  printf("Attached empty symbol table to if else\n");
+
+  printSymbolTableContent(new_table, true);
+
+  return node;
 }
 
 /**

@@ -236,6 +236,9 @@ node IfElse {
         Expr cond { constructor, mandatory },
         Stmts then { constructor },
         Stmts else_block { constructor }
+    },
+    attributes{
+        user stable_stptr table
     }
 };
 

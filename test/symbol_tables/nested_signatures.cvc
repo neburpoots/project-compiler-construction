@@ -13,6 +13,7 @@ export int calculate_age(int birth_year) {
     return current_year - birth_year;
   }
 
+
   return calculate_age_from_years();
 }
 
@@ -20,6 +21,21 @@ export int calculate_age(int birth_year, int birth_month) {
   int current_year = 2025;
   int current_month = 3;
   int age = current_year - birth_year;
+
+  void printYoung(){
+    //iets
+  }
+
+  void printOld(){
+    //iets
+  }
+
+  if(age < 50){
+    printYoung();
+  }else{
+    printOld();
+  }
+
   return age;
 }
 
