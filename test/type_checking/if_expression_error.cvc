@@ -1,0 +1,13 @@
+export int calculate_age() {
+    
+    int age = 0;
+
+    bool isTrue = true;
+
+    //should be an error
+    if(isTrue + age > 10) {
+        age = age + 1;
+    } 
+
+    return age;
+}

@@ -229,7 +229,16 @@ enum Type InferExprType(node_st *expr) {
             enum Type right = InferExprType(BINOP_RIGHT(expr));
             enum BinOpType op = BINOP_OP(expr);
 
+            printf("Left: %s\n", typeToString(left));
+            
+
             if(op == BO_add || op == BO_sub || op == BO_mul || op == BO_div || op == BO_mod) {
+                //if either is boolean return error
+                if(left == CT_bool || right == CT_bool) {
+                    printTypeMisMatch(expr, CT_int, CT_bool);
+                    return CT_bool;
+                }
+
                 // If either is float return float type.
                 if(left == CT_float || right == CT_float) {
                     return CT_float;
@@ -248,19 +257,33 @@ enum Type InferExprType(node_st *expr) {
             break;
         case NT_VAR:
             //TODO get the symbol table from the node attribute to find the var type.
+            break;
         case NT_FUNCALL:
             //TODO get the symbol table from the node attribute to find the function type.
+            break;
         case NT_CAST:
             // NO checking is required according to civic docs
             // The only way to check if a conversion is allowed
             return CAST_TYPE(expr);
-
+            break;
 
         default:
             break;
     }
 }
 
+
+node_st *TCbinop(node_st *node)
+{
+    enum Type comparisonType = InferExprType(node);
+    // enum Type declaredType = BINOP_TYPE(node);
+
+    // if (comparisonType != declaredType) {
+    //     printTypeMisMatch(node, declaredType, comparisonType);
+    // }
+    
+    return node;
+}
 
 /**
  * @fn TCvardecl

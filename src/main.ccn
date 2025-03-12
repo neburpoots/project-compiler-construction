@@ -22,7 +22,7 @@ traversal BuildSymbolTables{
 
 traversal TypeChecking {
     uid = TC,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl }
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop }
 };
 
 traversal TestIfStatement {

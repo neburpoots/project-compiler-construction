@@ -414,6 +414,8 @@ node_st *BSTifelse(node_st *node)
 
   //create symbol table for own function and push onto stack
   stable_st *new_table = STnew(t);
+  
+	Stackpush(data->symbol_table_stack_ptr, new_table);
 
   //attaching as attribute
   IFELSE_TABLE(node) = t;
