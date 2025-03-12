@@ -59,8 +59,8 @@ void printVariableAlreadyDeclared(node_st *node)
       break;
     default:
     printf(YELLOW " No additional information provided.\n\n" RESET);
-    // code block
   }
+  exit(EXIT_FAILURE);
 }
 
 //print function already declare.
@@ -69,6 +69,7 @@ void printFunctionSignatureDeclared(node_st *node)
   printf(RED "\nError: function signature already exist.\n" RESET);
   printf(YELLOW " Function: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
   // printf(YELLOW " Exising signature: " RESET "%s %s", typeToString(FUNDEF_TYPE(node)), FUNDEF_NAME(node));
+  exit(EXIT_FAILURE);
 }
 
 //used to create the stack
