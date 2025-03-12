@@ -1,0 +1,42 @@
+export int calculate_age(int birth_year) {
+  int current_year;
+
+  if(birth_year == NULL){
+    return 9999;
+  }
+
+  int get_current_year(){
+    return 2025;
+  }
+
+  int calculate_age_from_years(int current_year, int birth_year){
+    return current_year - birth_year;
+  }
+
+  return calculate_age_from_years();
+}
+
+export int calculate_age(int birth_year, int birth_month) {
+  int current_year = 2025;
+  int current_month = 3;
+  int age = current_year - birth_year;
+  return age;
+}
+
+
+// export float calculate_precise_age(int birth_year, int birth_month) {
+//   float current_year = 2025.0;
+//   float current_month = 3.0;
+//   float age = (current_year + (current_month / 12)) - (birth_year + (birth_month / 12));
+//   return age;
+// }
+
+// export bool is_of_age(int birth_year) {
+//   int age = calculate_age(birth_year);
+//   float precises_age = calculate_precise_age(2025, 10);
+//   if(age > 18){
+//     return true;
+//   }
+
+//   return false;
+// }

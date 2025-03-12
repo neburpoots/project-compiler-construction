@@ -1,8 +1,35 @@
-export int test() {
+//1. should work
+export int test(int param_int, float param_float) {
   int x = 10;
-  float x = 10.5;
+  float y = 10.5;
 }
 
-export int test2(int test, int y, float test){
+//2. should work
+export float test(int param_int, float param_float) {
+  int x = 10;
+  float y = 10.5;
+}
 
+//3. should work
+export bool test(int param_int, float param_float) {
+  int x = 10;
+  float y = 10.5;
+}
+
+//4. results in error (same as 3) commented out for traversal
+// export bool test(int param_int, float param_float) {
+//   int x = 10;
+//   float y = 10.5;
+// }
+
+//5. should work (name differs from 2)
+export float float_test(int param_int, float param_float) {
+  int x = 10;
+  float y = 10.5;
+}
+
+//6. should work
+export int test(float param_float_1, float param_float_2) {
+  int x = 10;
+  float y = 10.5;
 }

@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include "ccngen/enum.h"
 
+struct param_entry {
+  enum Type type;
+  struct param_entry *next;
+};
+
+typedef struct param_entry param_entry_st;
 typedef struct stable stable_st;
 typedef struct var_entry var_entry_st;
 typedef struct func_entry func_entry_st;
@@ -15,7 +21,7 @@ stable_st *STnew(stable_st *parent);
 var_entry_st *STinsertVar(stable_st *table, const char *name, const enum Type);
 
 //insert a func into the symbol table linked list
-func_entry_st *STinsertFunc(stable_st *table, const char *name, const enum Type);
+func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type returnType, param_entry_st *params);
 
 //lookup a var in the symbol table
 var_entry_st *STlookupVar(stable_st *table, const char *name, bool traverse_parent);

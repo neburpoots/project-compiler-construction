@@ -24,6 +24,27 @@
 #define RESET "\033[0m"  // Resets color formatting
 
 void printVariableAlreadyDeclared(node_st *node);
+param_entry_st *create_params(node_st *node);
+
+param_entry_st *create_params(node_st *node) {
+  param_entry_st *params = NULL;
+  param_entry_st **tail = &params;
+  node_st *param_node = FUNDEF_PARAMS(node);
+
+  while (param_node) {
+      printf("Creating param with type: %s\n", typeToString(PARAM_TYPE(param_node)));
+      param_entry_st *p = malloc(sizeof(param_entry_st));
+      p->type = PARAM_TYPE(param_node);
+      p->next = NULL;
+
+      *tail = p;
+      tail = &(p->next);
+
+      param_node = PARAM_NEXT(param_node);
+  }
+
+  return params;
+}
 
 //print already declared error.
 void printVariableAlreadyDeclared(node_st *node)
@@ -42,8 +63,16 @@ void printVariableAlreadyDeclared(node_st *node)
   }
 }
 
+//print function already declare.
+void printFunctionSignatureDeclared(node_st *node)
+{
+  printf(RED "\nError: function signature already exist.\n" RESET);
+  printf(YELLOW " Function: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
+  // printf(YELLOW " Exising signature: " RESET "%s %s", typeToString(FUNDEF_TYPE(node)), FUNDEF_NAME(node));
+}
+
 //used to create the stack
-void BSTinit() 
+void BSTinit()
 {
     printf("\nINITIALIZING SYMBOL TABLE TRAVERSAL\n");
     printf("Creating traversal stack\n");
@@ -54,7 +83,7 @@ void BSTinit()
 }
 
 //used for cleanup
-void BSTfini() 
+void BSTfini()
 {
     printf("\nFINISHING SYMBOL TABLE TRAVERSAL\n");
 
@@ -175,7 +204,11 @@ node_st *BSTfundef(node_st *node)
 
     //insert the funcname into the parent symbol table
     printf("inserting '%s' (%s) into symbol table\n", FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
-    STinsertFunc(t, FUNDEF_NAME(node), FUNDEF_TYPE(node));
+
+    if (!STinsertFunc(t, FUNDEF_NAME(node), FUNDEF_TYPE(node), create_params(node)))
+    {
+      printFunctionSignatureDeclared(node);
+    }
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
@@ -191,9 +224,9 @@ node_st *BSTfundef(node_st *node)
     printSymbolTableContent(new_table, true);
 
     //pop current fun def scope from stack
-    new_table = Stackpop(data->symbol_table_stack_ptr);  
+    new_table = Stackpop(data->symbol_table_stack_ptr);
     STfree(new_table);
-    
+
     return node;
 }
 
@@ -212,7 +245,11 @@ node_st *BSTfundec(node_st *node)
 
     //insert the funcname into the symbol table
     printf("inserting '%s' (%s) into symbol table\n", FUNDEC_NAME(node), typeToString(FUNDEC_TYPE(node)));
-    STinsertFunc(t, FUNDEC_NAME(node), FUNDEC_TYPE(node));
+
+    if (!STinsertFunc(t, FUNDEC_NAME(node), FUNDEC_TYPE(node), create_params(node)))
+    {
+      printFunctionSignatureDeclared(node);
+    }
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
@@ -252,7 +289,7 @@ node_st *BSTparam(node_st *node)
 
     //peek the current scope
     stable_st *t = StackPeek(data->symbol_table_stack_ptr);
- 
+
     //insert the funcname into the symbol table
     printf("inserting '%s' (%s) into symbol table\n", PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
 
@@ -277,7 +314,7 @@ node_st *BSTvardecl(node_st *node)
 
 	//peek the current scope
 	stable_st *t = StackPeek(data->symbol_table_stack_ptr);
-  
+
 	//insert the funcname into the symbol table
 	printf("inserting '%s' (%s) into symbol table\n", VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
 
@@ -316,7 +353,7 @@ node_st *BSTfor(node_st *node)
 	stable_st *new_table = STnew(t);
 
 	printf("\n %s \n", FOR_VAR(node));
-	
+
 	//insert relevant data from the for loop
 	printf("inserting '%s' (%s) into symbol table\n", FOR_VAR(node), typeToString(CT_int));
 
@@ -351,7 +388,7 @@ node_st *BSTreturn(node_st *node)
 
 	// //peek the current scope
 	// stable_st *t = StackPeek(data->symbol_table_stack_ptr);
-	
+
 	// //insert relevant data from the for loop
 	// printf("inserting '%s' (%s) into symbol table\n", "RETURN", typeToString(RETURN_TYPE(node)));
 	// STinsertVar(t, "RETURN", RETURN_TYPE(node));
