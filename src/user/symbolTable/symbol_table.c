@@ -42,6 +42,12 @@ stable_st *STnew(stable_st *parent) {
 var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
   if (!table || !name) return NULL;
 
+  //check if var already exists in local scope symbol table
+  if (STlookupVar(table, name, false))
+  {
+    return NULL;
+  }
+
   var_entry_st *entry = malloc(sizeof(var_entry_st));
   if (!entry) return NULL;
 
@@ -69,7 +75,7 @@ func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type return
 }
 
 //lookup var in symbol table or linked parents
-var_entry_st *STlookupVar(stable_st *table, const char *name) {
+var_entry_st *STlookupVar(stable_st *table, const char *name, bool traverse_parent) {
 
   //setting the current scope/symbol table 
   stable_st *current = table;
@@ -91,8 +97,14 @@ var_entry_st *STlookupVar(stable_st *table, const char *name) {
           entry = entry->next;
       }
 
-      //not found in the current scope, needed to check for static accessible vars. Should not be possible that we access random vars in the scope above.
-      current = current->parent;
+      if (traverse_parent)
+      {
+        //not found in the current scope, needed to check for static accessible vars. Should not be possible that we access random vars in the scope above.
+        current = current->parent;
+      }else{
+        current = NULL;
+      }
+
   }
 
   //not founb

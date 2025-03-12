@@ -1,5 +1,8 @@
 export int test() {
-    int test2() {
-        
-    }
+  int x = 10;
+  float x = 10.5;
+}
+
+export int test2(int test, int y, float test){
+
 }

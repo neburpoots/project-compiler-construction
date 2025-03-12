@@ -18,7 +18,7 @@ var_entry_st *STinsertVar(stable_st *table, const char *name, const enum Type);
 func_entry_st *STinsertFunc(stable_st *table, const char *name, const enum Type);
 
 //lookup a var in the symbol table
-var_entry_st *STlookupVar(stable_st *table, const char *name);
+var_entry_st *STlookupVar(stable_st *table, const char *name, bool traverse_parent);
 
 //lookup a func in the symbol table
 func_entry_st *STlookupFunc(stable_st *table, const char *name);

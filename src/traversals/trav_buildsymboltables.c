@@ -16,6 +16,32 @@
 #include "user/symbolTable/symbol_table.h"
 #include "user/stack/stack.h"
 
+// ANSI color codes
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define BLUE "\033[1;34m"
+#define RESET "\033[0m"  // Resets color formatting
+
+void printVariableAlreadyDeclared(node_st *node);
+
+//print already declared error.
+void printVariableAlreadyDeclared(node_st *node)
+{
+  printf(RED "\nError: variable already declared.\n" RESET);
+  switch NODE_TYPE(node){
+    case NT_VARDECL:
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
+      break;
+    case NT_PARAM:
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
+      break;
+    default:
+    printf(YELLOW " No additional information provided.\n\n" RESET);
+    // code block
+  }
+}
+
 //used to create the stack
 void BSTinit() 
 {
@@ -24,7 +50,6 @@ void BSTinit()
     struct data_bst *data = DATA_BST_GET();
     data->symbol_table_stack_ptr = Stacknew(10);
     printf("Created traversal stack, entering traversals\n\n");
-
     return;
 }
 
@@ -92,7 +117,11 @@ node_st *BSTglobdecl(node_st *node)
 
     //insert the funcname into the symbol table
     printf("inserting '%s' (%s) into symbol table\n", GLOBDECL_NAME(node), typeToString(GLOBDECL_TYPE(node)));
-    STinsertVar(t, GLOBDECL_NAME(node), GLOBDECL_TYPE(node));
+
+    if (!STinsertVar(t, GLOBDECL_NAME(node), GLOBDECL_TYPE(node)))
+    {
+      printVariableAlreadyDeclared(node);
+    }
 
     //attaching as attribute
     GLOBDECL_TABLE(node) = t;
@@ -117,7 +146,11 @@ node_st *BSTglobdef(node_st *node)
 
     //insert the funcname into the symbol table
     printf("inserting '%s' (%s) into symbol table\n", GLOBDEF_NAME(node), typeToString(GLOBDEF_TYPE(node)));
-    STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node));
+
+    if (!STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node)))
+    {
+      printVariableAlreadyDeclared(node);
+    }
 
     //attaching as attribute
     GLOBDEF_TABLE(node) = t;
@@ -183,9 +216,9 @@ node_st *BSTfundec(node_st *node)
 
     //create symbol table for own function and push onto stack
     stable_st *new_table = STnew(t);
-	Stackpush(data->symbol_table_stack_ptr, new_table);
+	  Stackpush(data->symbol_table_stack_ptr, new_table);
 
-	TRAVchildren(node);
+	  TRAVchildren(node);
 
     //attaching as attribute
     FUNDEC_TABLE(node) = new_table;
@@ -222,7 +255,11 @@ node_st *BSTparam(node_st *node)
  
     //insert the funcname into the symbol table
     printf("inserting '%s' (%s) into symbol table\n", PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
-    STinsertVar(t, PARAM_NAME(node), PARAM_TYPE(node));
+
+    if (!STinsertVar(t, PARAM_NAME(node), PARAM_TYPE(node)))
+    {
+      printVariableAlreadyDeclared(node);
+    }
 
     TRAVchildren(node);
     return node;
@@ -243,7 +280,11 @@ node_st *BSTvardecl(node_st *node)
   
 	//insert the funcname into the symbol table
 	printf("inserting '%s' (%s) into symbol table\n", VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
-	STinsertVar(t, VARDECL_NAME(node), VARDECL_TYPE(node));
+
+  if (!STinsertVar(t, VARDECL_NAME(node), VARDECL_TYPE(node)))
+  {
+    printVariableAlreadyDeclared(node);
+  }
 
 	TRAVchildren(node);
 	return node;
@@ -278,7 +319,11 @@ node_st *BSTfor(node_st *node)
 	
 	//insert relevant data from the for loop
 	printf("inserting '%s' (%s) into symbol table\n", FOR_VAR(node), typeToString(CT_int));
-	STinsertVar(new_table, FOR_VAR(node), CT_int);
+
+  if (!STinsertVar(new_table, FOR_VAR(node), CT_int))
+  {
+    printVariableAlreadyDeclared(node);
+  }
 
 	//stack push new table
 	Stackpush(data->symbol_table_stack_ptr, new_table);
