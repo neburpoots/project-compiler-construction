@@ -336,8 +336,28 @@ node_st *BSTvardecl(node_st *node)
  */
 node_st *BSTdowhile(node_st *node)
 {
-    TRAVchildren(node);
-    return node;
+//create empty symbol table that links to parent scope
+  printf("\nTraversing do while\n");
+
+  //get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  //peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+  //create symbol table for own function and push onto stack
+  stable_st *new_table = STnew(t);
+  
+	// Stackpush(data->symbol_table_stack_ptr, new_table);
+  // printSymbolTableContent(new_table, true);
+
+  //attaching as attribute
+  DOWHILE_TABLE(node) = new_table;
+
+  printf("Attached empty symbol table to do while\n");
+
+  TRAVchildren(node);
+  return node;
 }
 
 /**
@@ -382,27 +402,6 @@ node_st *BSTfor(node_st *node)
 }
 
 /**
- * @fn BSTreturn
- */
-node_st *BSTreturn(node_st *node)
-{
-	// printf("\nTraversing return\n");
-
-	// //get traversal data
-	// struct data_bst *data = DATA_BST_GET();
-
-	// //peek the current scope
-	// stable_st *t = StackPeek(data->symbol_table_stack_ptr);
-
-	// //insert relevant data from the for loop
-	// printf("inserting '%s' (%s) into symbol table\n", "RETURN", typeToString(RETURN_TYPE(node)));
-	// STinsertVar(t, "RETURN", RETURN_TYPE(node));
-
-	// printSymbolTableContent(t, false);
-    return node;
-}
-
-/**
  * @fn BSTifelse
  */
 node_st *BSTifelse(node_st *node)
@@ -437,6 +436,26 @@ node_st *BSTifelse(node_st *node)
  */
 node_st *BSTwhile(node_st *node)
 {
-    TRAVchildren(node);
-    return node;
+  //create empty symbol table that links to parent scope
+  printf("\nTraversing while\n");
+
+  //get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  //peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+  //create symbol table for own function and push onto stack
+  stable_st *new_table = STnew(t);
+  
+	// Stackpush(data->symbol_table_stack_ptr, new_table);
+  // printSymbolTableContent(new_table, true);
+
+  //attaching as attribute
+  WHILE_TABLE(node) = new_table;
+
+  printf("Attached empty symbol table to while\n");
+
+  TRAVchildren(node);
+  return node;
 }
