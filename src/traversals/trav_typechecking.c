@@ -292,10 +292,17 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
 node_st *TCifelse(node_st *node)
 {
     node_st *expr = IFELSE_COND(node);
-    
-    enum Type expectedType = NT_BOOL;
 
     enum Type actualType = InferExprType(expr, IFELSE_TABLE(node));
+    // printf("Actual type: %d\n", );
+    // If condition has to be a boolean.
+    if(actualType != CT_bool) {
+        //print if statement condition is not a boolean.
+        printf(RED "Error: If statement condition is not a boolean.\n" RESET);
+        printf(YELLOW "  Condition: " RESET "%s\n", typeToString(actualType));
+        printf(YELLOW "  Expected: " RESET BLUE "bool\n" RESET);
+        exit(EXIT_FAILURE);
+    }
 
     TRAVchildren(node);
     return node;
