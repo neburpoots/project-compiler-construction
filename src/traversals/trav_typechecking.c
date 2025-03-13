@@ -238,11 +238,11 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
 
             if(op == BO_add || op == BO_sub || op == BO_mul || op == BO_div || op == BO_mod) {
                 //if either is boolean return error
-                if(left == CT_bool || right == CT_bool) {
-                    printTypeMisMatch(expr, CT_int, CT_bool);
+                // if(left == CT_bool || right == CT_bool) {
+                //     printTypeMisMatch(expr, CT_int, CT_bool);
                     
-                    return CT_bool;
-                }
+                //     return CT_bool;
+                // }
 
                 // If either is float return float type.
                 if(left == CT_float || right == CT_float) {

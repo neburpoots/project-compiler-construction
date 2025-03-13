@@ -15,46 +15,46 @@
 void clear_node(node_st *node);
 
 void clear_node(node_st *node){
-	printf("Freeing up table for node\n");
+	// printf("Freeing up table for node\n");
   switch NODE_TYPE(node){
     case NT_PROGRAM:
-			printf("Program\n");
+			// printf("Program\n");
 			STfree(PROGRAM_TABLE(node));
       break;
 		case NT_IFELSE:
-			printf("If else\n");
+			// printf("If else\n");
 			STfree(IFELSE_TABLE(node));
 			break;
 		case NT_WHILE:
-			printf("While\n");
+			// printf("While\n");
 			STfree(WHILE_TABLE(node));
 			break;
 		case NT_DOWHILE:
-			printf("Do While\n");
+			// printf("Do While\n");
 			STfree(DOWHILE_TABLE(node));
 			break;
 		case NT_FOR:
-			printf("For\n");
+			// printf("For\n");
 			STfree(FOR_TABLE(node));
 			break;
     case NT_GLOBDEF:
-			printf("Globdef\n");
+			// printf("Globdef\n");
 			STfree(GLOBDEF_TABLE(node));
       break;
     case NT_GLOBDECL:
-			printf("Globdecl\n");
+			// printf("Globdecl\n");
 			STfree(GLOBDECL_TABLE(node));
       break;
 		case NT_FUNDEF:
-			printf("Fundef\n");
+			// printf("Fundef\n");
 			STfree(FUNDEF_TABLE(node));
 			break;
 		case NT_FUNDEC:
-			printf("Fundec\n");
+			// printf("Fundec\n");
 			STfree(FUNDEC_TABLE(node));
 			break;
     default:
-			printf("Unsupported\n");
+			// printf("Unsupported\n");
 			return;
   }
 }
@@ -62,14 +62,14 @@ void clear_node(node_st *node){
 //used to create the stack
 void CSTinit()
 {
-  printf("\n\nCleaning symbol table traversal data\n");
+  // printf("\n\nCleaning symbol table traversal data\n");
   return;
 }
 
 //used for cleanup
 void CSTfini()
 {
-  printf("\n\nCleared symbol table traversal data\n");
+  // printf("\n\nCleared symbol table traversal data\n");
   return;
 }
 

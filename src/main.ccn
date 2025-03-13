@@ -8,8 +8,11 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         BuildSymbolTables;
+        TransformVariableInit;
+        PrintCurrentProgram;
         TypeChecking;
         ClearSymbolTables;
+        Print;
     }
 };
 
@@ -29,6 +32,26 @@ traversal ClearSymbolTables{
 traversal TypeChecking {
     uid = TC,
     nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop }
+};
+
+// This traversal is used to transform variable initializations into assignments.
+traversal TransformVariableInit {
+    uid = TVI,
+    nodes = { Program, GlobDef, VarDecl, FunContents },
+    travdata { 
+        user stack_stptr assignments,
+        user stack_stptr global_assignments,
+        user stack_stptr temp_vars,
+        int temp_counter,
+        bool in_global_scope,
+        bool in_array_dim,
+        bool init_func_created
+    }
+};
+
+traversal PrintCurrentProgram {
+    uid = PCP,
+    nodes = { Program, Decls, FunDef, Funbody, FunContents, GlobDef, GlobDecl, FunDec, Param, VarDecl, Assign, Binop, Monop, VarLet, Var, Num, Float, Bool, Cast, FunCall, Exprs, ArrExpr, Ids, ExprStmt, Return, IfElse, While, DoWhile, For }
 };
 
 traversal Print {
@@ -82,7 +105,7 @@ nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations);
 
 nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
 
-nodeset FunHeadAndVardec = {VarDecl, FunDef} | Stmt;
+nodeset FunContent = {VarDecl, FunDef} | Stmt;
 
 nodeset Named {
     nodes = Vars | (Decl | {FunCall, Param, Ids}),
@@ -210,7 +233,7 @@ node FunDef {
 
 node FunBody {
     children {
-        FunHeadAndVardecs funHeadAndVardecs { constructor }
+        FunContents funContents { constructor }
         // Stmts stmts  { constructor }
     }
 };
@@ -334,10 +357,10 @@ node Stmts {
     }
 };
 
-node FunHeadAndVardecs {
+node FunContents {
     children {
-        FunHeadAndVardec funHeadAndVardec { constructor, mandatory },
-        FunHeadAndVardecs next { constructor }
+        FunContent funContent { constructor, mandatory },
+        FunContents next { constructor }
     }
 };
 

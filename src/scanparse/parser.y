@@ -49,7 +49,7 @@
 
 // Functions
 %token EXPORT RETURN
-%type <node> fundef funbody funHeadAndVarDec funHeadAndVarDecs param var_decl return_stmt call ids
+%type <node> fundef funbody funContents funContent param var_decl return_stmt call ids
 
 %type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
 %type <node> stmts stmt assign varlet program args 
@@ -204,18 +204,18 @@ stmt: assign { $$ = $1; }
     | expr SEMICOLON { $$ = ASTexprstmt($1); 
 };
 
-funHeadAndVarDecs: funHeadAndVarDec funHeadAndVarDecs
+funContents: funContent funContents
   {
-    $$ = ASTfunheadandvardecs($1, $2);
+    $$ = ASTfuncontents($1, $2);
   }
   | %empty
   {
     $$ = NULL;
   };
 
-funHeadAndVarDec: fundef { $$ = $1; }
-                | stmt { $$ = $1; }
-                | var_decl { $$ = $1; }
+funContent: fundef { $$ = $1; }
+          | stmt { $$ = $1; }
+          | var_decl { $$ = $1; }
 
 
 fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
@@ -239,7 +239,7 @@ fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
     $$ = ASTfundef(NULL, $5, $2, $1, false);
   };
 
-funbody:  CURLY_L funHeadAndVarDecs CURLY_R
+funbody:  CURLY_L funContents CURLY_R
   {
     $$ = ASTfunbody($2);
   };

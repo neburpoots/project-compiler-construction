@@ -1,8 +1,9 @@
-export int calculate_age() {
-    
+export int calculate_age(int test) {
     int age = 0;
 
     bool isTrue = true;
+
+    int[2, 2] test123 = [[1,2],[3,4]];
 
     //should be an error
     if(isTrue + age > 10) {

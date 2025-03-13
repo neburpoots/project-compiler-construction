@@ -18,6 +18,7 @@
 node_st *PRTprogram(node_st *node)
 {
     // Tr(node);
+    TRAVchildren(node);
     return node;
 }
 
@@ -153,8 +154,8 @@ node_st *PRTfloat(node_st *node)
  */
 node_st *PRTbool(node_st *node)
 {
-    char *bool_str = BOOL_VAL(node) ? "true" : "false";
-    printf("%s", bool_str);
+    // char *bool_str = BOOL_VAL(node) ? "true" : "false";
+    // printf("%s", bool_str);
     return node;
 }
 
@@ -163,7 +164,6 @@ node_st *PRTbool(node_st *node)
  */
 node_st *PRTmonop(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -172,7 +172,6 @@ node_st *PRTmonop(node_st *node)
  */
 node_st *PRTvardecl(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -181,7 +180,6 @@ node_st *PRTvardecl(node_st *node)
  */
 node_st *PRTparam(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -190,7 +188,6 @@ node_st *PRTparam(node_st *node)
  */
 node_st *PRTglobdef(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -199,7 +196,6 @@ node_st *PRTglobdef(node_st *node)
  */
 node_st *PRTglobdecl(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -208,7 +204,6 @@ node_st *PRTglobdecl(node_st *node)
  */
 node_st *PRTfor(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -217,7 +212,6 @@ node_st *PRTfor(node_st *node)
  */
 node_st *PRTdowhile(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -226,7 +220,6 @@ node_st *PRTdowhile(node_st *node)
  */
 node_st *PRTwhile(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -235,7 +228,6 @@ node_st *PRTwhile(node_st *node)
  */
 node_st *PRTifelse(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -244,7 +236,6 @@ node_st *PRTifelse(node_st *node)
  */
 node_st *PRTfunbody(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -253,7 +244,6 @@ node_st *PRTfunbody(node_st *node)
  */
 node_st *PRTfundef(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -262,7 +252,6 @@ node_st *PRTfundef(node_st *node)
  */
 node_st *PRTfundefs(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -271,7 +260,6 @@ node_st *PRTfundefs(node_st *node)
  */
 node_st *PRTcast(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -280,7 +268,6 @@ node_st *PRTcast(node_st *node)
  */
 node_st *PRTfuncall(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -289,7 +276,6 @@ node_st *PRTfuncall(node_st *node)
  */
 node_st *PRTreturn(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -298,7 +284,6 @@ node_st *PRTreturn(node_st *node)
  */
 node_st *PRTexprstmt(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -307,7 +292,6 @@ node_st *PRTexprstmt(node_st *node)
  */
 node_st *PRTids(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -316,7 +300,6 @@ node_st *PRTids(node_st *node)
  */
 node_st *PRTarrexpr(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -325,7 +308,6 @@ node_st *PRTarrexpr(node_st *node)
  */
 node_st *PRTexprs(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -334,7 +316,6 @@ node_st *PRTexprs(node_st *node)
  */
 node_st *PRTdecls(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -343,7 +324,6 @@ node_st *PRTdecls(node_st *node)
  */
 node_st *PRTfundec(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -352,7 +332,6 @@ node_st *PRTfundec(node_st *node)
  */
 node_st *PRTsymboltable(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
 
@@ -361,7 +340,9 @@ node_st *PRTsymboltable(node_st *node)
  */
 node_st *PRTvardecls(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
+    printf("%s", typeToString(VARDECL_TYPE(node)));
+    printf("%s;\n", VARDECL_NAME(node));
+
     return node;
 }
 
@@ -369,8 +350,7 @@ node_st *PRTvardecls(node_st *node)
  * @fn PRTfunheadandvardecs
  */
 
-node_st *PRTfunheadandvardecs(node_st *node)
+node_st *PRTfuncontents(node_st *node)
 {
-    printf("NOT IMPLEMENTED");
     return node;
 }
