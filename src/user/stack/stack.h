@@ -10,5 +10,5 @@ stack_st *Stacknew(size_t capacity);
 void Stackpush(stack_st *stack, stable_st *table);
 stable_st *Stackpop(stack_st *stack);
 bool StackisEmpty(stack_st *stack);
-void Stackfree(stack_st *stack);
+void Stackfree(stack_st *stack, bool clean_entries);
 stable_st *StackPeek(stack_st *stack);

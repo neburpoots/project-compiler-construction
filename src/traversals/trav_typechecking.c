@@ -54,7 +54,7 @@ node_st *TCprogram(node_st *node)
 
 
     //Frees the symbol tables from memory.
-    Stackfree(PROGRAM_SYMBOLTABLESTACKPTR(node));
+    // Stackfree(PROGRAM_SYMBOLTABLESTACKPTR(node));
 
     return node;
 }

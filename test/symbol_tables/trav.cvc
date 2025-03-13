@@ -23,7 +23,7 @@
 // }
 
 export bool testBoolReturn(){
-  return;
+  return false;
 }
 
 //  1. creates global scope.

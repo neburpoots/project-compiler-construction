@@ -1,39 +1,39 @@
-export void test() { 
+export void test1() { 
     do {} while(10 > 2);
 }
 
-export void test() { 
+export void test2() { 
     do {
         do {} while(5 < 10);
     } while(10 > 2);
 }
 
-export void test(){
+export void test3(){
     do {} while(false);
 }
 
-export void test(){
+export void test4(){
     do {} while(true);
 }
 
-export void test(){
+export void test5(){
     do {
       test();
     } while(true);
 }
 
-export void test() { 
+export void test6() { 
     do {} while((3 * 3) <= (5 + 4));
 }
 
-export void test() { 
+export void test7() { 
     do {} while((3 * 3) <= (5 + 4) && 3 * 3 < 10);
 }
 
-export void test(){
+export void test8(){
     do {} while(is_valid());
 }
 
-export void test(){
+export void test9(){
     do {} while(is_valid(x));
 }

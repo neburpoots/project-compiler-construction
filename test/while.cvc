@@ -1,35 +1,35 @@
-export void test() { 
+export void test1() { 
     int x = 10;
     while(10 > 2) {
     }
 }
 
-export void test() { 
+export void test2() { 
     while(10 > 2) {
         while(5 < 10) {}
     }
 }
 
-export void test(){
+export void test3(){
     while(false){}
 }
 
-export void test(){
+export void test4(){
     while(true){}
 }
 
-export void test() { 
+export void test5() { 
     while((3 * 3) <= (5 + 4)) {}
 }
 
-export void test() { 
+export void test6() { 
     while((3 * 3) <= (5 + 4) && 3 * 3 < 10) {}
 }
 
-export void test(){
+export void test7(){
     while(is_valid()){}
 }
 
-export void test(){
+export void test8(){
     while(is_valid(x)){}
 }

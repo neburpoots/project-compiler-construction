@@ -271,4 +271,3 @@ node_st *PRTbool(node_st *node)
     TRAVchildren(node);
     return node;
 }
-

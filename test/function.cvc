@@ -1,13 +1,13 @@
-export void test(){
+export void test1(){
     int x = calc_x();
     int y = 10;
 }
 
-export void test(){
+export void test2(){
     int x = calc_x(10);
 }
 
-export void test(){
+export void test3(){
     bool y = is_true(20 > 10);
 }
 

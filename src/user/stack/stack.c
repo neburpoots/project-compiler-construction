@@ -56,11 +56,14 @@ stable_st *StackPeek(stack_st *stack) {
 }
 
 //free the stack memory
-void Stackfree(stack_st *stack) {
+void Stackfree(stack_st *stack, bool clean_entries) {
   if (stack) {
-      for (size_t i = 0; i < stack->top; i++) {
+      if (clean_entries)
+      {
+        for (size_t i = 0; i < stack->top; i++) {
           stable_st *table = (stable_st *)stack->data[i];
           STfree(table);
+        }
       }
       free(stack->data);
       free(stack);

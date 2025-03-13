@@ -9,30 +9,26 @@ start phase RootPhase {
         pass SPdoScanParse;
         BuildSymbolTables;
         TypeChecking;
+        ClearSymbolTables;
     }
 };
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Return },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
 };
 
+traversal ClearSymbolTables{
+    uid = CST,
+    nodes = { Program, FunDef, IfElse, While, DoWhile, For, GlobDecl, FunDec, GlobDef }
+};
+
 traversal TypeChecking {
     uid = TC,
     nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop }
-};
-
-traversal TestIfStatement {
-    uid = IFS,
-    nodes = { IfElse }
-};
-
-traversal TestWhileStatements{
-  	uid = WH,
-	nodes = { While }
 };
 
 traversal Print {
@@ -118,26 +114,14 @@ nodeset Linked {
  *                                    NODES                                  *
  *                                                                           *
  *****************************************************************************/
-
-//added the symbol table node but i think it should be attribute but i'll leavve it here for now. Its also still atached
-node SymbolTable {
-    attributes {
-        user stable_stptr table { constructor }
-    }
-};
-
 root node Program {
     children {
-        Decls decls { constructor, mandatory },
-        SymbolTable SymbolTable {}
+        Decls decls { constructor, mandatory }
     },
-    attributes{
-        user stable_stptr table,
-        user stack_stptr symbolTableStackPtr
+    attributes {
+        user stable_stptr table
     }
 };
-
-
 
 node Decls {
     children {
@@ -246,6 +230,9 @@ node While {
     children {
         Expr cond { constructor, mandatory },
         Stmts block { constructor }
+    },
+    attributes{
+        user stable_stptr table
     }
 };
 
@@ -253,6 +240,9 @@ node DoWhile {
     children {
         Expr cond { constructor, mandatory },
         Stmts block { constructor }
+    },
+    attributes{
+        user stable_stptr table
     }
 };
 
@@ -265,7 +255,8 @@ node For {
     },
 
     attributes {
-        string var {constructor}
+        string var {constructor},
+        user stable_stptr table
     }
 };
 
