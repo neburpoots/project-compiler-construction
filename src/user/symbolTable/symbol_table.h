@@ -11,7 +11,15 @@ struct param_entry {
 
 typedef struct param_entry param_entry_st;
 typedef struct stable stable_st;
+
+//var enties
+struct var_entry {
+  char *name;
+  enum Type type;
+  struct var_entry *next;
+};
 typedef struct var_entry var_entry_st;
+
 typedef struct func_entry func_entry_st;
 
 //create new table

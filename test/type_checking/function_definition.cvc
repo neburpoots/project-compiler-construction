@@ -1,6 +1,6 @@
 export int calculate_age() {
     
-    int age = 0;
+    int age = 12;
 
     bool isTrue = true;
 

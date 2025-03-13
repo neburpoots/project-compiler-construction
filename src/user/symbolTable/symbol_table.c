@@ -7,13 +7,6 @@
 static bool compareParamLists(param_entry_st *a, param_entry_st *b);
 static struct param_entry *copyParamList(param_entry_st *src);
 
-//var enties
-struct var_entry {
-  char *name;
-  enum Type type;
-  struct var_entry *next;
-};
-
 struct func_entry {
   char *name;
   enum Type returnType;

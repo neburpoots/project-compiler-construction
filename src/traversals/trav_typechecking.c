@@ -50,6 +50,10 @@ void TCfini()
  */
 node_st *TCprogram(node_st *node)
 {
+    printf("\n\n\n\n\n\n");
+    printf("test");
+    printSymbolTableContent(PROGRAM_TABLE(node), true);
+
     TRAVchildren(node);
 
 
@@ -157,15 +161,6 @@ node_st *TCfor(node_st *node)
 }
 
 /**
- * @fn TCifelse
- */
-node_st *TCifelse(node_st *node)
-{
-    TRAVchildren(node);
-    return node;
-}
-
-/**
  * @fn TCparam
  */
 node_st *TCparam(node_st *node)
@@ -208,8 +203,17 @@ void printTypeMisMatch(node_st *node, enum Type expected, enum Type got)
     printf(RED "  Example: " RESET "%s %s = " RED "%s" RESET ";\n\n", typeToString(expected), VARDECL_NAME(node), typeToString(got));
 }
 
+//print function already declare.
+void printVarDoesNotExist(node_st *node)
+{
+  printf(RED "\nError: variable does not exist\n" RESET);
+  printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " is not defined.\n" RESET, VAR_NAME(node));
+  // printf(YELLOW " Exising signature: " RESET "%s %s", typeToString(FUNDEF_TYPE(node)), FUNDEF_NAME(node));
+  exit(EXIT_FAILURE);
+}
+
 // Takes an expression and retrieves the type
-enum Type InferExprType(node_st *expr) {
+enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
     switch(NODE_TYPE(expr)) {
         case NT_FLOAT:
             // printf("FLOAT\n");
@@ -225,8 +229,8 @@ enum Type InferExprType(node_st *expr) {
             break;
         case NT_BINOP:
             //recursion to get correct child type.
-            enum Type left = InferExprType(BINOP_LEFT(expr));
-            enum Type right = InferExprType(BINOP_RIGHT(expr));
+            enum Type left = InferExprType(BINOP_LEFT(expr), symbol_table);
+            enum Type right = InferExprType(BINOP_RIGHT(expr), symbol_table);
             enum BinOpType op = BINOP_OP(expr);
 
             printf("Left: %s\n", typeToString(left));
@@ -236,6 +240,7 @@ enum Type InferExprType(node_st *expr) {
                 //if either is boolean return error
                 if(left == CT_bool || right == CT_bool) {
                     printTypeMisMatch(expr, CT_int, CT_bool);
+                    
                     return CT_bool;
                 }
 
@@ -256,7 +261,19 @@ enum Type InferExprType(node_st *expr) {
             //TODO: Implement monop type inference
             break;
         case NT_VAR:
+
+            printf("\n\n\n\n\n\n\n");
+            
+            printSymbolTableContent(symbol_table, true);
             //TODO get the symbol table from the node attribute to find the var type.
+            var_entry_st *result = STlookupVar(symbol_table, VAR_NAME(expr), true);
+
+            if(result) {
+                return result->type;
+            } else {
+                printVarDoesNotExist(expr);
+            }
+
             break;
         case NT_FUNCALL:
             //TODO get the symbol table from the node attribute to find the function type.
@@ -272,10 +289,23 @@ enum Type InferExprType(node_st *expr) {
     }
 }
 
+/**
+ * @fn TCifelse
+ */
+node_st *TCifelse(node_st *node)
+{
+    node_st *expr = IFELSE_COND(node);
+    enum Type expectedType = NT_BOOL;
+
+    enum Type actualType = InferExprType(expr, IFELSE_TABLE(node));
+
+    TRAVchildren(node);
+    return node;
+}
 
 node_st *TCbinop(node_st *node)
 {
-    enum Type comparisonType = InferExprType(node);
+    // enum Type comparisonType = InferExprType(node);
     // enum Type declaredType = BINOP_TYPE(node);
 
     // if (comparisonType != declaredType) {
@@ -291,12 +321,12 @@ node_st *TCbinop(node_st *node)
 node_st *TCvardecl(node_st *node)
 {
     if(VARDECL_INIT(node)) {
-        enum Type exprType = InferExprType(VARDECL_INIT(node)); // Get the inferred type
+        // enum Type exprType = InferExprType(VARDECL_INIT(node)); // Get the inferred type
         enum Type declaredType = VARDECL_TYPE(node); // Get declared type
 
-        if (exprType != declaredType) {
-            printTypeMisMatch(node, declaredType, exprType);
-        }
+        // if (exprType != declaredType) {
+        //     printTypeMisMatch(node, declaredType, exprType);
+        // }
     }
 
     TRAVchildren(node);
