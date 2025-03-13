@@ -420,12 +420,14 @@ node_st *BSTifelse(node_st *node)
   stable_st *new_table = STnew(t);
   
 	// Stackpush(data->symbol_table_stack_ptr, new_table);
-  printSymbolTableContent(new_table, true);
+//   printSymbolTableContent(new_table, true);
 
   //attaching as attribute
   IFELSE_TABLE(node) = new_table;
 
   printf("Attached empty symbol table to if else\n");
+
+  TRAVchildren(node);
 
   return node;
 }

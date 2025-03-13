@@ -50,9 +50,9 @@ void TCfini()
  */
 node_st *TCprogram(node_st *node)
 {
-    printf("\n\n\n\n\n\n");
-    printf("test");
-    printSymbolTableContent(PROGRAM_TABLE(node), true);
+    // printf("\n\n\n\n\n\n");
+    // printf("test");
+    // printSymbolTableContent(PROGRAM_TABLE(node), true);
 
     TRAVchildren(node);
 
@@ -262,9 +262,6 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
             break;
         case NT_VAR:
 
-            printf("\n\n\n\n\n\n\n");
-            
-            printSymbolTableContent(symbol_table, true);
             //TODO get the symbol table from the node attribute to find the var type.
             var_entry_st *result = STlookupVar(symbol_table, VAR_NAME(expr), true);
 
@@ -295,6 +292,7 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
 node_st *TCifelse(node_st *node)
 {
     node_st *expr = IFELSE_COND(node);
+    
     enum Type expectedType = NT_BOOL;
 
     enum Type actualType = InferExprType(expr, IFELSE_TABLE(node));
