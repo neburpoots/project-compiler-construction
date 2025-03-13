@@ -89,10 +89,12 @@ void BSTfini()
     printf("\nFINISHING SYMBOL TABLE TRAVERSAL\n");
 
     printf("Getting symbol table stack\n");
+
     struct data_bst *data = DATA_BST_GET();
 
     printf("Freeing up symbol table stack\n");
-    // Stackfree(data->symbol_table_stack_ptr);
+    
+    Stackfree(data->symbol_table_stack_ptr, false);
 
     return;
 }
@@ -119,7 +121,6 @@ node_st *BSTprogram(node_st *node)
 
     //attaching as attribute
     PROGRAM_TABLE(node) = t;
-    PROGRAM_SYMBOLTABLESTACKPTR(node) = data->symbol_table_stack_ptr;
 
     //results in traversal of GlobDef, GlobDecl, FunDef, FunDec (basically same as travchildren)
     TRAVdecls(node);
@@ -226,7 +227,6 @@ node_st *BSTfundef(node_st *node)
 
     //pop current fun def scope from stack
     new_table = Stackpop(data->symbol_table_stack_ptr);
-    STfree(new_table);
 
     return node;
 }
@@ -262,8 +262,8 @@ node_st *BSTfundec(node_st *node)
     FUNDEC_TABLE(node) = new_table;
     printf("Attached symbol table to fun def\n");
 
-	new_table = Stackpop(data->symbol_table_stack_ptr);
-	STfree(new_table);
+	  new_table = Stackpop(data->symbol_table_stack_ptr);
+    
     return node;
 }
 
@@ -274,6 +274,9 @@ node_st *BSTfundec(node_st *node)
 node_st *BSTfunbody(node_st *node)
 {
     printf("\nTraversing fun body\n");
+
+
+
     TRAVchildren(node);
     return node;
 }
@@ -366,15 +369,16 @@ node_st *BSTfor(node_st *node)
 	//stack push new table
 	Stackpush(data->symbol_table_stack_ptr, new_table);
 
-    TRAVchildren(node);
+  TRAVchildren(node);
 
 	new_table = Stackpop(data->symbol_table_stack_ptr);
 
-	// printSymbolTableContent(new_table, false);
+  //attaching as attribute
+  FOR_TABLE(node) = new_table;
 
-	STfree(new_table);
+  printf("Attached symbol table to for loop\n");
 
-    return node;
+  return node;
 }
 
 /**
@@ -415,14 +419,13 @@ node_st *BSTifelse(node_st *node)
   //create symbol table for own function and push onto stack
   stable_st *new_table = STnew(t);
   
-	Stackpush(data->symbol_table_stack_ptr, new_table);
+	// Stackpush(data->symbol_table_stack_ptr, new_table);
+  printSymbolTableContent(new_table, true);
 
   //attaching as attribute
-  IFELSE_TABLE(node) = t;
+  IFELSE_TABLE(node) = new_table;
 
   printf("Attached empty symbol table to if else\n");
-
-  printSymbolTableContent(new_table, true);
 
   return node;
 }
