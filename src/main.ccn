@@ -37,11 +37,13 @@ traversal TypeChecking {
 // This traversal is used to transform variable initializations into assignments.
 traversal TransformVariableInit {
     uid = TVI,
-    nodes = { Program, GlobDef, VarDecl, FunContents },
+    nodes = { Program, GlobDef, VarDecl, Fundef, FunContents },
     travdata { 
-        user stack_stptr assignments,
-        user stack_stptr global_assignments,
-        user stack_stptr temp_vars,
+        user generic_stack_stptr assignments,
+        user generic_stack_stptr var_decls,
+        user generic_stack_stptr stmts,
+        // user generic_stack_stptr global_assignments,
+        FunContents current_scope,
         int temp_counter,
         bool in_global_scope,
         bool in_array_dim,

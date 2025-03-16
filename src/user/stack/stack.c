@@ -9,7 +9,7 @@ struct stack {
   stable_st **data;
 };
 
-//ceate new stack
+//create new stack
 stack_st *Stacknew(size_t capacity) {
   stack_st *stack = malloc(sizeof(stack_st));
   if (stack == NULL) {
