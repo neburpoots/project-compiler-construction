@@ -29,7 +29,19 @@ param_entry_st *create_params(node_st *node);
 param_entry_st *create_params(node_st *node) {
   param_entry_st *params = NULL;
   param_entry_st **tail = &params;
-  node_st *param_node = FUNDEF_PARAMS(node);
+
+  node_st *param_node;
+
+  //get params based on the supplied node
+  switch NODE_TYPE(node){
+    case NT_FUNDEC:
+      param_node = FUNDEC_PARAMS(node);
+      break;
+    case NT_FUNDEF:
+      param_node = FUNDEF_PARAMS(node);
+      break;
+    default: return NULL;
+  }
 
   while (param_node) {
       printf("Creating param with type: %s\n", typeToString(PARAM_TYPE(param_node)));
@@ -52,10 +64,10 @@ void printVariableAlreadyDeclared(node_st *node)
   printf(RED "\nError: variable already declared.\n" RESET);
   switch NODE_TYPE(node){
     case NT_VARDECL:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared on line: %d and column: %d \n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
       break;
     case NT_PARAM:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared on line: %d and column: %d\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
       break;
     default:
     printf(YELLOW " No additional information provided.\n\n" RESET);
