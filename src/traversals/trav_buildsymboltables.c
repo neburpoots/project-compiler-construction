@@ -29,7 +29,19 @@ param_entry_st *create_params(node_st *node);
 param_entry_st *create_params(node_st *node) {
   param_entry_st *params = NULL;
   param_entry_st **tail = &params;
-  node_st *param_node = FUNDEF_PARAMS(node);
+
+  node_st *param_node;
+
+  //get params based on the supplied node
+  switch NODE_TYPE(node){
+    case NT_FUNDEC:
+      param_node = FUNDEC_PARAMS(node);
+      break;
+    case NT_FUNDEF:
+      param_node = FUNDEF_PARAMS(node);
+      break;
+    default: return NULL;
+  }
 
   while (param_node) {
       printf("Creating param with type: %s\n", typeToString(PARAM_TYPE(param_node)));
