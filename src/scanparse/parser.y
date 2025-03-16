@@ -103,16 +103,19 @@
 program: decls
 	{
 		parseresult = ASTprogram($1);
+		AddLocToNode(parseresult, &@1, &@1);
 	}
 	;
 
 decls: decl decls
 	{
 		$$ = ASTdecls($1, $2);
+		AddLocToNode($$, &@1, &@2);
 	}
 	| decl
 	{
 		$$ = ASTdecls($1, NULL);
+		AddLocToNode($$, &@1, &@1);
 	}
 	;
 
@@ -152,42 +155,51 @@ decl: glob_decl
 fun_dec: EXTERN type ID BRACKET_L param BRACKET_R SEMICOLON
   {
     $$ = ASTfundec($5, $3, $2);
+    AddLocToNode($$, &@1, &@6);
   }
   |  EXTERN type ID BRACKET_L BRACKET_R SEMICOLON
   {
     $$ = ASTfundec(NULL, $3, $2);
+    AddLocToNode($$, &@1, &@5);
   };
 
 
 glob_decl: EXTERN type ID SEMICOLON
   {
     $$ = ASTglobdecl(NULL, $3, $2);
+    AddLocToNode($$, &@1, &@4);
   };
 
 glob_def: EXPORT type ID LET expr SEMICOLON
   {
     $$ = ASTglobdef(NULL,$5, $3, $2, true);
+    AddLocToNode($$, &@1, &@6);
   }
   | type ID LET expr SEMICOLON
   {
     $$ = ASTglobdef(NULL,$4, $2, $1, false);
+    AddLocToNode($$, &@1, &@5);
   }
   | EXPORT type ID SEMICOLON
   {
     $$ = ASTglobdef(NULL,NULL, $3, $2, true);
+    AddLocToNode($$, &@1, &@4);
   }
   | type ID SEMICOLON
   {
     $$ = ASTglobdef(NULL,NULL, $2, $1, true);
+    AddLocToNode($$, &@1, &@3);
   };
 
 stmts: stmt stmts
   {
     $$ = ASTstmts($1, $2);
+    AddLocToNode($$, &@1, &@2);
   }
   | stmt
   {
     $$ = ASTstmts($1, NULL);
+    AddLocToNode($$, &@1, &@1);
   }
   ;
 
@@ -222,26 +234,31 @@ fundef: EXPORT type ID BRACKET_L param BRACKET_R funbody
   %prec FUNDEC
   {
     $$ = ASTfundef($5, $7, $3, $2, true); // Exported function
+    AddLocToNode($$, &@1, &@7);
   }
   | EXPORT type ID BRACKET_L BRACKET_R funbody
     %prec FUNDEC
   {
     $$ = ASTfundef(NULL, $6, $3, $2, true);
+    AddLocToNode($$, &@1, &@6);
   }
   | type ID BRACKET_L param BRACKET_R funbody
   %prec FUNDEC
   {
     $$ = ASTfundef($4, $6, $2, $1, false); // Non-exported function
+    AddLocToNode($$, &@1, &@6);
   }
   | type ID BRACKET_L BRACKET_R funbody
     %prec FUNDEC
   {
     $$ = ASTfundef(NULL, $5, $2, $1, false);
+    AddLocToNode($$, &@1, &@5);
   };
 
 funbody:  CURLY_L funContents CURLY_R
   {
     $$ = ASTfunbody($2);
+    AddLocToNode($$, &@1, &@3);
   };
 
 
@@ -259,11 +276,13 @@ var_decl: type ID SEMICOLON
   %prec LOWER
   {
     $$ = ASTvardecl(NULL, NULL, $2, $1);
+    AddLocToNode($$, &@1, &@3);
   }
   | type ID LET expr SEMICOLON
   %prec LOWER
   {
     $$ = ASTvardecl(NULL, $4, $2, $1);
+    AddLocToNode($$, &@1, &@5);
   }
   // | type ID LET expr COMMA 
   // {
@@ -284,19 +303,8 @@ var_decl: type ID SEMICOLON
             $5,
             $1
         );
+    AddLocToNode($$, &@1, &@6);
   }
-
-  //var dec like int[5] empty_vec; int[10] empty_vec2;
-  // | type SQUARE_L NUM SQUARE_R ID SEMICOLON var_decl 
-  // %prec LOWER
-  // {
-  //       $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
-  //           NULL,
-  //           $7,
-  //           $5,
-  //           $1
-  //       );
-  // }
 
   //var dec like int[1,1] empty_matrix;
   | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON
@@ -314,26 +322,8 @@ var_decl: type ID SEMICOLON
           $7,    
           $1
       );
+    AddLocToNode($$, &@1, &@7);
   };
-
-  // //var dec like int[1,1] empty_matrix; int[15,10] empty_vec3
-  // | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON var_decl
-  // %prec LOWER
-  // {
-  //     $$ = ASTvardecl(
-  //         ASTexprs(
-  //             ASTnum($3), 
-  //             ASTexprs(
-  //                 ASTnum($5),
-  //                 NULL
-  //             )
-  //         ),
-  //         NULL,  
-  //         $9,
-  //         $7,   
-  //         $1
-  //     );
-  // }
 
   //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
   | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON
@@ -342,27 +332,13 @@ var_decl: type ID SEMICOLON
       node_st *size_node = ASTnum($3);
 
       $$ = ASTvardecl(
-          ASTexprs(size_node, NULL),  // Store the array size
-          $7,                         // Use arrExpr directly
+          ASTexprs(size_node, NULL),
+          $7,
           $5,
           $1
       );
+    AddLocToNode($$, &@1, &@7);
   }
-
-  // var dec for initializing a vector like int[5] vec = [1,2,3,4,5]; int[3] vec2 = [1,2,3];
-  // | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON var_decl 
-  //   %prec LOWER
-  // {
-  //     node_st *size_node = ASTnum($3);
-  //     $$ = ASTvardecl(
-  //         ASTexprs(size_node, NULL), 
-  //         $7,
-  //         $9,  
-  //         $5,
-  //         $1
-  //     );
-  // }
-
   //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
 | type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
   %prec LOWER
@@ -376,138 +352,139 @@ var_decl: type ID SEMICOLON
 
     //create vardecl
     $$ = ASTvardecl(
-        dims,   
-        init,   
-        $7,  
+        dims,
+        init,
+        $7,
         $1
     );
+    AddLocToNode($$, &@1, &@11);
 }
 
-// | type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON var_decl
-// {
-//     printf("MATRIX DECLARATION DETECTED: %s\n", $7);
-
-//     node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
-
-//     node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
-
-//     $$ = ASTvardecl(
-//         dims,   
-//         init, 
-//         $13,   
-//         $7,
-//         $1
-//     );
-// }
-
-//Symbol table needed to retrieve the values itself and actually update the assigmnet?
 assign: varlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+  AddLocToNode($$, &@1, &@4);
 }
 //vec[c1] = scanInt()
-| arrVarlet LET expr SEMICOLON 
+| arrVarlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+  AddLocToNode($$, &@1, &@4);
 }
 //mat[x,y] = scanInt();
-| matVarlet LET expr SEMICOLON 
+| matVarlet LET expr SEMICOLON
 {
   $$ = ASTassign($1, $3);
+  AddLocToNode($$, &@1, &@4);
 };
 
 return_stmt: RETURN expr SEMICOLON
   {
     $$ = ASTreturn($2);
+    AddLocToNode($$, &@1, &@3);
   }
   | RETURN SEMICOLON
   {
     $$ = ASTreturn(NULL);
+    AddLocToNode($$, &@1, &@2);
   };
 
 if_stmt: IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE if_stmt
   {
     $$ = ASTifelse($3, $6, ASTstmts($9, NULL));
+    AddLocToNode($$, &@1, &@9);
   }
   | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE CURLY_L stmts CURLY_R
   {
     $$ = ASTifelse($3, $6, $10);
+    AddLocToNode($$, &@1, &@10);
   }
   | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
   {
     $$ = ASTifelse($3, $6, NULL);
+    AddLocToNode($$, &@1, &@6);
   };
 
 
 while_stmt: WHILE BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
   {
     $$ = ASTwhile($3, $6);
+    AddLocToNode($$, &@1, &@6);
   }
   | WHILE BRACKET_L expr BRACKET_R CURLY_L CURLY_R
   {
     $$ = ASTwhile($3, NULL);
+    AddLocToNode($$, &@1, &@5);
   };
 
 do_while_stmt: DO CURLY_L stmts CURLY_R WHILE BRACKET_L expr BRACKET_R SEMICOLON
   {
     $$ = ASTdowhile($7, $3);
+    AddLocToNode($$, &@1, &@9);
   }
   | DO CURLY_L CURLY_R WHILE BRACKET_L expr BRACKET_R SEMICOLON
   {
     $$ = ASTdowhile($6, NULL);
+    AddLocToNode($$, &@1, &@8);
   };
 
-for_stmt: 
+for_stmt:
 
   //no step size, default to 1, no statements
   FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
-    // printf("no step size, default to 1, no statements\n");
     $$ = ASTfor($6, $8, ASTnum(1), NULL, $4);
+    AddLocToNode($$, &@1, &@11);
+
   }
 
   //with step size, no statements
   | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L CURLY_R
   {
-    printf("with step size, no statements\n");
     $$ = ASTfor($6, $8, $10, NULL, $4);
+    AddLocToNode($$, &@1, &@13);
   }
 
   //no step size, default to 1, with statements
   | FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
-    printf("no step size, default to 1, with statements\n");
     $$ = ASTfor($6, $8, ASTnum(1), $11, $4);
+    AddLocToNode($$, &@1, &@12);
   }
 
   //with step size, with statements
   | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R CURLY_L stmts CURLY_R
   {
-    // printf("with step size, with statements\n");
     $$ = ASTfor($6, $8, $10, $13, $4);
+    AddLocToNode($$, &@1, &@14);
   };
 
 
 param: type ID
   {
     $$ = ASTparam(NULL, NULL, $2, $1);
+    AddLocToNode($$, &@1, &@2);
   }
 
   | type ID COMMA param
   {
     $$ = ASTparam(NULL, $4, $2, $1);
+    AddLocToNode($$, &@1, &@4);
   }
 
   //single dimension array
-  | type SQUARE_L ids SQUARE_R ID{
-      $$ = ASTparam($3, NULL, $5, $1);
+  | type SQUARE_L ids SQUARE_R ID
+  {
+    $$ = ASTparam($3, NULL, $5, $1);
+    AddLocToNode($$, &@1, &@5);
   }
 
   // Array followed by another parameter
   | type SQUARE_L ids SQUARE_R ID COMMA param
   {
-    $$ = ASTparam($3, $7, $5, $1);  
-  };  
+    $$ = ASTparam($3, $7, $5, $1);
+    AddLocToNode($$, &@1, &@7);
+  };
 
 
 varlet: ID
@@ -519,12 +496,14 @@ varlet: ID
 args: expr
   //single arg
   {
-    $$ = ASTexprs($1, NULL); 
+    $$ = ASTexprs($1, NULL);
+    AddLocToNode($$, &@1, &@1);
   }
   //multiple args
   | expr COMMA args
   {
     $$ = ASTexprs($1, $3);
+    AddLocToNode($$, &@1, &@3);
   }
   
   // //empty
@@ -536,121 +515,148 @@ args: expr
 call: ID BRACKET_L args BRACKET_R
   {
     $$ = ASTfuncall($3, $1);
+    AddLocToNode($$, &@1, &@4);
   }
   |
   ID BRACKET_L BRACKET_R
   {
     $$ = ASTfuncall(NULL, $1);
+    AddLocToNode($$, &@1, &@3);
   }
   ;
 
 arithmetic: expr PLUS expr
 {
     $$ = ASTbinop($1, $3, BO_add);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr MINUS expr
 {
     $$ = ASTbinop($1, $3, BO_sub);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr STAR expr
 {
     $$ = ASTbinop($1, $3, BO_mul);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr SLASH expr
 {
     $$ = ASTbinop($1, $3, BO_div);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr PERCENT expr
 {
     $$ = ASTbinop($1, $3, BO_mod);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr LT expr
 {
     $$ = ASTbinop($1, $3, BO_lt);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr LE expr
 {
     $$ = ASTbinop($1, $3, BO_le);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr GT expr
 {
     $$ = ASTbinop($1, $3, BO_gt);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr GE expr
 {
     $$ = ASTbinop($1, $3, BO_ge);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr EQ expr
 {
     $$ = ASTbinop($1, $3, BO_eq);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr NE expr
 {
     $$ = ASTbinop($1, $3, BO_ne);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr AND expr
 {
     $$ = ASTbinop($1, $3, BO_and);
+    AddLocToNode($$, &@1, &@3);
 }
 | expr OR expr
 {
     $$ = ASTbinop($1, $3, BO_or);
+    AddLocToNode($$, &@1, &@3);
 }
-| expr PLUSEQ expr 
+| expr PLUSEQ expr
 {
   $$ = ASTbinop($1, $3, BO_add);
+  AddLocToNode($$, &@1, &@3);
 }
-| expr MINUSEQ expr 
+| expr MINUSEQ expr
 {
   $$ = ASTbinop($1, $3, BO_sub);
+  AddLocToNode($$, &@1, &@3);
 }
-| expr STAREQ expr 
+| expr STAREQ expr
 {
   $$ = ASTbinop($1, $3, BO_mul);
+  AddLocToNode($$, &@1, &@3);
 }
-| expr SLASHEQ expr 
+| expr SLASHEQ expr
 {
   $$ = ASTbinop($1, $3, BO_div);
+  AddLocToNode($$, &@1, &@3);
 }
-| expr PERCENTEQ expr 
+| expr PERCENTEQ expr
 {
   $$ = ASTbinop($1, $3, BO_mod);
+  AddLocToNode($$, &@1, &@3);
 }
 | BRACKET_L expr BRACKET_R
 {
-    $$ = $2;
+  $$ = $2;
+  AddLocToNode($$, &@1, &@3);
 };
 
 //cast variable like bool test = (bool)0;
 cast: BRACKET_L type BRACKET_R expr %prec CAST
   {
     $$ = ASTcast($4, $2);
+    AddLocToNode($$, &@1, &@4);
   }
 
 //catches vec[counter];
 arrVar: ID SQUARE_L expr SQUARE_R
 {
     $$ = ASTvar(ASTexprs($3, NULL), $1);
+    AddLocToNode($$, &@1, &@4);
 }
 
 //catches matrix[x,y];
 matVar: ID SQUARE_L expr COMMA expr SQUARE_R{
     $$ = ASTvar(ASTexprs($3, ASTexprs($5, NULL)), $1);
+    AddLocToNode($$, &@1, &@6);
 }
 
 arrVarlet: ID SQUARE_L expr SQUARE_R
 {
-    $$ = ASTvarlet(ASTexprs($3, NULL), $1);  // ✅ Use VarLet instead of Var
+    $$ = ASTvarlet(ASTexprs($3, NULL), $1);
+    AddLocToNode($$, &@1, &@4);
 }
 
 matVarlet: ID SQUARE_L expr COMMA expr SQUARE_R
 {
-    $$ = ASTvarlet(ASTexprs($3, ASTexprs($5, NULL)), $1);  // ✅ Use VarLet instead of Var
+    $$ = ASTvarlet(ASTexprs($3, ASTexprs($5, NULL)), $1);
+    AddLocToNode($$, &@1, &@6);
 }
 
 arrExpr: SQUARE_L exprs SQUARE_R
 {
     $$ = ASTarrexpr($2, generate_indices($2));
+    AddLocToNode($$, &@1, &@3);
 }
 | arrVar
 | matVar
@@ -658,14 +664,19 @@ arrExpr: SQUARE_L exprs SQUARE_R
 arrExprs: arrExpr
 {
     $$ = ASTexprs($1, NULL);
+    AddLocToNode($$, &@1, &@1);
 }
 | arrExpr COMMA arrExprs
 {
     $$ = ASTexprs($1, $3);
+    AddLocToNode($$, &@1, &@3);
 };
 
 expr: constant { $$ = $1; }
-   | ID {$$ = ASTvar(NULL, $1);}
+   | ID {
+      $$ = ASTvar(NULL, $1);
+      AddLocToNode($$, &@1, &@1);
+    }
    | call
    | cast
    | arithmetic
@@ -693,20 +704,24 @@ type: TYPE_INT   { $$ = CT_int; }
 floatval: FLOAT
   {
     $$ = ASTfloat($1);
+    AddLocToNode($$, &@1, &@1);
   };
 
 intval: NUM
   {
     $$ = ASTnum($1);
+    AddLocToNode($$, &@1, &@1);
   };
 
 boolval: TRUEVAL
   {
     $$ = ASTbool(true);
+    AddLocToNode($$, &@1, &@1);
   }
   | FALSEVAL
   {
     $$ = ASTbool(false);
+    AddLocToNode($$, &@1, &@1);
   };
 %%
 

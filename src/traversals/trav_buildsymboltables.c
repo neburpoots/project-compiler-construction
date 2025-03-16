@@ -64,10 +64,10 @@ void printVariableAlreadyDeclared(node_st *node)
   printf(RED "\nError: variable already declared.\n" RESET);
   switch NODE_TYPE(node){
     case NT_VARDECL:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared on line: %d and column: %d \n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
       break;
     case NT_PARAM:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
+      printf(YELLOW " Variable: " RESET "'%s'" YELLOW  " of type %s has already been declared on line: %d and column: %d\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
       break;
     default:
     printf(YELLOW " No additional information provided.\n\n" RESET);
