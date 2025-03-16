@@ -44,6 +44,8 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/user/symbolTable/symbol_table.c
     src/user/stack/stack.c
     src/user/stack/stack.h
+    src/user/genericstack/generic_stack.c
+    src/user/genericstack/generic_stack.h
 
 )
 
