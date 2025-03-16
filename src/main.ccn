@@ -40,7 +40,7 @@ traversal TransformVariableInit {
     nodes = { Program, GlobDef, VarDecl, Fundef, FunContents },
     travdata { 
         user generic_stack_stptr assignments,
-        user generic_stack_stptr var_decls,
+        // user generic_stack_stptr var_decls,
         user generic_stack_stptr stmts,
         // user generic_stack_stptr global_assignments,
         FunContents current_scope,
@@ -165,9 +165,9 @@ node Exprs {
 node ArrExpr {
     children {
         // like [1,2,3,4,5]
-        Exprs exprs { constructor, mandatory },
+        Exprs exprs { constructor },
         // number to the i and j value?
-        Exprs indices { constructor, mandatory }
+        Exprs indices { constructor }
     }
 };
 

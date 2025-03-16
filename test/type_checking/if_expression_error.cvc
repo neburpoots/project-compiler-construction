@@ -3,7 +3,9 @@ export int calculate_age(int test) {
 
     bool isTrue = true;
 
-    int[2, 2] test123 = [[1,2],[3,4]];
+    int[2, test()] test123 = [[1,2],[3,4]];
+
+    int itemFromTest = test123[0, 0];
 
     //should be an error
     if(isTrue + age > 10) {

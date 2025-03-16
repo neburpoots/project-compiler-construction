@@ -22,6 +22,83 @@
 
 #include <string.h>
 
+const char *node_to_type_string(node_st *node)
+{
+    switch (NODE_TYPE(node))
+    {
+    case NT_NULL:
+        return "NT_NULL";
+    case NT_BOOL:
+        return "NT_BOOL";
+    case NT_FLOAT:
+        return "NT_FLOAT";
+    case NT_NUM:
+        return "NT_NUM";
+    case NT_VAR:
+        return "NT_VAR";
+    case NT_VARLET:
+        return "NT_VARLET";
+    case NT_MONOP:
+        return "NT_MONOP";
+    case NT_BINOP:
+        return "NT_BINOP";
+    case NT_ASSIGN:
+        return "NT_ASSIGN";
+    case NT_FUNCONTENTS:
+        return "NT_FUNCONTENTS";
+    case NT_STMTS:
+        return "NT_STMTS";
+    case NT_VARDECL:
+        return "NT_VARDECL";
+    case NT_VARDECLS:
+        return "NT_VARDECLS";
+    case NT_PARAM:
+        return "NT_PARAM";
+    case NT_GLOBDEF:
+        return "NT_GLOBDEF";
+    case NT_FUNDEC:
+        return "NT_FUNDEC";
+    case NT_GLOBDECL:
+        return "NT_GLOBDECL";
+    case NT_FOR:
+        return "NT_FOR";
+    case NT_DOWHILE:
+        return "NT_DOWHILE";
+    case NT_WHILE:
+        return "NT_WHILE";
+    case NT_IFELSE:
+        return "NT_IFELSE";
+    case NT_FUNBODY:
+        return "NT_FUNBODY";
+    case NT_FUNDEF:
+        return "NT_FUNDEF";
+    case NT_FUNDEFS:
+        return "NT_FUNDEFS";
+    case NT_CAST:
+        return "NT_CAST";
+    case NT_FUNCALL:
+        return "NT_FUNCALL";
+    case NT_RETURN:
+        return "NT_RETURN";
+    case NT_EXPRSTMT:
+        return "NT_EXPRSTMT";
+    case NT_IDS:
+        return "NT_IDS";
+    case NT_ARREXPR:
+        return "NT_ARREXPR";
+    case NT_EXPRS:
+        return "NT_EXPRS";
+    case NT_DECLS:
+        return "NT_DECLS";
+    case NT_PROGRAM:
+        return "NT_PROGRAM";
+    case _NT_SIZE:
+        return "_NT_SIZE";
+    default:
+        return "UNKNOWN_NODETYPE";
+    }
+}
+
 // Helper function to create a temporary variable name
 static char *create_temp_var_name(struct data_tvi *data)
 {
@@ -30,7 +107,8 @@ static char *create_temp_var_name(struct data_tvi *data)
     return strdup(temp_name);
 }
 
-void CCNfreeWrapper(void *ptr) {
+void CCNfreeWrapper(void *ptr)
+{
     CCNfree((struct ccn_node *)ptr);
 }
 
@@ -70,6 +148,22 @@ static node_st *create_var_ref(char *name)
     return ASTvar(NULL, strdup(name));
 }
 
+static char *create_vardecl(struct data_tvi *data) {
+
+    char *idx_var = create_temp_var_name(data);
+    node_st *idx_vardecl = ASTvardecl(NULL, NULL, idx_var, CT_int);
+
+    GStackPush(data->assignments, idx_vardecl);
+
+    return idx_var;
+}
+
+static void create_and_push_assignment(struct data_tvi *data, char *var_name, node_st *value, generic_stack_st *assignments) {
+    node_st *idx = ASTvarlet(NULL, strdup(var_name)); // Create varlet with a copy of var_name
+    node_st *assignment = ASTassign(idx, value); // Create assignment
+    GStackPush(assignments, assignment); // Push to assignments stack
+}
+
 static node_st *create_array_init_loops(char *array_name, node_st *dims, node_st *init_value, generic_stack_st *assignments)
 {
     struct data_tvi *data = DATA_TVI_GET();
@@ -81,29 +175,88 @@ static node_st *create_array_init_loops(char *array_name, node_st *dims, node_st
     node_st *dim_1_copy = CCNcopy(dim_1);
     node_st *dim_2_copy = CCNcopy(dim_2);
 
-    char *idx_var_1 = STRfmt("tmp_%d", data->temp_counter++);
-    char *idx_var_2 = STRfmt("tmp_%d", data->temp_counter++);
+    char *idx_var_1 = create_vardecl(data);
+    char *idx_var_2 = create_vardecl(data);
 
-    node_st *idx_1_vardecl = ASTvardecl(NULL, NULL, idx_var_1, CT_int);
-    node_st *idx_2_vardecl = ASTvardecl(NULL, NULL, idx_var_2, CT_int);
+    EXPRS_EXPR(dims) = ASTvar(NULL, strdup(idx_var_1));
+    CCNfree(dim_1);
+    EXPRS_EXPR(EXPRS_NEXT(dims)) = ASTvar(NULL, strdup(idx_var_2));
+    CCNfree(dim_2);
 
-    GStackPush(assignments, idx_1_vardecl);
-    GStackPush(assignments, idx_2_vardecl);
+    create_and_push_assignment(data, idx_var_1, dim_1_copy, assignments);
+    create_and_push_assignment(data, idx_var_2, dim_2_copy, assignments);
 
-    node_st *idx_1 = ASTvarlet(NULL, strdup(idx_var_1));  // Use strdup
-    node_st *idx_2 = ASTvarlet(NULL, strdup(idx_var_2));  // Use strdup
+    // Temp variable for the array assignment
+    char *idx_var_3 = create_temp_var_name(data);
+    node_st *idx_3_vardecl = ASTvardecl(NULL, NULL, idx_var_3, CT_int);
+    GStackPush(assignments, idx_3_vardecl);
+    node_st *assignment_idx_3 = ASTassign(ASTvarlet(NULL, strdup(idx_var_3)), init_value);
+    GStackPush(assignments, assignment_idx_3);
+
+    //Allocate pseudo function assignment
+    node_st *start = ASTassign(
+        ASTvarlet(NULL, strdup(array_name)),
+        ASTfuncall(
+            ASTexprs(
+                ASTvar(
+                    NULL, 
+                    strdup(idx_var_1)),
+                ASTexprs(
+                    ASTvar(NULL, strdup(idx_var_2)),
+                    NULL
+                )
+            ), 
+            strdup("__allocate"))
+    );
+    GStackPush(assignments, start);
 
 
-    node_st *assignment_idx_1 = ASTassign(idx_1, dim_1_copy);
-    node_st *assignment_idx_2 = ASTassign(idx_2, dim_2_copy);
+    // create two temp variables for the two loops
+    char *idx_var_4 = create_temp_var_name(data);
+    char *idx_var_5 = create_temp_var_name(data);
+    node_st *idx_4_vardecl = ASTvardecl(NULL, NULL, idx_var_4, CT_int);
+    node_st *idx_5_vardecl = ASTvardecl(NULL, NULL, idx_var_5, CT_int);
+    GStackPush(assignments, idx_4_vardecl);
+    GStackPush(assignments, idx_5_vardecl);
 
-    GStackPush(assignments, assignment_idx_1);
-    GStackPush(assignments, assignment_idx_2);
+    // Assignment inside the inner loop
+    node_st *assignment_inner_loop = ASTassign(
+        ASTvarlet(ASTexprs(ASTvar(NULL, strdup(idx_var_4)), ASTexprs(ASTvar(NULL, strdup(idx_var_5)), NULL)), strdup(array_name)),
+        ASTvar(NULL, strdup(idx_var_3))
+    );
 
-    // Don't free init_value here - it's either used elsewhere or should be freed
-    // by the caller if no longer needed
-    CCNfree(init_value);
-    
+    // Inner for loop
+    // i < 10
+    node_st *inner_condition = ASTbinop(
+        ASTvar(NULL, strdup(idx_var_5)),
+        CCNcopy(dim_2_copy),
+        BO_lt);
+
+    // create for loop
+    node_st *inner_for_loop = ASTfor(
+        ASTvar(NULL, strdup(idx_var_5)),
+        inner_condition,
+        ASTnum(1),
+        ASTstmts(assignment_inner_loop, NULL),
+        strdup(idx_var_5));
+
+    // Outer for loop
+    // i < 10
+    node_st *outer_condition = ASTbinop(
+        ASTvar(NULL, strdup(idx_var_4)),
+        CCNcopy(dim_1_copy),
+        BO_lt);
+
+    // create for loop
+    node_st *outer_for_loop = ASTfor(
+        ASTvar(NULL, strdup(idx_var_4)),
+        outer_condition,
+        ASTnum(1),
+        ASTstmts(inner_for_loop, NULL),
+        strdup(idx_var_4));
+
+    GStackPush(data->stmts, outer_for_loop);
+
     return NULL;
 }
 
@@ -176,19 +329,30 @@ void TVIfini()
             node_st *node = GStackPop(data->assignments);
             CCNfree(node);
         }
-        
+
         // Free the stack itself
         GStackFree(data->assignments, NULL);
         data->assignments = NULL;
     }
 
+    if(data->stmts != NULL)
+    {
+        while (!GStackIsEmpty(data->stmts))
+        {
+            node_st *node = GStackPop(data->stmts);
+            CCNfree(node);
+        }
 
+        GStackFree(data->stmts, NULL);
+        data->stmts = NULL;
+    }
 }
 void TVIinit()
 {
     struct data_tvi *data = DATA_TVI_GET();
 
     data->assignments = GStackNew(200);
+    data->stmts = GStackNew(200);
     data->temp_counter = 1;
     data->in_global_scope = true;
     data->in_array_dim = false;
@@ -213,53 +377,10 @@ node_st *TVIprogram(node_st *node)
  */
 node_st *TVIfuncontents(node_st *node)
 {
-    // Traverse function content
-    // if (FUNCONTENTS_FUNCONTENT(node))
-    // {
-    //     FUNCONTENTS_FUNCONTENT(node) = TRAVdo(FUNCONTENTS_FUNCONTENT(node));
-    // }
 
-    printf("reached funcontents \n");
-    switch(NODE_TYPE(FUNCONTENTS_FUNCONTENT(node))) {
-        case NT_VARDECL:
-            printf("%s\n", VARDECL_NAME(FUNCONTENTS_FUNCONTENT(node)));
-            printf("vardecl\n");
-            break;
-        case NT_STMTS:
-            printf("stmts\n");
-            break;
-        case NT_FUNDEF:
-            printf("fundef\n");
-            break;
-            
-    }
     TRAVdo(FUNCONTENTS_FUNCONTENT(node));
 
-
     TRAVopt(FUNCONTENTS_NEXT(node));
-
-    // // Check if function content is a variable declaration
-    // if (FUNCONTENTS_FUNCONTENT(node) && NODE_TYPE(FUNCONTENTS_FUNCONTENT(node)) == NT_VARDECL)
-    // {
-    //     struct data_tvi *data = DATA_TVI_GET();
-
-    //     // If we have assignments from this vardecl, insert them after current node
-    //     while(!GStackIsEmpty(data->assignments))
-    //     {
-    //         node_st *next = GStackPopTail(data->assignments);
-    //         FUNCONTENTS_NEXT(node) = ASTfuncontents(next, FUNCONTENTS_NEXT(node));
-
-           
-    //         // Clean up
-    //         // GStackFree(temp_stack, CCNfreeWrapper);
-    //     }
-    // }
-
-    // // Continue with next node
-    // if (FUNCONTENTS_NEXT(node))
-    // {
-    //     FUNCONTENTS_NEXT(node) = TRAVdo(FUNCONTENTS_NEXT(node));
-    // }
 
     return node;
 }
@@ -273,81 +394,100 @@ node_st *TVIfundef(node_st *node)
     // bool prev_scope = data->in_global_scope;
 
     // // Mark that we're entering a function
-    // data->in_global_scope = false;
+    data->in_global_scope = false;
 
-    // // Skip "init" function if we created it
-    // if (strcmp(FUNDEF_NAME(node), "init") == 0 && data->init_func_created)
-    // {
-    //     // Don't traverse the init function we created to avoid recursion
-    //     data->in_global_scope = prev_scope;
-    //     return node;
-    // }
-    // // Traverse children
+
     TRAVchildren(node);
 
-    while(!GStackIsEmpty(data->assignments))
+    node_st *func_body = FUNDEF_BODY(node);
+    node_st *last_var_decl = NULL;
+
+    // loop over al function contents and print the node type.
+    node_st *test = FUNBODY_FUNCONTENTS(func_body);
+
+    // while(FUNCONTENTS_NEXT(test)) {
+    //     // printf("curr: %s\n", node_to_type_string(FUNCONTENTS_FUNCONTENT(test)));
+    //     test = FUNCONTENTS_NEXT(test);
+    // }
+
+    while (test)
+    {
+        if (NODE_TYPE(FUNCONTENTS_FUNCONTENT(test)) == NT_VARDECL)
+        {
+            last_var_decl = test;
+        }
+        test = FUNCONTENTS_NEXT(test);
+    }
+
+    // printf("last var decl: %s\n", node_to_type_string(FUNCONTENTS_FUNCONTENT(last_var_decl)));
+
+    while (!GStackIsEmpty(data->assignments))
     {
         node_st *next = GStackPopTail(data->assignments);
-        node_st *func_body = FUNDEF_BODY(node);
+        // node_st *func_body = FUNDEF_BODY(node);
 
-        if(NODE_TYPE(next) == NT_VARDECL) {
-            //insert at the top.
+        if (NODE_TYPE(next) == NT_VARDECL)
+        {
+            // insert at the top.
             FUNBODY_FUNCONTENTS(func_body) = ASTfuncontents(next, FUNBODY_FUNCONTENTS(func_body));
-        } else if(NODE_TYPE(next) == NT_ASSIGN) {
-            //find the last var_decl and insert after it.
-            node_st *curr = FUNBODY_FUNCONTENTS(func_body);
-            while(FUNCONTENTS_NEXT(curr) && NODE_TYPE(FUNCONTENTS_FUNCONTENT(curr)) == NT_VARDECL) {
-                curr = FUNCONTENTS_NEXT(curr);
-            }
-            FUNCONTENTS_NEXT(curr) = ASTfuncontents(next, FUNCONTENTS_NEXT(curr));
+        }
+        else if (NODE_TYPE(next) == NT_ASSIGN)
+        {
+            FUNCONTENTS_NEXT(last_var_decl) = ASTfuncontents(next, FUNCONTENTS_NEXT(last_var_decl));
         }
     }
-    // printf("test \n\n\n\n\n\n\n\n\n");
-    // while(!GStackIsEmpty(data->assignments))
-    // {
+
+    // For loop insert part for arrays and 2d arrays -------------
+
+    //get the last item before the first statement
+    node_st *last_before_stmt = NULL;
+    node_st *curr = FUNBODY_FUNCONTENTS(func_body);
+    while(curr)
+    {
+        node_st *funcontents_next = FUNCONTENTS_NEXT(curr);
+        node_st *funcontent_next = FUNCONTENTS_FUNCONTENT(funcontents_next);
+
+        if(funcontents_next && 
+            (NODE_TYPE(funcontent_next) == NT_IFELSE ||
+            NODE_TYPE(funcontent_next) == NT_WHILE ||
+            NODE_TYPE(funcontent_next) == NT_FOR ||
+            NODE_TYPE(funcontent_next) == NT_DOWHILE ||
+            NODE_TYPE(funcontent_next) == NT_EXPRSTMT ||
+            NODE_TYPE(funcontent_next) == NT_RETURN
+        ))
+        {
+            last_before_stmt = curr;
+            break;
+        }
+        curr = FUNCONTENTS_NEXT(curr);
+    }
+
+    // Add the for loops before the first statement
+    while (!GStackIsEmpty(data->stmts))
+    {
+        node_st *next = GStackPopTail(data->stmts);
+
+        // Add it before the first stmt
+        if(last_before_stmt)
+        {
+            FUNCONTENTS_NEXT(last_before_stmt) = ASTfuncontents(next, FUNCONTENTS_NEXT(last_before_stmt));
+        }
+        else
+        {
+            //Add it last
+            node_st *search_last = FUNBODY_FUNCONTENTS(func_body);
+            while(FUNCONTENTS_NEXT(search_last))
+            {
+                search_last = FUNCONTENTS_NEXT(search_last);
+            }
+            FUNCONTENTS_NEXT(search_last) = ASTfuncontents(next, NULL);
+        }
         
-    // }
-    // node_st *func_body = FUNDEF_BODY(node);
 
-    // node_st *funcontents = FUNBODY_FUNCONTENTS(func_body);
-    // //get all the assignments from the current stack and add them to the function body
-    // if (!GStackIsEmpty(data->assignments))
-    // {
+    }
 
-    //     // Now add them in correct order
-    //     while (!GStackIsEmpty(data->assignments))
-    //     {
-    //         node_st *assign = GStackPopTail(data->assignments);
-    //         node_st *new_stmt = ASTstmts(assign, NULL);
-    //         if (FUNBODY_FUNCONTENTS(func_body) == NULL)
-    //         {
-    //             FUNBODY_FUNCONTENTS(func_body) = ASTfuncontents(new_stmt, NULL);
-    //         }
-    //         else
-    //         {
-    //             // Find the end of the function contents list
-    //             // They have to be inserted after the var_decl but before the first statement
-
-    //             node_st *curr = FUNBODY_FUNCONTENTS(func_body);
-
-    //             node_st *prev = NULL;
-    //             while (FUNCONTENTS_NEXT(curr) && NODE_TYPE(FUNCONTENTS_NEXT(curr)) == NT_VARDECL)
-    //             {
-    //                 prev = curr;
-    //                 curr = FUNCONTENTS_NEXT(curr);
-    //             }
-
-    //             // Insert after the var_decl
-    //             // The prev next needs to be the new statement
-    //             FUNCONTENTS_NEXT(prev) = ASTfuncontents(new_stmt, curr);
-    //             // // The new statement next needs to be the current next
-    //             // FUNCONTENTS_NEXT(new_stmt) = FUNCONTENTS_NEXT(curr);
-    //         }
-    //     }
-    // }
-
-    // Restore previous scope
-    // data->in_global_scope = prev_scope;
+    // Reset global scope
+    data->in_global_scope = true;
 
     return node;
 }
@@ -396,7 +536,7 @@ node_st *TVIvardecl(node_st *node)
     if (VARDECL_INIT(node))
     {
         node_st *init_value = VARDECL_INIT(node);
-        
+
         if (VARDECL_DIMS(node))
         {
             create_array_init_loops(VARDECL_NAME(node), VARDECL_DIMS(node), init_value, data->assignments);

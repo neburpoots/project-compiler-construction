@@ -276,10 +276,10 @@ var_decl: type ID SEMICOLON
   // }
 
   //var dec like int[5] empty_vec
-  | type SQUARE_L NUM SQUARE_R ID SEMICOLON
+  | type SQUARE_L expr SQUARE_R ID SEMICOLON
   %prec LOWER
   {
-        $$ = ASTvardecl(ASTexprs(ASTnum($3), NULL),
+        $$ = ASTvardecl($3,
             NULL,
             $5,
             $1
@@ -299,14 +299,14 @@ var_decl: type ID SEMICOLON
   // }
 
   //var dec like int[1,1] empty_matrix;
-  | type SQUARE_L NUM COMMA NUM SQUARE_R ID SEMICOLON
+  | type SQUARE_L expr COMMA expr SQUARE_R ID SEMICOLON
   %prec LOWER
   {
       $$ = ASTvardecl(
           ASTexprs(
-              ASTnum($3),  
+              $3,  
               ASTexprs(
-                  ASTnum($5),
+                  $5,
                   NULL
               )
           ),
@@ -336,13 +336,12 @@ var_decl: type ID SEMICOLON
   // }
 
   //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
-  | type SQUARE_L NUM SQUARE_R ID LET arrExpr SEMICOLON
+  | type SQUARE_L expr SQUARE_R ID LET arrExpr SEMICOLON
   %prec LOWER
   {
-      node_st *size_node = ASTnum($3);
 
       $$ = ASTvardecl(
-          ASTexprs(size_node, NULL),  // Store the array size
+          ASTexprs($3, NULL),  // Store the array size
           $7,                         // Use arrExpr directly
           $5,
           $1
@@ -364,15 +363,15 @@ var_decl: type ID SEMICOLON
   // }
 
   //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
-| type SQUARE_L NUM COMMA NUM SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
+| type SQUARE_L expr COMMA expr SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
   %prec LOWER
 
 {
     //construct dimensions
-    node_st *dims = ASTexprs(ASTnum($3), ASTexprs(ASTnum($5), NULL));
+    node_st *dims = ASTexprs($3, ASTexprs($5, NULL));
 
     //construct ArrExpr node
-    node_st *init = ASTarrexpr($10, generate_matrix_indices($3, $5));
+    node_st *init = ASTarrexpr($10, NULL);
 
     //create vardecl
     $$ = ASTvardecl(
@@ -781,10 +780,10 @@ int yyerror(char *error)
 // }
 
 //own function create indices for matrix
-node_st *generate_matrix_indices(int width, int height) {
-    // printf("Width: %d height: %d \n", width, height);
-    return ASTexprs(ASTnum(width), ASTexprs(ASTnum(height), NULL));
-}
+// node_st *generate_matrix_indices(int width, int height) {
+//     // printf("Width: %d height: %d \n", width, height);
+//     return ASTexprs(width, ASTexprs(height, NULL));
+// }
 
 //own function to create the indices based on the array lenght
 node_st *generate_indices(node_st *exprs) {
