@@ -354,3 +354,11 @@ node_st *PRTfuncontents(node_st *node)
 {
     return node;
 }
+
+/**
+ * @fn PRTcondexpr
+ */
+ node_st *PRTcondexpr(node_st *node)
+ {
+     return node;
+ }

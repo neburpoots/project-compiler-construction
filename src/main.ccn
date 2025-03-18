@@ -11,6 +11,7 @@ start phase RootPhase {
         TransformVariableInit;
         PrintCurrentProgram;
         TypeChecking;
+        TransformBinopDisjunctionConjuntion;
         ClearSymbolTables;
         Print;
     }
@@ -49,6 +50,11 @@ traversal TransformVariableInit {
         bool in_array_dim,
         bool init_func_created
     }
+};
+
+traversal TransformBinopDisjunctionConjuntion{
+  uid = TBDC,
+  nodes = {Binop}
 };
 
 traversal PrintCurrentProgram {
@@ -103,7 +109,7 @@ nodeset Decl = {GlobDef, GlobDecl, FunDef, FunDec};
 
 nodeset Vars = {VarDecl, Var, VarLet};
 
-nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations);
+nodeset Expr = {Cast, FunCall, Var, ArrExpr, CondExpr} | (Constants | Operations);
 
 nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
 
@@ -117,7 +123,7 @@ nodeset Named {
 };
 
 nodeset Typed {
-    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
+    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return, CondExpr})),
     attributes {
         Type type
     }
@@ -381,6 +387,17 @@ node Binop {
 
     attributes {
         BinOpType op { constructor }
+    }
+};
+
+node CondExpr {
+    children {
+        Expr cond { constructor, mandatory },
+        Expr then_expr { constructor, mandatory },
+        Expr else_expr { constructor, mandatory }
+    },
+    attributes {
+        Type type { constructor }
     }
 };
 
