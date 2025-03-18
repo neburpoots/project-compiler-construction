@@ -12,6 +12,7 @@ start phase RootPhase {
         PrintCurrentProgram;
         TypeChecking;
         TransformBinopDisjunctionConjuntion;
+        TransformBooleanCasts;
         ClearSymbolTables;
         Print;
     }
@@ -55,6 +56,11 @@ traversal TransformVariableInit {
 traversal TransformBinopDisjunctionConjuntion{
   uid = TBDC,
   nodes = {Binop}
+};
+
+traversal TransformBooleanCasts {
+    uid = TBC,
+    nodes = { Cast }
 };
 
 traversal PrintCurrentProgram {

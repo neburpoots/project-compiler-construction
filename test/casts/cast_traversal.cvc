@@ -1,0 +1,44 @@
+export bool testIntToBoolZero() {
+    int x = 0;
+    return (bool)x;
+}
+
+// export bool testIntToBoolZeroNoVar() {
+//     int x = 0;
+//     return (bool)x;
+// }
+
+// export bool testFloatToBool() {
+//     float f = 3.14;
+//     return (bool)f;
+// }
+
+// export int testBoolToInt() {
+//     bool flag = true;
+//     return (int)flag;
+// }
+
+// export float testBoolToFloat() {
+//     bool b = false;
+//     return (float)b;
+// }
+
+// export bool testIntToBool() {
+//     int val = 42;
+//     return (bool)val;
+// }
+
+// // export bool testNegativeIntToBool() {
+// //     int x = -5;
+// //     return (bool)x;
+// // }
+
+// export bool testFloatZeroToBool() {
+//     float f = 0.0;
+//     return (bool)f;
+// }
+
+// export int testCastInExpression() {
+//     bool flag = true;
+//     return (int)flag * 10;
+// }
