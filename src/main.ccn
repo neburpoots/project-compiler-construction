@@ -8,7 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         BuildSymbolTables;
-        TransformVariableInit;
+        // TransformVariableInit;
         PrintCurrentProgram;
         TypeChecking;
         ClearSymbolTables;
@@ -42,7 +42,7 @@ traversal TransformVariableInit {
         user generic_stack_stptr assignments,
         // user generic_stack_stptr var_decls,
         user generic_stack_stptr stmts,
-        // user generic_stack_stptr global_assignments,
+        user generic_stack_stptr global_assignments,
         FunContents current_scope,
         int temp_counter,
         bool in_global_scope,

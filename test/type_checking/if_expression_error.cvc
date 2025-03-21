@@ -1,9 +1,13 @@
+// export int test = 10;
+
 export int calculate_age(int test) {
     int age = 0;
 
     bool isTrue = true;
 
     int[2, test()] test123 = [[1,2],[3,4]];
+
+    // int[2] test12312121 = [1,2,4,5,6,7];
 
     int itemFromTest = test123[0, 0];
 
