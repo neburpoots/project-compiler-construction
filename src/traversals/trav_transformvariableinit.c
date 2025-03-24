@@ -159,7 +159,7 @@ static char *create_vardecl(struct data_tvi *data)
     return idx_var;
 }
 
-static void create_and_push_assignment(struct data_tvi *data, char *var_name, node_st *value, generic_stack_st *assignments)
+static void create_and_push_assignment(char *var_name, node_st *value, generic_stack_st *assignments)
 {
     node_st *idx = ASTvarlet(NULL, strdup(var_name)); // Create varlet with a copy of var_name
     node_st *assignment = ASTassign(idx, value);      // Create assignment
@@ -200,8 +200,8 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
     //int tmp_2;
     //tmp_1 = 2;
     //tmp_2 = test();
-    create_and_push_assignment(data, idx_var_1, dim_1_copy, assignments);
-    create_and_push_assignment(data, idx_var_2, dim_2_copy, assignments);
+    create_and_push_assignment(idx_var_1, dim_1_copy, assignments);
+    create_and_push_assignment(idx_var_2, dim_2_copy, assignments);
 
     // Temp variable for the array assignment
     //int tmp_3;
@@ -283,7 +283,7 @@ static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value
     EXPRS_EXPR(dims) = ASTvar(NULL, strdup(idx_var_1));
     CCNfree(dim_1);
 
-    create_and_push_assignment(data, idx_var_1, dim_1_copy, assignments);
+    create_and_push_assignment(idx_var_1, dim_1_copy, assignments);
 
     //int tmp_3;
     //tmp_3 = [[1, 2][1, 0], [3, 4][1, 0]];

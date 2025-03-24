@@ -8,7 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         BuildSymbolTables;
-        // TransformVariableInit;
+        TransformVariableInit;
         PrintCurrentProgram;
         TypeChecking;
         ClearSymbolTables;
@@ -103,7 +103,12 @@ nodeset Decl = {GlobDef, GlobDecl, FunDef, FunDec};
 
 nodeset Vars = {VarDecl, Var, VarLet};
 
-nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations);
+nodeset Expr {
+    nodes = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations),
+    attributes {
+        Type type
+    }
+};
 
 nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
 
@@ -116,12 +121,12 @@ nodeset Named {
     }
 };
 
-nodeset Typed {
-    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
-    attributes {
-        Type type
-    }
-};
+// nodeset Typed {
+//     nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
+//     attributes {
+//         Type type
+//     }
+// };
 
 // Link you need to adapt when working with the symbol tables.
 // I put it as a decl now, because an empty nodeset is not allowed.

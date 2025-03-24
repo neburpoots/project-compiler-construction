@@ -213,47 +213,56 @@ void printVarDoesNotExist(node_st *node)
 }
 
 // Takes an expression and retrieves the type
-enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
+void InferExprType(node_st *expr, stable_st *symbol_table) {
     switch(NODE_TYPE(expr)) {
         case NT_FLOAT:
             // printf("FLOAT\n");
-            return CT_float;
+            EXPR_TYPE(expr) = CT_float;
             break;
         case NT_NUM:
-            // printf("INT\n");
-            return CT_int;
+            EXPR_TYPE(expr) = CT_int;
             break;
         case NT_BOOL:
-            // printf("BOOL\n");
-            return CT_bool;
+            EXPR_TYPE(expr) = CT_bool;
             break;
         case NT_BINOP:
             //recursion to get correct child type.
-            enum Type left = InferExprType(BINOP_LEFT(expr), symbol_table);
-            enum Type right = InferExprType(BINOP_RIGHT(expr), symbol_table);
+            InferExprType(BINOP_LEFT(expr), symbol_table);
+            InferExprType(BINOP_RIGHT(expr), symbol_table);
+            
             enum BinOpType op = BINOP_OP(expr);
 
-            printf("Left: %s\n", typeToString(left));
-            
+            enum Type left = EXPR_TYPE(BINOP_LEFT(expr));
+            enum Type right = EXPR_TYPE(BINOP_RIGHT(expr));
 
             if(op == BO_add || op == BO_sub || op == BO_mul || op == BO_div || op == BO_mod) {
                 //if either is boolean return error
-                // if(left == CT_bool || right == CT_bool) {
-                //     printTypeMisMatch(expr, CT_int, CT_bool);
-                    
-                //     return CT_bool;
-                // }
+
+                if(left == CT_bool || right == CT_bool) {
+                    // printTypeMisMatch(expr, CT_int, CT_bool);                    
+                }
 
                 // If either is float return float type.
                 if(left == CT_float || right == CT_float) {
-                    return CT_float;
+                    EXPR_TYPE(expr) = CT_float;
                 } else {
-                    return CT_int;
+                    EXPR_TYPE(expr) = CT_int;
                 }
             } else if(op == BO_lt || op == BO_le || op == BO_gt || op == BO_ge || op == BO_eq || op == BO_ne) {
-                return CT_bool;
+                //if either is boolean return error
+                if(left == CT_bool || right == CT_bool) {
+                    // printTypeMisMatch(expr, CT_int, CT_bool);
+                    
+                }
+
+                EXPR_TYPE(expr) = CT_bool;
             } else if(op == BO_and || op == BO_or) {
-                return CT_bool;
+                //if either is boolean return error
+                if(left != CT_bool || right != CT_bool) {
+                    // printTypeMisMatch(expr, CT_bool, CT_int);   
+                }
+
+                EXPR_TYPE(expr) = CT_bool;
             }
             break;
 
@@ -266,7 +275,7 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
             var_entry_st *result = STlookupVar(symbol_table, VAR_NAME(expr), true);
 
             if(result) {
-                return result->type;
+                EXPR_TYPE(expr) = result->type;
             } else {
                 printVarDoesNotExist(expr);
             }
@@ -274,6 +283,14 @@ enum Type InferExprType(node_st *expr, stable_st *symbol_table) {
             break;
         case NT_FUNCALL:
             //TODO get the symbol table from the node attribute to find the function type.
+            func_entry_st *result2 = STlookupFunc(symbol_table, FUNCALL_NAME(expr));
+
+            if(result2) {
+                EXPR_TYPE(expr) = result2->returnType;
+            } else {
+                printVarDoesNotExist(expr);
+            }
+
             break;
         case NT_CAST:
             // NO checking is required according to civic docs
@@ -293,16 +310,24 @@ node_st *TCifelse(node_st *node)
 {
     node_st *expr = IFELSE_COND(node);
 
-    enum Type actualType = InferExprType(expr, IFELSE_TABLE(node));
-    // printf("Actual type: %d\n", );
-    // If condition has to be a boolean.
-    if(actualType != CT_bool) {
-        //print if statement condition is not a boolean.
+    InferExprType(expr, IFELSE_TABLE(node));
+
+    if(EXPR_TYPE(expr) != CT_bool) {
         printf(RED "Error: If statement condition is not a boolean.\n" RESET);
-        printf(YELLOW "  Condition: " RESET "%s\n", typeToString(actualType));
+        printf(YELLOW "  Condition: " RESET "%s\n", typeToString(EXPR_TYPE(expr)));
         printf(YELLOW "  Expected: " RESET BLUE "bool\n" RESET);
         exit(EXIT_FAILURE);
     }
+
+    // // printf("Actual type: %d\n", );
+    // // If condition has to be a boolean.
+    // if(actualType != CT_bool) {
+    //     //print if statement condition is not a boolean.
+    //     printf(RED "Error: If statement condition is not a boolean.\n" RESET);
+    //     printf(YELLOW "  Condition: " RESET "%s\n", typeToString(actualType));
+    //     printf(YELLOW "  Expected: " RESET BLUE "bool\n" RESET);
+    //     exit(EXIT_FAILURE);
+    // }
 
     TRAVchildren(node);
     return node;
@@ -310,13 +335,10 @@ node_st *TCifelse(node_st *node)
 
 node_st *TCbinop(node_st *node)
 {
-    // enum Type comparisonType = InferExprType(node);
-    // enum Type declaredType = BINOP_TYPE(node);
+    TRAVchildren(node);
 
-    // if (comparisonType != declaredType) {
-    //     printTypeMisMatch(node, declaredType, comparisonType);
-    // }
-    
+    //Todo check if the types are correct.
+
     return node;
 }
 

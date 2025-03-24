@@ -20,6 +20,13 @@ struct var_entry {
 };
 typedef struct var_entry var_entry_st;
 
+
+struct func_entry {
+  char *name;
+  enum Type returnType;
+  struct param_entry *params;
+  struct func_entry *next;
+};
 typedef struct func_entry func_entry_st;
 
 //create new table
