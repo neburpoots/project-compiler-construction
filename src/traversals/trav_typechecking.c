@@ -295,7 +295,7 @@ void InferExprType(node_st *expr, stable_st *symbol_table) {
         case NT_CAST:
             // NO checking is required according to civic docs
             // The only way to check if a conversion is allowed
-            return CAST_TYPE(expr);
+            EXPR_TYPE(expr) = CAST_TYPE(expr);
             break;
 
         default:
