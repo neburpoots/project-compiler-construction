@@ -56,7 +56,7 @@ node_st *TBCcast(node_st *node) {
   node_st *expr = CAST_EXPR(node);
   enum Type source_type = TYPED_TYPE(expr);
 
-  printf("%s -> %s", type_to_str(source_type), type_to_str(target_type));
+  printf("%s -> %s\n", type_to_str(source_type), type_to_str(target_type));
 
   //bool to int or flaot
   if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {

@@ -60,6 +60,7 @@ node_st *BETfundef(node_st *node)
 
         ETadd(data->export_table_ptr,
               FUNDEF_NAME(node),
+              FUNDEF_NAME(node),
               FUNDEF_TYPE(node),
               param_list);
     }

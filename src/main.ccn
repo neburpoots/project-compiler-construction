@@ -16,6 +16,7 @@ start phase RootPhase {
         TypeChecking;
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
+        GenerateAssemblyCode;
         ClearSymbolTables;
 
         //used now for clearing constant table(for memory)
