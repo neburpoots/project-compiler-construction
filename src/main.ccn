@@ -70,7 +70,7 @@ traversal ClearConstantTable{
 traversal BuildSymbolTables{
     uid = BST,
     nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl },
-    travdata { 
+    travdata {
         user stack_stptr symbol_table_stack_ptr
     }
 };
