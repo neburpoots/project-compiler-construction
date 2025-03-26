@@ -54,7 +54,11 @@ node_st *TBCcast(node_st *node) {
   //get the source and target type
   enum Type target_type = CAST_TYPE(node);
   node_st *expr = CAST_EXPR(node);
-  enum Type source_type = TYPED_TYPE(expr);
+
+  //set to static int to test
+  // enum Type source_type = TYPED_TYPE(expr);
+  enum Type source_type = CT_int;
+
 
   printf("%s -> %s", type_to_str(source_type), type_to_str(target_type));
 
@@ -84,7 +88,7 @@ node_st *TBCcast(node_st *node) {
 
       printf("  Created Binop: %s != %s\n",
         type_to_str(source_type),
-        type_to_str(TYPED_TYPE(zero)));
+        type_to_str(target_type));
 
       CCNfree(node);
       return comparison;
