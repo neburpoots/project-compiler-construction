@@ -1,9 +1,17 @@
-export int test() {
+export int without_parameters() {
   int x = 10;
   float y = 10.5;
   int z = 14;
-  bool a = false;
-  bool b = true;
-  int this_should_not_appear_in_constant_table = 14;
   return 1;
+}
+
+export bool bool_with_parameters(int a, float b, bool c) {
+  int x = 10;
+  float y = 10.5;
+  int z = 14;
+  return 1;
+}
+
+export float float_with_parameters(bool a, int b, int c, float d){
+  return 1.5;
 }

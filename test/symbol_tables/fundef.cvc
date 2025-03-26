@@ -2,7 +2,7 @@
 export int test(int param_int, float param_float) {
   int x = 10;
   float y = 10.5;
-  int x = 14;
+  int z = 14;
 }
 
 //2. should work
