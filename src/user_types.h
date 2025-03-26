@@ -6,6 +6,7 @@
 #include "user/genericstack/generic_stack.h"
 #include "user/tables/constTable/const_table.h"
 #include "user/tables/exportTable/export_table.h"
+#include "user/tables/importTable/import_table.h"
 
 typedef htable_st* htable_stptr;
 
@@ -16,3 +17,4 @@ typedef stack_st* stack_stptr;
 typedef generic_stack_st* generic_stack_stptr;
 typedef const_table_st* ctable_stprt;
 typedef export_table_st* etable_stprt;
+typedef import_table_st* itable_stprt;

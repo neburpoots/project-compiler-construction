@@ -8,6 +8,7 @@ start phase RootPhase {
     actions {
         pass SPdoScanParse;
         BuildConstantTable;
+        BuildImportTable;
         BuildExportTable;
         BuildSymbolTables;
         TransformVariableInit;
@@ -20,9 +21,23 @@ start phase RootPhase {
         //used now for clearing constant table(for memory)
         ClearConstantTable;
         ClearExportTable;
+        ClearImportTable;
 
         Print;
     }
+};
+
+traversal BuildImportTable {
+    uid = BIT,
+    nodes = { Program, FunDec },
+    travdata {
+        user itable_stprt import_table_ptr
+    }
+};
+
+traversal ClearImportTable{
+  uid = CIT,
+  nodes = { Program }
 };
 
 traversal BuildExportTable {
@@ -35,7 +50,7 @@ traversal BuildExportTable {
 
 traversal ClearExportTable{
   uid = CET,
-  nodes = { Program}
+  nodes = { Program }
 };
 
 traversal BuildConstantTable{
@@ -191,7 +206,8 @@ root node Program {
     attributes {
         user stable_stptr table,
         user ctable_stprt constant_table,
-        user etable_stprt export_table
+        user etable_stprt export_table,
+        user itable_stprt import_table
     }
 };
 
