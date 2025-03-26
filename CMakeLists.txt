@@ -42,6 +42,7 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/traversals/trav_buildexporttable.c
     src/traversals/trav_buildimporttable.c
     src/traversals/trav_clearimporttable.c
+    src/traversals/trav_generateassemblycode.c
 
     src/traversals/trav_printcurrentprogram.c
     src/traversals/trav_typechecking.c

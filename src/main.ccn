@@ -120,6 +120,11 @@ traversal Print {
     uid = PRT
 };
 
+traversal GenerateAssemblyCode{
+  uid = GAC,
+  nodes = { Program, FunDef }
+};
+
 /*****************************************************************************
  *                                                                           *
  *                                   ENUMS                                   *
