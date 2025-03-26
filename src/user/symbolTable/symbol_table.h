@@ -10,7 +10,7 @@ struct param_entry {
 };
 
 typedef struct param_entry param_entry_st;
-typedef struct stable stable_st;
+
 
 //var enties
 struct var_entry {
@@ -28,6 +28,13 @@ struct func_entry {
   struct func_entry *next;
 };
 typedef struct func_entry func_entry_st;
+
+struct stable {
+  var_entry_st *var_entries;
+  func_entry_st *func_entries;
+  struct stable *parent;
+};
+typedef struct stable stable_st;
 
 //create new table
 stable_st *STnew(stable_st *parent);

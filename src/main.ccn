@@ -18,7 +18,7 @@ start phase RootPhase {
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
@@ -31,7 +31,11 @@ traversal ClearSymbolTables{
 
 traversal TypeChecking {
     uid = TC,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop }
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return},
+    travdata {
+        int type_error_count,
+        Fundef current_function
+    }
 };
 
 // This traversal is used to transform variable initializations into assignments.
@@ -43,6 +47,7 @@ traversal TransformVariableInit {
         // user generic_stack_stptr var_decls,
         user generic_stack_stptr stmts,
         user generic_stack_stptr global_assignments,
+        user stack_stptr current_symbol_table_stack_ptr,
         FunContents current_scope,
         int temp_counter,
         bool in_global_scope,
@@ -194,6 +199,9 @@ node ExprStmt {
 node Return {
     children {
         Expr expr { constructor }
+    },
+    attributes {
+        user stable_stptr table
     }
 };
 
@@ -375,6 +383,9 @@ node Assign {
     children {
         VarLet let { constructor },
         Expr expr { constructor, mandatory }
+    },
+    attributes {
+        user stable_stptr table
     }
 };
 

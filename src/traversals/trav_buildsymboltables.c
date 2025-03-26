@@ -287,11 +287,12 @@ node_st *BSTfunbody(node_st *node)
 {
     printf("\nTraversing fun body\n");
 
-
-
-    TRAVchildren(node);
+    TRAVfunContents(node);
     return node;
 }
+
+
+
 
 /**
  * @fn BSTparam
@@ -442,6 +443,62 @@ node_st *BSTifelse(node_st *node)
 
   return node;
 }
+
+/**
+ * @fn BSTassign
+ */
+node_st *BSTassign(node_st *node)
+{
+  //create empty symbol table that links to parent scope
+  printf("\nTraversing Assign\n");
+
+  //get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  //peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+  
+	// Stackpush(data->symbol_table_stack_ptr, new_table);
+  // printSymbolTableContent(t, true);
+
+  //attaching as attribute
+  ASSIGN_TABLE(node) = t;
+
+  // printf("Attached empty symbol table to assign\n");
+
+  TRAVchildren(node);
+
+  return node;
+}
+
+/**
+ * @fn BSTreturn
+ */
+node_st *BSTreturn(node_st *node)
+{
+  //create empty symbol table that links to parent scope
+  printf("\nTraversing Return\n");
+
+  //get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  //peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+  
+	// Stackpush(data->symbol_table_stack_ptr, new_table);
+  printSymbolTableContent(t, true);
+
+  //attaching as attribute
+  RETURN_TABLE(node) = t;
+
+  // printf("Attached empty symbol table to assign\n");
+
+  TRAVchildren(node);
+
+  return node;
+}
+
+
 
 /**
  * @fn BSTwhile

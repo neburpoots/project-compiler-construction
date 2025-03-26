@@ -8,11 +8,6 @@ static bool compareParamLists(param_entry_st *a, param_entry_st *b);
 static struct param_entry *copyParamList(param_entry_st *src);
 
 //symbol table holding the vars and funcs
-struct stable {
-  var_entry_st *var_entries;
-  func_entry_st *func_entries;
-  struct stable *parent;
-};
 
 //create new symbol table
 stable_st *STnew(stable_st *parent) {

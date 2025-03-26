@@ -166,7 +166,8 @@ static void create_and_push_assignment(char *var_name, node_st *value, generic_s
     GStackPush(assignments, assignment);              // Push to assignments stack
 }
 
-static char *create_temp_save_array(struct data_tvi *data, generic_stack_st *assignments, node_st *init_value) {
+static char *create_temp_save_array(struct data_tvi *data, generic_stack_st *assignments, node_st *init_value)
+{
     char *idx_var = create_temp_var_name(data);
     node_st *idx_vardecl = ASTvardecl(NULL, NULL, idx_var, CT_int);
     GStackPush(assignments, idx_vardecl);
@@ -196,16 +197,19 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
     EXPRS_EXPR(EXPRS_NEXT(dims)) = ASTvar(NULL, strdup(idx_var_2));
     CCNfree(dim_2);
 
-    //int tmp_1;
-    //int tmp_2;
-    //tmp_1 = 2;
-    //tmp_2 = test();
+
+
+
+    // int tmp_1;
+    // int tmp_2;
+    // tmp_1 = 2;
+    // tmp_2 = test();
     create_and_push_assignment(idx_var_1, dim_1_copy, assignments);
     create_and_push_assignment(idx_var_2, dim_2_copy, assignments);
 
     // Temp variable for the array assignment
-    //int tmp_3;
-    //tmp_3 = [[1, 2][1, 0], [3, 4][1, 0]];
+    // int tmp_3;
+    // tmp_3 = [[1, 2][1, 0], [3, 4][1, 0]];
     char *idx_var_3 = create_temp_save_array(data, assignments, init_value);
 
     // Allocate pseudo function assignment
@@ -230,6 +234,16 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
     GStackPush(assignments, idx_4_vardecl);
     GStackPush(assignments, idx_5_vardecl);
 
+    // create symbol table for own function and push onto stack
+    // stable_st *new_table = STnew(data->current_symbol_table_stack_ptr);
+    
+    // insert into symbol table
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_1, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_2, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_3, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_4, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_5, CT_int);    
+
     // Assignment inside the inner loop
     node_st *assignment_inner_loop = ASTassign(
         ASTvarlet(ASTexprs(ASTvar(NULL, strdup(idx_var_4)), ASTexprs(ASTvar(NULL, strdup(idx_var_5)), NULL)), strdup(array_name)),
@@ -250,6 +264,7 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
         ASTstmts(assignment_inner_loop, NULL),
         strdup(idx_var_5));
 
+
     // Outer for loop
     // i < 10
     node_st *outer_condition = ASTbinop(
@@ -265,12 +280,18 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
         ASTstmts(inner_for_loop, NULL),
         strdup(idx_var_4));
 
+
+    FOR_TABLE(outer_for_loop) = STnew(data->current_symbol_table_stack_ptr);
+    FOR_TABLE(inner_for_loop) = STnew(FOR_TABLE(outer_for_loop));
+
+
     GStackPush(data->stmts, outer_for_loop);
 
     return NULL;
 }
 
-static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value, generic_stack_st *assignments) {
+static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value, generic_stack_st *assignments)
+{
 
     struct data_tvi *data = DATA_TVI_GET();
 
@@ -285,14 +306,30 @@ static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value
 
     create_and_push_assignment(idx_var_1, dim_1_copy, assignments);
 
-    //int tmp_3;
-    //tmp_3 = [[1, 2][1, 0], [3, 4][1, 0]];
+    // int tmp_3;
+    // tmp_3 = [[1, 2][1, 0], [3, 4][1, 0]];
     char *idx_var_2 = create_temp_save_array(data, assignments, init_value);
 
-    //For loop variable
+    // For loop variable
     char *idx_var_3 = create_temp_var_name(data);
     node_st *idx_3_vardecl = ASTvardecl(NULL, NULL, idx_var_3, CT_int);
     GStackPush(assignments, idx_3_vardecl);
+
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_1, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_2, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var_3, CT_int);
+
+    // Allocate pseudo function assignment
+    node_st *start = ASTassign(
+        ASTvarlet(NULL, strdup(array_name)),
+        ASTfuncall(
+            ASTexprs(
+                ASTvar(
+                    NULL,
+                    strdup(idx_var_1)),
+                NULL),
+            strdup("__allocate")));
+    GStackPush(assignments, start);
 
     // Assignment inside the loop
     node_st *assignment_loop = ASTassign(
@@ -311,8 +348,10 @@ static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value
         ASTnum(1),
         ASTstmts(assignment_loop, NULL),
         strdup(idx_var_3));
-        GStackPush(data->stmts, for_loop);
+    GStackPush(data->stmts, for_loop);
 
+    //create new symbol table for loop
+    FOR_TABLE(for_loop) = STnew(data->current_symbol_table_stack_ptr);
 }
 
 // Helper to find or create the init function
@@ -402,7 +441,8 @@ void TVIfini()
         data->stmts = NULL;
     }
 
-    if(data->global_assignments != NULL) {
+    if (data->global_assignments != NULL)
+    {
         while (!GStackIsEmpty(data->global_assignments))
         {
             node_st *node = GStackPop(data->global_assignments);
@@ -434,20 +474,20 @@ node_st *TVIprogram(node_st *node)
     struct data_tvi *data = DATA_TVI_GET();
     data->in_global_scope = true;
 
-
     TRAVchildren(node);
 
     // init_function = ASTfundef(NULL, ASTfunbody(NULL), "init", CT_void, false);
 
-    if (!StackisEmpty(data->global_assignments)) {
-        node_st* init_func = find_or_create_init_function(node);
-        
-        while (!StackisEmpty(data->global_assignments)) {
-            node_st* next = GStackPopTail(data->global_assignments);
+    if (!StackisEmpty(data->global_assignments))
+    {
+        node_st *init_func = find_or_create_init_function(node);
+
+        while (!StackisEmpty(data->global_assignments))
+        {
+            node_st *next = GStackPopTail(data->global_assignments);
             add_to_init_function(init_func, next);
         }
     }
-    
 
     return node;
 }
@@ -476,26 +516,25 @@ node_st *TVIfundef(node_st *node)
     // // Mark that we're entering a function
     data->in_global_scope = false;
 
+    stack_stptr *global = data->current_symbol_table_stack_ptr;
+
+    data->current_symbol_table_stack_ptr = FUNDEF_TABLE(node);
+
     TRAVchildren(node);
 
     node_st *func_body = FUNDEF_BODY(node);
     node_st *last_var_decl = NULL;
 
     // loop over al function contents and print the node type.
-    node_st *test = FUNBODY_FUNCONTENTS(func_body);
+    node_st *iterator = FUNBODY_FUNCONTENTS(func_body);
 
-    // while(FUNCONTENTS_NEXT(test)) {
-    //     // printf("curr: %s\n", node_to_type_string(FUNCONTENTS_FUNCONTENT(test)));
-    //     test = FUNCONTENTS_NEXT(test);
-    // }
-
-    while (test)
+    while (iterator)
     {
-        if (NODE_TYPE(FUNCONTENTS_FUNCONTENT(test)) == NT_VARDECL)
+        if (NODE_TYPE(FUNCONTENTS_FUNCONTENT(iterator)) == NT_VARDECL)
         {
-            last_var_decl = test;
+            last_var_decl = iterator;
         }
-        test = FUNCONTENTS_NEXT(test);
+        iterator = FUNCONTENTS_NEXT(iterator);
     }
 
     // printf("last var decl: %s\n", node_to_type_string(FUNCONTENTS_FUNCONTENT(last_var_decl)));
@@ -524,9 +563,15 @@ node_st *TVIfundef(node_st *node)
     while (curr)
     {
         node_st *funcontents_next = FUNCONTENTS_NEXT(curr);
+
+        if(funcontents_next == NULL)
+        {
+            break;
+        }
+       
         node_st *funcontent_next = FUNCONTENTS_FUNCONTENT(funcontents_next);
 
-        if (funcontents_next &&
+        if (funcontents_next && funcontent_next &&
             (NODE_TYPE(funcontent_next) == NT_IFELSE ||
              NODE_TYPE(funcontent_next) == NT_WHILE ||
              NODE_TYPE(funcontent_next) == NT_FOR ||
@@ -564,6 +609,7 @@ node_st *TVIfundef(node_st *node)
 
     // Reset global scope
     data->in_global_scope = true;
+    data->current_symbol_table_stack_ptr = global;
 
     return node;
 }
@@ -585,7 +631,6 @@ node_st *TVIglobdef(node_st *node)
 
     GLOBDEF_INIT(node) = NULL;
 
-
     return node;
 }
 
@@ -603,7 +648,9 @@ node_st *TVIvardecl(node_st *node)
             {
                 printf("refactor 2d array loops\n");
                 refactor_2d_array_loops(VARDECL_NAME(node), VARDECL_DIMS(node), init_value, data->assignments);
-            } else if(EXPRS_EXPR(VARDECL_DIMS(node))) {
+            }
+            else if (EXPRS_EXPR(VARDECL_DIMS(node)))
+            {
                 printf("refactor array loops\n");
                 // printf()
                 refactor_array_loops(VARDECL_NAME(node), VARDECL_DIMS(node), init_value, data->assignments);
