@@ -29,15 +29,26 @@ include(./coconut/coconut.cmake)
 
 # Whenever you add a file, add it here too.
 add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
-    src/main.c 
-    src/print/print.c 
+    src/main.c
+    src/print/print.c
     src/traversals/trav_buildsymboltables.c
     src/traversals/trav_clearsymboltables.c
     src/traversals/trav_transformvariableinit.c
+    src/traversals/trav_transformbinopdisjunctionconjuntion.c
+    src/traversals/trav_transformbooleancasts.c
+    src/traversals/trav_clearconstanttable.c
+    src/traversals/trav_clearexporttable.c
+    src/traversals/trav_buildexporttable.c
+    src/traversals/trav_buildexporttable.c
+    src/traversals/trav_buildimporttable.c
+    src/traversals/trav_clearimporttable.c
+    src/traversals/trav_generateassemblycode.c
+
     src/traversals/trav_printcurrentprogram.c
     src/traversals/trav_typechecking.c
-    src/scanparse/scanParse.c 
-    src/global/globals.c 
+    src/traversals/trav_buildconstanttable.c
+    src/scanparse/scanParse.c
+    src/global/globals.c
     src/global/globals.h
 
     src/user/symbolTable/symbol_table.h
@@ -46,7 +57,13 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/user/stack/stack.h
     src/user/genericstack/generic_stack.c
     src/user/genericstack/generic_stack.h
+    src/user/tables/constTable/const_table.h
+    src/user/tables/constTable/const_table.c
+    src/user/tables/exportTable/export_table.h
+    src/user/tables/exportTable/export_table.c
 
+    src/user/tables/importTable/import_table.h
+    src/user/tables/importTable/import_table.c
 )
 
 target_compile_options(civicc PRIVATE

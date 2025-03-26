@@ -271,3 +271,12 @@ node_st *PRTbool(node_st *node)
     TRAVchildren(node);
     return node;
 }
+
+/**
+ * @fn PRTcondexpr
+ */
+node_st *PRTcondexpr(node_st *node)
+{
+    TRAVchildren(node);
+    return node;
+}

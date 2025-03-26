@@ -1,0 +1,21 @@
+extern void printInt(int val);
+extern void printNewlines(int num);
+
+export bool bool_with_parameters(int a, float b, bool c) {
+  int x = 10;
+  float y = 10.5;
+  int z = 14;
+  return 1;
+}
+
+export int without_parameters() {
+  int x = 10;
+  float y = 10.5;
+  int z = 14;
+  return 1;
+}
+
+export int main() {
+  int x = 10;
+  return x;
+}

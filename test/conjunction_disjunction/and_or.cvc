@@ -1,0 +1,38 @@
+export void testOr() {
+    int flag = 0;
+
+    //short circuit, right side is not evaluated.
+    if (flag == 1 || flag == 42) {
+        return;
+    }
+}
+
+export bool testNested() {
+    int a = 0;
+    int b = 5;
+    int c = 10;
+    return (a != 0 && (b / a > 2)) || c == 10;
+}
+
+export bool testReturn() {
+    int val = 42;
+
+    //short circuit avoids division by zero.
+    return (val > 0) || (val / 0 == 1);
+}
+
+export void testComplex() {
+    int x = 5;
+    int y = 0;
+    if ((x > 0 && y != 0) && (x / y > 1)) {
+        return x;
+    }
+    return y;
+}
+
+export void testLoop() {
+    int i = 0;
+    while (i < 10 || (i / 0 == 1)) {
+        i = i + 1;
+    }
+}

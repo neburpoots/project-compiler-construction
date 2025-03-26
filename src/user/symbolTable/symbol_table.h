@@ -5,6 +5,7 @@
 #include "ccngen/enum.h"
 
 struct param_entry {
+  char *name;
   enum Type type;
   struct param_entry *next;
 };

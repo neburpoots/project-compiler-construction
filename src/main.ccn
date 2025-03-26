@@ -7,13 +7,64 @@
 start phase RootPhase {
     actions {
         pass SPdoScanParse;
+        BuildConstantTable;
+        BuildImportTable;
+        BuildExportTable;
         BuildSymbolTables;
         TransformVariableInit;
         PrintCurrentProgram;
         TypeChecking;
+        TransformBinopDisjunctionConjuntion;
+        TransformBooleanCasts;
+        GenerateAssemblyCode;
         ClearSymbolTables;
+
+        //used now for clearing constant table(for memory)
+        ClearConstantTable;
+        ClearExportTable;
+        ClearImportTable;
+
         Print;
     }
+};
+
+traversal BuildImportTable {
+    uid = BIT,
+    nodes = { Program, FunDec },
+    travdata {
+        user itable_stprt import_table_ptr
+    }
+};
+
+traversal ClearImportTable{
+  uid = CIT,
+  nodes = { Program }
+};
+
+traversal BuildExportTable {
+    uid = BET,
+    nodes = { Program, FunDef },
+    travdata {
+        user etable_stprt export_table_ptr
+    }
+};
+
+traversal ClearExportTable{
+  uid = CET,
+  nodes = { Program }
+};
+
+traversal BuildConstantTable{
+  uid = BCT,
+  nodes = { Program, Num, Float, Bool},
+  travdata {
+    user ctable_stprt const_table_ptr
+  }
+};
+
+traversal ClearConstantTable{
+  uid = CCT,
+  nodes = { Program}
 };
 
 traversal BuildSymbolTables{
@@ -56,6 +107,16 @@ traversal TransformVariableInit {
     }
 };
 
+traversal TransformBinopDisjunctionConjuntion{
+  uid = TBDC,
+  nodes = {Binop}
+};
+
+traversal TransformBooleanCasts {
+    uid = TBC,
+    nodes = { Cast }
+};
+
 traversal PrintCurrentProgram {
     uid = PCP,
     nodes = { Program, Decls, FunDef, Funbody, FunContents, GlobDef, GlobDecl, FunDec, Param, VarDecl, Assign, Binop, Monop, VarLet, Var, Num, Float, Bool, Cast, FunCall, Exprs, ArrExpr, Ids, ExprStmt, Return, IfElse, While, DoWhile, For }
@@ -63,6 +124,11 @@ traversal PrintCurrentProgram {
 
 traversal Print {
     uid = PRT
+};
+
+traversal GenerateAssemblyCode{
+  uid = GAC,
+  nodes = { Program, FunDef }
 };
 
 /*****************************************************************************
@@ -109,7 +175,7 @@ nodeset Decl = {GlobDef, GlobDecl, FunDef, FunDec};
 nodeset Vars = {VarDecl, Var, VarLet};
 
 nodeset Expr {
-    nodes = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations),
+    nodes = {Cast, FunCall, Var, ArrExpr, CondExpr} | (Constants | Operations),
     attributes {
         Type type
     }
@@ -126,12 +192,12 @@ nodeset Named {
     }
 };
 
-// nodeset Typed {
-//     nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
-//     attributes {
-//         Type type
-//     }
-// };
+nodeset Typed {
+    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
+    attributes {
+        Type type
+    }
+};
 
 // Link you need to adapt when working with the symbol tables.
 // I put it as a decl now, because an empty nodeset is not allowed.
@@ -154,7 +220,10 @@ root node Program {
         Decls decls { constructor, mandatory }
     },
     attributes {
-        user stable_stptr table
+        user stable_stptr table,
+        user ctable_stprt constant_table,
+        user etable_stprt export_table,
+        user itable_stprt import_table
     }
 };
 
@@ -397,6 +466,17 @@ node Binop {
 
     attributes {
         BinOpType op { constructor }
+    }
+};
+
+node CondExpr {
+    children {
+        Expr cond { constructor, mandatory },
+        Expr then_expr { constructor, mandatory },
+        Expr else_expr { constructor, mandatory }
+    },
+    attributes {
+        Type type { constructor }
     }
 };
 
