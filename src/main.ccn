@@ -7,6 +7,7 @@
 start phase RootPhase {
     actions {
         pass SPdoScanParse;
+        BuildConstantTable;
         BuildSymbolTables;
         TransformVariableInit;
         PrintCurrentProgram;
@@ -14,8 +15,25 @@ start phase RootPhase {
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
         ClearSymbolTables;
+
+        //used now for clearing constant table(for memory)
+        ClearConstantTable;
+
         Print;
     }
+};
+
+traversal BuildConstantTable{
+  uid = BCT,
+  nodes = { Program, Num, Float, Bool},
+  travdata {
+    user ctable_stprt const_table_ptr
+  }
+};
+
+traversal ClearConstantTable{
+  uid = CCT,
+  nodes = { Program}
 };
 
 traversal BuildSymbolTables{
@@ -156,7 +174,8 @@ root node Program {
         Decls decls { constructor, mandatory }
     },
     attributes {
-        user stable_stptr table
+        user stable_stptr table,
+        user ctable_stprt constant_table
     }
 };
 

@@ -1,0 +1,9 @@
+export int test() {
+  int x = 10;
+  float y = 10.5;
+  int z = 14;
+  bool a = false;
+  bool b = true;
+  int this_should_not_appear_in_constant_table = 14;
+  return 1;
+}
