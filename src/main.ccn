@@ -15,7 +15,7 @@ start phase RootPhase {
         PrintCurrentProgram;
         TypeChecking;
         TransformBinopDisjunctionConjuntion;
-        TransformBooleanCasts;
+        // TransformBooleanCasts;
         GenerateAssemblyCode;
         ClearSymbolTables;
 
@@ -192,12 +192,12 @@ nodeset Named {
     }
 };
 
-nodeset Typed {
-    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
-    attributes {
-        Type type
-    }
-};
+// nodeset Typed {
+//     nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
+//     attributes {
+//         Type type
+//     }
+// };
 
 // Link you need to adapt when working with the symbol tables.
 // I put it as a decl now, because an empty nodeset is not allowed.
