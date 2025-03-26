@@ -41,6 +41,19 @@ traversal ClearImportTable{
   nodes = { Program }
 };
 
+traversal BuildVariableTable {
+  uid = BVT,
+  nodes = { Program, GlobDef, GlobDecl },
+  travdata {
+    user vtable_stprt var_table_ptr
+  }
+};
+
+traversal ClearVariableTable {
+  uid = CVT,
+  nodes = { Program }
+};
+
 traversal BuildExportTable {
     uid = BET,
     nodes = { Program, FunDef },
@@ -213,7 +226,8 @@ root node Program {
         user stable_stptr table,
         user ctable_stprt constant_table,
         user etable_stprt export_table,
-        user itable_stprt import_table
+        user itable_stprt import_table,
+        user vtable_stprt var_table
     }
 };
 

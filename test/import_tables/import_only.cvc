@@ -19,3 +19,17 @@ export int main() {
   int x = 10;
   return x;
 }
+
+
+int global_var = 10;
+extern int extern_var;
+
+void main() {
+  int local_var = 20;
+
+  int total_var = global_var + local_var;
+
+  if(total_var < extern_var){
+    return true;
+  }
+}
