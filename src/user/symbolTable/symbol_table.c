@@ -22,6 +22,28 @@ stable_st *STnew(stable_st *parent) {
   return table;
 }
 
+//insert array variable into the symbol table
+var_entry_st *STinsertArrayVar(stable_st *table, const char *name, enum Type type, void *dimensions) {
+  if (!table || !name) return NULL;
+
+  //check if var already exists in local scope symbol table
+  if (STlookupVar(table, name, false))
+  {
+    return NULL;
+  }
+
+  var_entry_st *entry = malloc(sizeof(var_entry_st));
+  if (!entry) return NULL;
+
+  entry->name = strdup(name);
+  entry->type = type;
+  entry->dimensions = dimensions;
+  entry->next = table->var_entries;
+  table->var_entries = entry;
+
+  return entry;
+}
+
 //insert a variable into the symbol table
 var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
   if (!table || !name) return NULL;
@@ -37,6 +59,7 @@ var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
 
   entry->name = strdup(name);
   entry->type = type;
+  entry->dimensions = NULL;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
@@ -192,7 +215,12 @@ void printSymbolTableContent(stable_st *table, bool printParent) {
       printf("Variables:\n");
       var_entry_st *var_entry = table->var_entries;
       while (var_entry) {
-          printf("  %s (%s)\n", var_entry->name, typeToString(var_entry->type));
+          
+        if(var_entry->dimensions){
+            printf("  %s (%s) - Array\n", var_entry->name, typeToString(var_entry->type));
+        } else {
+            printf("  %s (%s)\n", var_entry->name, typeToString(var_entry->type));
+        }
           var_entry = var_entry->next;
       }
   } else {

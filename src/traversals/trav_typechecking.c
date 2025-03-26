@@ -460,8 +460,8 @@ node_st *TCassign(node_st *node)
         return node;
     }
 
-    // printf("Entering assign\n");
-    // printSymbolTableContent(ASSIGN_TABLE(node), true);
+    printf("Entering assign\n");
+    printf("%s", VARLET_NAME(ASSIGN_LET(node)));
 
     node_st *expr = ASSIGN_EXPR(node);
 
@@ -479,6 +479,50 @@ node_st *TCassign(node_st *node)
 
         TRAVchildren(node);
         return node;
+    }
+
+    if(result->dimensions) {
+
+        node_st *dimensions = result->dimensions;
+        node_st *dim_1 = EXPRS_EXPR(dimensions);
+
+        int number;
+
+        //int[1]
+        if(NODE_TYPE(dim_1) == NT_NUM) {
+            number = NUM_VAL(dim_1);
+        }
+        printf("Number: %d\n", number); 
+
+        node_st *array_expr = expr;
+
+        int counter_pounter = 0;
+
+        while(array_expr) {
+            counter_pounter++;
+
+            //two dimensional array
+            if(NODE_TYPE(EXPRS_EXPR(array_expr)) == NT_ARREXPR) {
+                //print error and continue.
+                data->type_error_count++;
+                printf(RED "Error: Two dimensional array assignment not supported for 1D array.\n \n" RESET);
+            }
+            //Check type of expression
+            InferExprType(EXPRS_EXPR(array_expr), ASSIGN_TABLE(node));
+
+            if(EXPR_TYPE(EXPRS_EXPR(array_expr)) != result->type) {
+                data->type_error_count++;
+                printTypeMisMatch(array_expr, result->type, EXPR_TYPE(EXPRS_EXPR(array_expr)));
+            }
+
+            if(number && counter_pounter > number) {
+                data->type_error_count++;
+                printf(RED "Error: Too many elements in array assignment.\n" RESET);
+                printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
+                printf("\n");
+            }
+        }
+    
     }
 
     if (EXPR_TYPE(expr) != result->type)

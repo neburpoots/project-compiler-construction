@@ -17,6 +17,7 @@ typedef struct param_entry param_entry_st;
 struct var_entry {
   char *name;
   enum Type type;
+  void *dimensions;
   struct var_entry *next;
 };
 typedef struct var_entry var_entry_st;
@@ -42,6 +43,9 @@ stable_st *STnew(stable_st *parent);
 
 //insert a var into the symbol table linked list
 var_entry_st *STinsertVar(stable_st *table, const char *name, const enum Type);
+
+//insert an array var into the symbol table linked list
+var_entry_st *STinsertArrayVar(stable_st *table, const char *name, const enum Type type, void *dimensions);
 
 //insert a func into the symbol table linked list
 func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type returnType, param_entry_st *params);

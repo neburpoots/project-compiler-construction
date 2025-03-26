@@ -38,8 +38,9 @@ void clear_node(node_st *node){
 			STfree(FOR_TABLE(node));
 			break;
     case NT_GLOBDEF:
+			// GLOBDEF_TABLE(node) = NULL;
 			// printf("Globdef\n");
-			STfree(GLOBDEF_TABLE(node));
+			// STfree(GLOBDEF_TABLE(node));
       break;
     case NT_GLOBDECL:
 			// printf("Globdecl\n");

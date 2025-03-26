@@ -377,9 +377,9 @@ static node_st *find_or_create_init_function(node_st *program)
 
     // Create new init function
     node_st *empty_body = ASTfunbody(NULL);
-    node_st *init_func = ASTfundef(NULL, empty_body, "__init", CT_void, false);
+    node_st *init_func = ASTfundef(NULL, empty_body, strdup("__init"), CT_void, false);
     data->init_func_created = true;
-
+    
     // Add to program
     node_st *new_decls = ASTdecls(init_func, PROGRAM_DECLS(program));
     PROGRAM_DECLS(program) = new_decls;
@@ -396,6 +396,8 @@ static void add_to_init_function(node_st *init_func, node_st *stmt)
     // Add to function body
     if (FUNBODY_FUNCONTENTS(func_body) == NULL)
     {
+        
+
         FUNBODY_FUNCONTENTS(func_body) = ASTfuncontents(stmt, NULL);
     }
     else
@@ -474,9 +476,12 @@ node_st *TVIprogram(node_st *node)
     struct data_tvi *data = DATA_TVI_GET();
     data->in_global_scope = true;
 
+    data->current_symbol_table_stack_ptr = PROGRAM_TABLE(node);
+
     TRAVchildren(node);
 
     // init_function = ASTfundef(NULL, ASTfunbody(NULL), "init", CT_void, false);
+    node_st *init_func = find_or_create_init_function(node);
 
     if (!StackisEmpty(data->global_assignments))
     {
