@@ -10,6 +10,7 @@ start phase RootPhase {
         BuildConstantTable;
         BuildImportTable;
         BuildExportTable;
+        BuildVariableTables;
         BuildSymbolTables;
         TransformVariableInit;
         PrintCurrentProgram;
@@ -41,7 +42,7 @@ traversal ClearImportTable{
   nodes = { Program }
 };
 
-traversal BuildVariableTable {
+traversal BuildVariableTables {
   uid = BVT,
   nodes = { Program, GlobDef, GlobDecl },
   travdata {
