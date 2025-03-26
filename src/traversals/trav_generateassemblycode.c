@@ -3,81 +3,90 @@
  *
  * Traversal: GenerateAssemblyCode
  * UID      : GAC
- *
- *
  */
 
-#include "ccn/ccn.h"
-#include "ccngen/ast.h"
-#include "ccngen/trav.h"
-#include <stdio.h>
-#include <string.h>
-#include "user/tables/exportTable/export_table.h"
-#include "user/symbolTable/symbol_table.h"
+ #include "ccn/ccn.h"
+ #include "ccngen/ast.h"
+ #include "ccngen/trav.h"
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdarg.h>  // Add this for va_list support
+ #include "user/tables/exportTable/export_table.h"
+ #include "user/symbolTable/symbol_table.h"
+ #include "global/globals.h"
 
-void GACinit()
-{
-  printf("\nSTARTED CODE GENERATION\n");
-}
+static void write_output(FILE *output, const char *format, ...);
+static void print_exports(FILE *output, node_st *node);
+static void print_imports(FILE *output, node_st *node);
 
-void GACfini()
-{
-  printf("\nENDED CODE GENERATION\n");
-}
+static void write_output(FILE *output, const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+    if (output) {
+      vfprintf(output, format, args);
+    } else {
+      vprintf(format, args);
+  }
+  va_end(args);
+ }
 
-void print_exports(node_st *node)
-{
+
+ static void print_exports(FILE *output, node_st *node) {
   export_table_st *export_table = PROGRAM_EXPORT_TABLE(node);
+  if (!export_table) return;
 
-  if (export_table == NULL)
-    return;
-
-  export_entry_st *current_entry = export_table->entries;
-
-  while (current_entry != NULL)
-  {
-    printf(".exportfun \"%s\" %s %s\n", current_entry->name, current_entry->label, typeToString(current_entry->return_type));
-    current_entry = current_entry->next;
+  export_entry_st *current = export_table->entries;
+  while (current) {
+      write_output(output, ".exportfun \"%s\" %s %s\n",
+                  current->name,
+                  typeToString(current->return_type),
+                  current->label);
+      current = current->next;
   }
 }
 
-void print_imports(node_st *node)
-{
+static void print_imports(FILE *output, node_st *node) {
   import_table_st *import_table = PROGRAM_IMPORT_TABLE(node);
+  if (!import_table) return;
 
-  if (import_table == NULL)
-    return;
+  import_entry_st *current = import_table->entries;
+  while (current) {
+      write_output(output, ".importfun \"%s\" %s ",
+                  current->func_name,
+                  typeToString(current->return_type));
 
-  import_entry_st *current_entry = import_table->entries;
-
-  while (current_entry != NULL)
-  {
-    printf(".importfun \"%s\" %s ", current_entry->func_name, typeToString(current_entry->return_type));
-
-    //parameters
-    param_entry_st *current_param_entry = current_entry->parameters;
-
-    while (current_param_entry != NULL)
-    {
-      printf("%s ", typeToString(current_param_entry->type));
-      current_param_entry = current_param_entry->next;
-    }
-
-    printf("\n");
-
-    current_entry = current_entry->next;
+      param_entry_st *param = current->parameters;
+      while (param) {
+          write_output(output, "%s ", typeToString(param->type));
+          param = param->next;
+      }
+      write_output(output, "\n");
+      current = current->next;
   }
 }
 
 /**
  * @fn GACprogram
  */
-node_st *GACprogram(node_st *node)
-{
-  // import_table_st *import_table = PROGRAM_IMPORT_TABLE(node);
-  print_exports(node);
-  print_imports(node);
+node_st *GACprogram(node_st *node) {
+  FILE *output_stream = stdout;
+
+  if (global.output_file) {
+      output_stream = fopen(global.output_file, "w");
+      if (!output_stream) {
+          fprintf(stderr, "Error: Could not open file '%s'\n", global.output_file);
+          exit(EXIT_FAILURE);
+      }
+  }
+
+  print_exports(output_stream, node);
+  print_imports(output_stream, node);
   TRAVchildren(node);
+
+  if (output_stream != stdout) {
+      fclose(output_stream);
+  }
+
   return node;
 }
 
