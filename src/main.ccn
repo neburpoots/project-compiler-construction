@@ -15,7 +15,7 @@ start phase RootPhase {
         PrintCurrentProgram;
         TypeChecking;
         TransformBinopDisjunctionConjuntion;
-        TransformBooleanCasts;
+        // TransformBooleanCasts;
         GenerateAssemblyCode;
         ClearSymbolTables;
 
@@ -82,8 +82,8 @@ traversal ClearConstantTable{
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl },
-    travdata {
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return },
+    travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
 };
@@ -95,7 +95,11 @@ traversal ClearSymbolTables{
 
 traversal TypeChecking {
     uid = TC,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop }
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return},
+    travdata {
+        int type_error_count,
+        Fundef current_function
+    }
 };
 
 // This traversal is used to transform variable initializations into assignments.
@@ -106,7 +110,8 @@ traversal TransformVariableInit {
         user generic_stack_stptr assignments,
         // user generic_stack_stptr var_decls,
         user generic_stack_stptr stmts,
-        // user generic_stack_stptr global_assignments,
+        user generic_stack_stptr global_assignments,
+        user stack_stptr current_symbol_table_stack_ptr,
         FunContents current_scope,
         int temp_counter,
         bool in_global_scope,
@@ -182,7 +187,12 @@ nodeset Decl = {GlobDef, GlobDecl, FunDef, FunDec};
 
 nodeset Vars = {VarDecl, Var, VarLet};
 
-nodeset Expr = {Cast, FunCall, Var, ArrExpr, CondExpr} | (Constants | Operations);
+nodeset Expr {
+    nodes = {Cast, FunCall, Var, ArrExpr, CondExpr} | (Constants | Operations),
+    attributes {
+        Type type
+    }
+};
 
 nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
 
@@ -195,12 +205,12 @@ nodeset Named {
     }
 };
 
-nodeset Typed {
-    nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return, CondExpr})),
-    attributes {
-        Type type
-    }
-};
+// nodeset Typed {
+//     nodes = Vars | (Decl | (Operations | {Cast, FunCall, Param, Return})),
+//     attributes {
+//         Type type
+//     }
+// };
 
 // Link you need to adapt when working with the symbol tables.
 // I put it as a decl now, because an empty nodeset is not allowed.
@@ -272,6 +282,9 @@ node ExprStmt {
 node Return {
     children {
         Expr expr { constructor }
+    },
+    attributes {
+        user stable_stptr table
     }
 };
 
@@ -453,6 +466,9 @@ node Assign {
     children {
         VarLet let { constructor },
         Expr expr { constructor, mandatory }
+    },
+    attributes {
+        user stable_stptr table
     }
 };
 

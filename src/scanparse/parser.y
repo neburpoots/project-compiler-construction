@@ -654,7 +654,7 @@ matVarlet: ID SQUARE_L expr COMMA expr SQUARE_R
 
 arrExpr: SQUARE_L exprs SQUARE_R
 {
-    $$ = ASTarrexpr($2, generate_indices($2));
+    $$ = ASTarrexpr($2, NULL);
     AddLocToNode($$, &@1, &@3);
 }
 | arrVar

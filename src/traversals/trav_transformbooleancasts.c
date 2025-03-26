@@ -48,51 +48,51 @@ void print_cast_debug(enum Type src, enum Type target, const char *transformatio
  * @fn TBCcast
  */
 node_st *TBCcast(node_st *node) {
-  printf("\n\nCAST\n\n");
-  TRAVchildren(node);
+  // printf("\n\nCAST\n\n");
+  // TRAVchildren(node);
 
-  //get the source and target type
-  enum Type target_type = CAST_TYPE(node);
-  node_st *expr = CAST_EXPR(node);
+  // //get the source and target type
+  // enum Type target_type = CAST_TYPE(node);
+  // node_st *expr = CAST_EXPR(node);
 
-  //set to static int to test
-  // enum Type source_type = TYPED_TYPE(expr);
-  enum Type source_type = CT_int;
+  // //set to static int to test
+  // // enum Type source_type = TYPED_TYPE(expr);
+  // enum Type source_type = CT_int;
 
 
-  printf("%s -> %s\n", type_to_str(source_type), type_to_str(target_type));
+  // printf("%s -> %s\n", type_to_str(source_type), type_to_str(target_type));
 
-  //bool to int or flaot
-  if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {
-      print_cast_debug(source_type, target_type, "Conditional expression");
-      node_st *true_val = (target_type == CT_int) ? ASTnum(1) : ASTfloat(1.0);
-      node_st *false_val = (target_type == CT_int) ? ASTnum(0) : ASTfloat(0.0);
-      node_st *cond_expr = ASTcondexpr(expr, true_val, false_val, target_type);
+  // //bool to int or flaot
+  // if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {
+  //     print_cast_debug(source_type, target_type, "Conditional expression");
+  //     node_st *true_val = (target_type == CT_int) ? ASTnum(1) : ASTfloat(1.0);
+  //     node_st *false_val = (target_type == CT_int) ? ASTnum(0) : ASTfloat(0.0);
+  //     node_st *cond_expr = ASTcondexpr(expr, true_val, false_val, target_type);
 
-      printf("  Created CondExpr: ");
-      printf("if %s then %s else %s\n",
-             type_to_str(source_type),
-             type_to_str(TYPED_TYPE(true_val)),
-             type_to_str(TYPED_TYPE(false_val)));
+  //     printf("  Created CondExpr: ");
+  //     printf("if %s then %s else %s\n",
+  //            type_to_str(source_type),
+  //            type_to_str(TYPED_TYPE(true_val)),
+  //            type_to_str(TYPED_TYPE(false_val)));
 
-      CCNfree(node);
-      return cond_expr;
-  }
+  //     CCNfree(node);
+  //     return cond_expr;
+  // }
 
-  //int or float to bool
-  if ((source_type == CT_int || source_type == CT_float) && target_type == CT_bool) {
-      print_cast_debug(source_type, target_type, "Inequality comparison");
-      node_st *zero = (source_type == CT_int) ? ASTnum(0) : ASTfloat(0.0);
-      node_st *comparison = ASTbinop(expr, zero, BO_ne);
-      BINOP_TYPE(comparison) = CT_bool;
+  // //int or float to bool
+  // if ((source_type == CT_int || source_type == CT_float) && target_type == CT_bool) {
+  //     print_cast_debug(source_type, target_type, "Inequality comparison");
+  //     node_st *zero = (source_type == CT_int) ? ASTnum(0) : ASTfloat(0.0);
+  //     node_st *comparison = ASTbinop(expr, zero, BO_ne);
+  //     BINOP_TYPE(comparison) = CT_bool;
 
-      printf("  Created Binop: %s != %s\n",
-        type_to_str(source_type),
-        type_to_str(target_type));
+  //     printf("  Created Binop: %s != %s\n",
+  //       type_to_str(source_type),
+  //       type_to_str(target_type));
 
-      CCNfree(node);
-      return comparison;
-  }
+  //     CCNfree(node);
+  //     return comparison;
+  // }
 
   return node;
 }
