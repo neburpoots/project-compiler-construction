@@ -22,82 +22,6 @@
 
 #include <string.h>
 
-const char *node_to_type_string(node_st *node)
-{
-    switch (NODE_TYPE(node))
-    {
-    case NT_NULL:
-        return "NT_NULL";
-    case NT_BOOL:
-        return "NT_BOOL";
-    case NT_FLOAT:
-        return "NT_FLOAT";
-    case NT_NUM:
-        return "NT_NUM";
-    case NT_VAR:
-        return "NT_VAR";
-    case NT_VARLET:
-        return "NT_VARLET";
-    case NT_MONOP:
-        return "NT_MONOP";
-    case NT_BINOP:
-        return "NT_BINOP";
-    case NT_ASSIGN:
-        return "NT_ASSIGN";
-    case NT_FUNCONTENTS:
-        return "NT_FUNCONTENTS";
-    case NT_STMTS:
-        return "NT_STMTS";
-    case NT_VARDECL:
-        return "NT_VARDECL";
-    case NT_VARDECLS:
-        return "NT_VARDECLS";
-    case NT_PARAM:
-        return "NT_PARAM";
-    case NT_GLOBDEF:
-        return "NT_GLOBDEF";
-    case NT_FUNDEC:
-        return "NT_FUNDEC";
-    case NT_GLOBDECL:
-        return "NT_GLOBDECL";
-    case NT_FOR:
-        return "NT_FOR";
-    case NT_DOWHILE:
-        return "NT_DOWHILE";
-    case NT_WHILE:
-        return "NT_WHILE";
-    case NT_IFELSE:
-        return "NT_IFELSE";
-    case NT_FUNBODY:
-        return "NT_FUNBODY";
-    case NT_FUNDEF:
-        return "NT_FUNDEF";
-    case NT_FUNDEFS:
-        return "NT_FUNDEFS";
-    case NT_CAST:
-        return "NT_CAST";
-    case NT_FUNCALL:
-        return "NT_FUNCALL";
-    case NT_RETURN:
-        return "NT_RETURN";
-    case NT_EXPRSTMT:
-        return "NT_EXPRSTMT";
-    case NT_IDS:
-        return "NT_IDS";
-    case NT_ARREXPR:
-        return "NT_ARREXPR";
-    case NT_EXPRS:
-        return "NT_EXPRS";
-    case NT_DECLS:
-        return "NT_DECLS";
-    case NT_PROGRAM:
-        return "NT_PROGRAM";
-    case _NT_SIZE:
-        return "_NT_SIZE";
-    default:
-        return "UNKNOWN_NODETYPE";
-    }
-}
 
 // Helper function to create a temporary variable name
 static char *create_temp_var_name(struct data_tvi *data)
@@ -161,6 +85,7 @@ static char *create_vardecl(struct data_tvi *data)
 
 static void create_and_push_assignment(char *var_name, node_st *value, generic_stack_st *assignments)
 {
+    
     node_st *idx = ASTvarlet(NULL, strdup(var_name)); // Create varlet with a copy of var_name
     node_st *assignment = ASTassign(idx, value);      // Create assignment
     GStackPush(assignments, assignment);              // Push to assignments stack
@@ -173,6 +98,9 @@ static char *create_temp_save_array(struct data_tvi *data, generic_stack_st *ass
     GStackPush(assignments, idx_vardecl);
     node_st *assignment_idx_3 = ASTassign(ASTvarlet(NULL, strdup(idx_var)), init_value);
     GStackPush(assignments, assignment_idx_3);
+
+    ASSIGN_TABLE(assignment_idx_3) = data->current_symbol_table_stack_ptr;
+
     return idx_var;
 }
 
@@ -225,6 +153,8 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
                     NULL)),
             strdup("__allocate")));
     GStackPush(assignments, start);
+
+    
 
     // create two temp variables for the two loops
     char *idx_var_4 = create_temp_var_name(data);
@@ -330,6 +260,8 @@ static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value
                 NULL),
             strdup("__allocate")));
     GStackPush(assignments, start);
+
+    ASSIGN_TABLE(start) = data->current_symbol_table_stack_ptr;
 
     // Assignment inside the loop
     node_st *assignment_loop = ASTassign(

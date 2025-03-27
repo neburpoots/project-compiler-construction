@@ -353,6 +353,9 @@ node_st *BSTvardecl(node_st *node)
     }
   }
 
+  // attaching as attribute
+  VARDECL_TABLE(node) = t;
+
   TRAVchildren(node);
   return node;
 }

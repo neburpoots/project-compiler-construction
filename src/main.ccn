@@ -11,9 +11,9 @@ start phase RootPhase {
         BuildImportTable;
         BuildExportTable;
         BuildSymbolTables;
+        TypeChecking;
         TransformVariableInit;
         PrintCurrentProgram;
-        TypeChecking;
         TransformBinopDisjunctionConjuntion;
         // TransformBooleanCasts;
         GenerateAssemblyCode;
@@ -430,7 +430,8 @@ node VarDecl {
     },
     attributes {
         string name { constructor, mandatory },
-        Type type { constructor }
+        Type type { constructor },
+        user stable_stptr table
     }
 };
 

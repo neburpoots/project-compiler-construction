@@ -1,19 +1,17 @@
-export int test = 23;
-
-int test(int poep) {
-    return 10;
+int test(int test) {
+    return test;
 }
+export int calculate_age() {
 
-export int calculate_age(int test) {
-    int age = 0;
-
-    bool isTrue = true;
 
     // int[2, test(10)] test123 = [[1,2],[3,4]];
 
-    int[2] test12312121 = [1,2,4,5,6,7];
+    // int[2] test12312121 = [1,2,4,5,6,7];
 
     // int itemFromTest = test123[0, 0];
+    int age = (int)true;
+
+    int test = 10;
 
     //should be an error
     if(10 + age > 10) {
