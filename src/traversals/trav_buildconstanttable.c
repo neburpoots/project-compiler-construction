@@ -16,16 +16,13 @@
 void Add_node_value(node_st *node, ConstType type);
 
 //used to create the stack
-void BCTinit()
-{
-    printf("\nINITIALIZING CONSTANT TABLE TRAVERSAL\n");
-    struct data_bct *data = DATA_BCT_GET();
-
-    // Only create new table if one doesn't exist
-    if (data->const_table_ptr == NULL) {
-        data->const_table_ptr = CTnew();
-    }
+void BCTinit() {
+  struct data_bct *data = DATA_BCT_GET();
+  if (data->const_table_ptr == NULL) {
+      data->const_table_ptr = CTnew();
+  }
 }
+
 
 //used for cleanup
 void BCTfini()
@@ -67,10 +64,7 @@ void Add_node_value(node_st *node, ConstType type){
 node_st *BCTprogram(node_st *node)
 {
     struct data_bct *data = DATA_BCT_GET();
-
-    // Set the constant table on the Program node
     PROGRAM_CONSTANT_TABLE(node) = data->const_table_ptr;
-
     TRAVchildren(node);
     return node;
 }
@@ -102,6 +96,15 @@ node_st *BCTbool(node_st *node)
 {
   Add_node_value(node, CONST_BOOL);
   TRAVchildren(node);
+  return node;
+}
+
+/**
+ * @fn BCTcondexpr
+ */
+node_st *BCTcondexpr(node_st *node) {
+  TRAVdo(CONDEXPR_THEN_EXPR(node));
+  TRAVdo(CONDEXPR_ELSE_EXPR(node));
   return node;
 }
 

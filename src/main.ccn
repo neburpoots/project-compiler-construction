@@ -6,24 +6,35 @@
 
 start phase RootPhase {
     actions {
+        // --- Frontend ---
         pass SPdoScanParse;
+
+        // --- Context Analysis ---
+        BuildSymbolTables;
+
+        // --- Mid-End ---
+        TransformVariableInit;
+        TypeChecking;
+        TransformBinopDisjunctionConjuntion;
+        TransformBooleanCasts;
+
+        // -- build tables from transformed middle end --
+        BuildVariableTables;
         BuildConstantTable;
         BuildImportTable;
         BuildExportTable;
-        BuildSymbolTables;
-        TransformVariableInit;
-        PrintCurrentProgram;
-        TypeChecking;
-        TransformBinopDisjunctionConjuntion;
-        // TransformBooleanCasts;
-        GenerateAssemblyCode;
-        ClearSymbolTables;
 
-        //used now for clearing constant table(for memory)
+        // --- Backend ---
+        GenerateAssemblyCode;
+
+        // --- Cleanup ---
+        ClearSymbolTables;
         ClearConstantTable;
         ClearExportTable;
         ClearImportTable;
 
+        // --- Debugging ---
+        PrintCurrentProgram;
         Print;
     }
 };
@@ -38,6 +49,19 @@ traversal BuildImportTable {
 
 traversal ClearImportTable{
   uid = CIT,
+  nodes = { Program }
+};
+
+traversal BuildVariableTables {
+  uid = BVT,
+  nodes = { Program, GlobDef, GlobDecl },
+  travdata {
+    user vtable_stprt var_table_ptr
+  }
+};
+
+traversal ClearVariableTable {
+  uid = CVT,
   nodes = { Program }
 };
 
@@ -56,7 +80,7 @@ traversal ClearExportTable{
 
 traversal BuildConstantTable{
   uid = BCT,
-  nodes = { Program, Num, Float, Bool},
+  nodes = { Program, Num, Float, Bool, CondExpr},
   travdata {
     user ctable_stprt const_table_ptr
   }
@@ -223,7 +247,8 @@ root node Program {
         user stable_stptr table,
         user ctable_stprt constant_table,
         user etable_stprt export_table,
-        user itable_stprt import_table
+        user itable_stprt import_table,
+        user vtable_stprt var_table
     }
 };
 

@@ -42,6 +42,8 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/traversals/trav_buildexporttable.c
     src/traversals/trav_buildimporttable.c
     src/traversals/trav_clearimporttable.c
+    src/traversals/trav_buildvariabletable.c
+    src/traversals/trav_clearvariabletable.c
     src/traversals/trav_generateassemblycode.c
 
     src/traversals/trav_printcurrentprogram.c
@@ -64,6 +66,8 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
 
     src/user/tables/importTable/import_table.h
     src/user/tables/importTable/import_table.c
+    src/user/tables/variableTable/variable_table.h
+    src/user/tables/variableTable/variable_table.c
 )
 
 target_compile_options(civicc PRIVATE

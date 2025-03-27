@@ -1,0 +1,2 @@
+int x = (int)false;
+int y = (int)true;
