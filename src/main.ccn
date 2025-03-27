@@ -15,6 +15,7 @@ start phase RootPhase {
         TransformVariableInit;
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
+        TransformArrayParameterPassing;
 
         // -- build tables from transformed middle end --
         BuildVariableTables;
@@ -36,6 +37,11 @@ start phase RootPhase {
         PrintCurrentProgram;
         Print;
     }
+};
+
+traversal TransformArrayParameterPassing{
+  uid = TAP,
+  nodes = { fundef, Param }
 };
 
 traversal BuildImportTable {
