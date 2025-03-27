@@ -1,2 +1,3 @@
 int x = (int)false;
-int y = (int)true;  // → CondExpr(Bool(true), Num(1), Num(0))
+int y = (int)true;
+int age = (int)true;
