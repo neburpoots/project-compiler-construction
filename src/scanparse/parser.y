@@ -55,7 +55,7 @@
 %type <node> stmts stmt assign varlet program args 
 
 // enum Type 
-%token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID
+%token TYPE_INT TYPE_FLOAT TYPE_BOOL TYPE_VOID TYPE_ARRAY
 %type <ctype> type
 
 // %token IF ELSE
@@ -474,14 +474,14 @@ param: type ID
   //single dimension array
   | type SQUARE_L ids SQUARE_R ID
   {
-    $$ = ASTparam($3, NULL, $5, $1);
+    $$ = ASTparam($3, NULL, $5, CT_array);
     AddLocToNode($$, &@1, &@5);
   }
 
   // Array followed by another parameter
   | type SQUARE_L ids SQUARE_R ID COMMA param
   {
-    $$ = ASTparam($3, $7, $5, $1);
+    $$ = ASTparam($3, $7, $5, CT_array);
     AddLocToNode($$, &@1, &@7);
   };
 
@@ -699,6 +699,7 @@ type: TYPE_INT   { $$ = CT_int; }
     | TYPE_FLOAT { $$ = CT_float; }
     | TYPE_BOOL  { $$ = CT_bool; }
     | TYPE_VOID  { $$ = CT_void; }
+    | TYPE_ARRAY { $$ = CT_array;}
 
 floatval: FLOAT
   {

@@ -41,7 +41,7 @@ start phase RootPhase {
 
 traversal TransformArrayParameterPassing{
   uid = TAP,
-  nodes = { fundef, Param }
+  nodes = { fundef, Param, FunCall }
 };
 
 traversal BuildImportTable {
