@@ -13,8 +13,6 @@ start phase RootPhase {
         BuildSymbolTables;
         TypeChecking;
         TransformVariableInit;
-        PrintCurrentProgram;
-        TypeChecking;
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
 
