@@ -39,12 +39,14 @@
      node_st *expr = CAST_EXPR(node);
      enum Type source_type = EXPR_TYPE(expr);
 
-     //only do bool casts
+     printf("Target type %s and source %s\n", typeToString(target_type), typeToString(source_type));
+
+     //check if bool casst
      if (source_type != CT_bool && target_type != CT_bool) {
          return node;
      }
 
-     //bool to num
+     //bool and to number
      if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {
          node_st *true_val = create_one(target_type);
          node_st *false_val = create_zero(target_type);
@@ -53,7 +55,7 @@
          return cond_expr;
      }
 
-     //num to bool
+     //number to bool
      if (target_type == CT_bool && (source_type == CT_int || source_type == CT_float)) {
          node_st *zero = create_zero(source_type);
          node_st *neq = ASTbinop(expr, zero, BO_ne);

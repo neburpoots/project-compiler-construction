@@ -7,33 +7,35 @@
 start phase RootPhase {
     actions {
         // --- Frontend ---
-        pass SPdoScanParse;           // Milestone 1 (Lex) + 4 (Parse)
+        pass SPdoScanParse;
 
         // --- Context Analysis ---
-        BuildSymbolTables;            // Milestone 5 (Context Analysis)
-        BuildVariableTables;          // Milestone 5 (Global/Local vars)
-        BuildConstantTable;           // Milestone 6 (Constants for init)
-        BuildImportTable;             // Milestone 5 (Externals)
-        BuildExportTable;             // Milestone 5 (Exports)
+        BuildSymbolTables;
 
         // --- Mid-End ---
-        TransformVariableInit;        // Milestone 6 (Init → Assignments)
-        TypeChecking;                 // Milestone 7 (Type Checking)
-        TransformBinopDisjunctionConjuntion; // Milestone 9 (Short-circuit)
-        TransformBooleanCasts;        // Milestone 10 (Boolean casts)
+        TransformVariableInit;
+        TypeChecking;
+        TransformBinopDisjunctionConjuntion;
+        TransformBooleanCasts;
+
+        // -- build tables from transformed middle end --
+        BuildVariableTables;
+        BuildConstantTable;
+        BuildImportTable;
+        BuildExportTable;
 
         // --- Backend ---
-        GenerateAssemblyCode;         // Milestones 12-15 (Codegen)
+        GenerateAssemblyCode;
 
         // --- Cleanup ---
-        ClearSymbolTables;            // Free memory
+        ClearSymbolTables;
         ClearConstantTable;
         ClearExportTable;
         ClearImportTable;
 
         // --- Debugging ---
-        PrintCurrentProgram;          // Optional (AST visualization)
-        Print;                        // Optional (Final output)
+        PrintCurrentProgram;
+        Print;
     }
 };
 
@@ -78,7 +80,7 @@ traversal ClearExportTable{
 
 traversal BuildConstantTable{
   uid = BCT,
-  nodes = { Program, Num, Float, Bool},
+  nodes = { Program, Num, Float, Bool, CondExpr},
   travdata {
     user ctable_stprt const_table_ptr
   }
