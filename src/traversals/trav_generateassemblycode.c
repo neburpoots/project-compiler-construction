@@ -30,8 +30,7 @@ static void write_output(FILE *output, const char *format, ...) {
   va_end(args);
  }
 
-
- static void print_exports(FILE *output, node_st *node) {
+static void print_exports(FILE *output, node_st *node) {
   export_table_st *export_table = PROGRAM_EXPORT_TABLE(node);
   if (!export_table) return;
 
@@ -65,6 +64,25 @@ static void print_imports(FILE *output, node_st *node) {
   }
 }
 
+static void print_globals(FILE *output, node_st *node) {
+  global_var_table_st *var_table = PROGRAM_VAR_TABLE(node);
+  if (!var_table) return;
+
+  global_var_entry_st *current = var_table->globals;
+
+  while (current) {
+    write_output(output, ".exportfun \"%s\" %s %s\n", current->name, typeToString(current->type), current->name);
+    current = current->next;
+
+  global_extern_var_entry_st *current = var_table->externs;
+
+  while (current) {
+    write_output(output, ".importvar \"%s\" %s\n", current->name, typeToString(current->type));
+    current = current->next;
+  }
+}
+
+}
 /**
  * @fn GACprogram
  */
@@ -79,6 +97,7 @@ node_st *GACprogram(node_st *node) {
       }
   }
 
+  print_globals(output_stream, node);
   print_exports(output_stream, node);
   print_imports(output_stream, node);
   TRAVchildren(node);

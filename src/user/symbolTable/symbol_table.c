@@ -11,11 +11,11 @@ static struct param_entry *copyParamList(param_entry_st *src);
 
 //create new symbol table
 stable_st *STnew(stable_st *parent) {
-  stable_st *table = malloc(sizeof(stable_st)); 
+  stable_st *table = malloc(sizeof(stable_st));
   if (table == NULL) {
-      return NULL;
+    return NULL;
   }
-  
+
   table->var_entries = NULL;
   table->func_entries = NULL;
   table->parent = parent;

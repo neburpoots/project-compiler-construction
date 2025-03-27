@@ -5,7 +5,7 @@ export bool bool_with_parameters(int a, float b, bool c) {
   int x = 10;
   float y = 10.5;
   int z = 14;
-  return 1;
+  return false;
 }
 
 export int without_parameters() {
@@ -18,4 +18,18 @@ export int without_parameters() {
 export int main() {
   int x = 10;
   return x;
+}
+
+
+int global_var = 10;
+extern int extern_var;
+
+void main() {
+  int local_var = 20;
+
+  int total_var = global_var + local_var;
+
+  if(local_var < extern_var){
+    return true;
+  }
 }
