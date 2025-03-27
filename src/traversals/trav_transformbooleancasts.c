@@ -32,39 +32,48 @@
  /**
   * @fn TBCcast
   */
- node_st *TBCcast(node_st *node) {
-     TRAVchildren(node);
+ /**
+ * @fn TBCcast
+ */
+node_st *TBCcast(node_st *node) {
+  TRAVchildren(node);
 
-     enum Type target_type = CAST_TYPE(node);
-     node_st *expr = CAST_EXPR(node);
-     enum Type source_type = EXPR_TYPE(expr);
+  enum Type target_type = CAST_TYPE(node);
+  node_st *expr = CAST_EXPR(node);
+  enum Type source_type = EXPR_TYPE(expr);
 
-     printf("Target type %s and source %s\n", typeToString(target_type), typeToString(source_type));
+  printf("Target type %s and source %s\n", typeToString(target_type), typeToString(source_type));
 
-     //check if bool casst
-     if (source_type != CT_bool && target_type != CT_bool) {
-         return node;
-     }
+  //check if bool casst
+  if (source_type != CT_bool && target_type != CT_bool) {
+    return node;
+  }
 
-     //bool and to number
-     if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {
-         node_st *true_val = create_one(target_type);
-         node_st *false_val = create_zero(target_type);
-         node_st *cond_expr = ASTcondexpr(expr, true_val, false_val, target_type);
-         CCNfree(node);
-         return cond_expr;
-     }
+  //bool to number
+  if (source_type == CT_bool && (target_type == CT_int || target_type == CT_float)) {
+    node_st *true_val = create_one(target_type);
+    node_st *false_val = create_zero(target_type);
 
-     //number to bool
-     if (target_type == CT_bool && (source_type == CT_int || source_type == CT_float)) {
-         node_st *zero = create_zero(source_type);
-         node_st *neq = ASTbinop(expr, zero, BO_ne);
-         node_st *true_val = ASTbool(true);
-         node_st *false_val = ASTbool(false);
-         node_st *cond_expr = ASTcondexpr(neq, true_val, false_val, CT_bool);
-         CCNfree(node);
-         return cond_expr;
-     }
+    //set node to null so no double free used
+    CAST_EXPR(node) = NULL;
 
-     return node;
- }
+    node_st *cond_expr = ASTcondexpr(expr, true_val, false_val, target_type);
+    CCNfree(node);
+    return cond_expr;
+  }
+
+  //num to bool
+  if (target_type == CT_bool && (source_type == CT_int || source_type == CT_float)) {
+    node_st *zero = create_zero(source_type);
+    node_st *neq = ASTbinop(expr, zero, BO_ne);
+
+    CAST_EXPR(node) = NULL;
+
+    node_st *true_val = ASTbool(true);
+    node_st *false_val = ASTbool(false);
+    node_st *cond_expr = ASTcondexpr(neq, true_val, false_val, CT_bool);
+    CCNfree(node);
+  }
+
+  return node;
+}

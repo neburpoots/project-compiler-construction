@@ -3,15 +3,7 @@ int test(int test) {
 }
 
 export int calculate_age() {
-
-
-    // int[2, test(10)] test123 = [[1,2],[3,4]];
-
-    // int[2] test12312121 = [1,2,4,5,6,7];
-
-    // int itemFromTest = test123[0, 0];
     int age = (int)true;
-
     int test = 10;
 
     //should be an error
@@ -19,11 +11,7 @@ export int calculate_age() {
         age = 10;
 
         return test(10);
-    } 
-
-    // if(variableDoesntExist + 10) {
-    //     age = age + 1;
-    // }
+    }
 
     return age;
 }
