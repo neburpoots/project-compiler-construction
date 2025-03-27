@@ -73,6 +73,8 @@ node_st *TBCcast(node_st *node) {
     node_st *false_val = ASTbool(false);
     node_st *cond_expr = ASTcondexpr(neq, true_val, false_val, CT_bool);
     CCNfree(node);
+    return cond_expr;
+
   }
 
   return node;

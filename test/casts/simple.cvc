@@ -1,3 +1,4 @@
-int x = (int)false;
-int y = (int)true;
-int age = (int)true;
+void main(){
+  int x = (int)false;
+  int y = (int)true;
+}
