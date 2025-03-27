@@ -1,2 +1,2 @@
-export int global_var = 10;
+int global_var = 10;
 extern float extern_var;

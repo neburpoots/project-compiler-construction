@@ -1,0 +1,2 @@
+int x = (int)false;
+bool y = (bool)42;

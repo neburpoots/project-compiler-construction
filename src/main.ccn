@@ -6,26 +6,34 @@
 
 start phase RootPhase {
     actions {
-        pass SPdoScanParse;
-        BuildConstantTable;
-        BuildImportTable;
-        BuildExportTable;
-        BuildVariableTables;
-        BuildSymbolTables;
-        TransformVariableInit;
-        PrintCurrentProgram;
-        TypeChecking;
-        TransformBinopDisjunctionConjuntion;
-        // TransformBooleanCasts;
-        GenerateAssemblyCode;
-        ClearSymbolTables;
+        // --- Frontend ---
+        pass SPdoScanParse;           // Milestone 1 (Lex) + 4 (Parse)
 
-        //used now for clearing constant table(for memory)
+        // --- Context Analysis ---
+        BuildSymbolTables;            // Milestone 5 (Context Analysis)
+        BuildVariableTables;          // Milestone 5 (Global/Local vars)
+        BuildConstantTable;           // Milestone 6 (Constants for init)
+        BuildImportTable;             // Milestone 5 (Externals)
+        BuildExportTable;             // Milestone 5 (Exports)
+
+        // --- Mid-End ---
+        TransformVariableInit;        // Milestone 6 (Init → Assignments)
+        TypeChecking;                 // Milestone 7 (Type Checking)
+        TransformBinopDisjunctionConjuntion; // Milestone 9 (Short-circuit)
+        TransformBooleanCasts;        // Milestone 10 (Boolean casts)
+
+        // --- Backend ---
+        GenerateAssemblyCode;         // Milestones 12-15 (Codegen)
+
+        // --- Cleanup ---
+        ClearSymbolTables;            // Free memory
         ClearConstantTable;
         ClearExportTable;
         ClearImportTable;
 
-        Print;
+        // --- Debugging ---
+        PrintCurrentProgram;          // Optional (AST visualization)
+        Print;                        // Optional (Final output)
     }
 };
 
