@@ -28,6 +28,7 @@ start phase RootPhase {
         GenerateAssemblyCode;
 
         // --- Cleanup ---
+        ClearVariableTable;
         ClearSymbolTables;
         ClearConstantTable;
         ClearExportTable;
