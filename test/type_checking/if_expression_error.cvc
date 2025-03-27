@@ -1,6 +1,9 @@
+int allahukbar = (int)10.20;
+
 int test(int test) {
     return test;
 }
+
 
 export int calculate_age() {
     int age = (int)true;

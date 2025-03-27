@@ -143,6 +143,30 @@ node_st *TCprogram(node_st *node)
  */
 node_st *TCglobdef(node_st *node)
 {
+
+    struct data_tc *data = DATA_TC_GET();
+
+    if (GLOBDEF_INIT(node))
+    {
+        node_st *init = GLOBDEF_INIT(node);
+        InferExprType(init, GLOBDEF_TABLE(node)); // Get the inferred type
+
+        enum Type declaredType = GLOBDEF_TYPE(node); // Get declared type
+
+        if (EXPR_TYPE(init) != declaredType)
+        {
+            printf(RED "Error: Type mismatch in assignment for variable: " RESET "%s \n", GLOBDEF_NAME(node));
+
+            printf(YELLOW "  Expected: " RESET BLUE "%s\n" RESET, typeToString(declaredType));
+            printf(YELLOW "  Got:      " RESET RED "%s\n" RESET, typeToString(EXPR_TYPE(init)));
+
+            printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
+            printf("\n");
+
+            data->type_error_count++;
+        }
+    }
+
     TRAVchildren(node);
     return node;
 }
@@ -152,7 +176,10 @@ node_st *TCglobdef(node_st *node)
  */
 node_st *TCglobdecl(node_st *node)
 {
+
+
     TRAVchildren(node);
+    
     return node;
 }
 
