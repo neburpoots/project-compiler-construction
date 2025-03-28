@@ -18,26 +18,26 @@ start phase RootPhase {
         TransformBooleanCasts;
         TransformArrayParameterPassing;
 
-        // -- build tables from transformed middle end --
+        // build tables from transformed middle end --
         // BuildVariableTables;
         BuildConstantTable;
 
         // the table that holds the extern data
         BuildImportTable;
-        // BuildExportTable;
+        BuildExportTable;
 
-        // // --- Backend ---
+        // --- Backend ---
         GenerateAssemblyCode;
 
-        // // --- Debugging ---
+        // --- Debugging ---
         PrintCurrentProgram;
         Print;
 
-        // // --- Cleanup ---
+        // --- Cleanup ---
         // ClearVariableTable;
         ClearSymbolTables;
         ClearConstantTable;
-        // ClearExportTable;
+        ClearExportTable;
         ClearImportTable;
 
     }
@@ -88,7 +88,7 @@ traversal ClearVariableTable {
 
 traversal BuildExportTable {
     uid = BET,
-    nodes = { Program, FunDef },
+    nodes = { Program, FunDef, GlobDef },
     travdata {
         user etable_stprt export_table_ptr
     }

@@ -38,14 +38,14 @@ static void print_exports(FILE *output, node_st *node) {
   }
 
   export_entry_st *current = export_table->entries;
-  while (current) {
-    write_output(output,
-                 ".exportfun \"%s\" %s %s\n",
-                 current->name,
-                 typeToString(current->return_type),
-                 current->label);
-    current = current->next;
-  }
+  // while (current) {
+  //   write_output(output,
+  //                ".exportfun \"%s\" %s %s\n",
+  //                current->name,
+  //                typeToString(current->return_type),
+  //                current->label);
+  //   current = current->next;
+  // }
 }
 
 static void print_imports(FILE *output, node_st *node) {
