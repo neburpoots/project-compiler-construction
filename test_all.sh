@@ -12,12 +12,41 @@ if [ ! -f "$CIVICC" ]; then
     exit 1
 fi
 
-# Run tests
-echo "Running tests..."
-for file in "$TEST_DIR"/*.cvc; do
-    echo "Testing: $file"
-    "$CIVICC" "$file"
-    echo "--------------------------------"
-done
+# Counters
+TOTAL_TESTS=0
+PASSED_TESTS=0
+FAILED_TESTS=0
 
-echo "All tests completed."
+# Run tests recursively
+echo "Running tests..."
+while IFS= read -r -d '' file; do
+    echo "Testing: $file"
+    ((TOTAL_TESTS++))
+
+    # Run the compiler and capture output
+    if "$CIVICC" "$file" >/dev/null 2>&1; then
+        echo "✅ PASSED"
+        ((PASSED_TESTS++))
+    else
+        echo "❌ FAILED"
+        ((FAILED_TESTS++))
+        # Show error output
+        echo "=== Compiler Output ==="
+        "$CIVICC" "$file"
+        echo "======================"
+    fi
+
+    echo "--------------------------------"
+done < <(find "$TEST_DIR" -type f -name "*.cvc" -print0)
+
+# Summary
+echo "Test Summary:"
+echo "Total tests: $TOTAL_TESTS"
+echo "Passed: $PASSED_TESTS"
+echo "Failed: $FAILED_TESTS"
+
+# Exit with error if any tests failed
+if [ "$FAILED_TESTS" -gt 0 ]; then
+    exit 1
+fi
+exit 0

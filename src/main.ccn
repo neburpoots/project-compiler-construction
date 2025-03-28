@@ -16,32 +16,41 @@ start phase RootPhase {
         TransformVariableInit;
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
+        TransformArrayParameterPassing;
 
         // -- build tables from transformed middle end --
-        BuildVariableTables;
+        // BuildVariableTables;
         BuildConstantTable;
-        BuildImportTable;
-        BuildExportTable;
 
-        // --- Backend ---
+        // the table that holds the extern data
+        BuildImportTable;
+        // BuildExportTable;
+
+        // // --- Backend ---
         GenerateAssemblyCode;
 
-        // --- Cleanup ---
-        ClearVariableTable;
-        ClearSymbolTables;
-        ClearConstantTable;
-        ClearExportTable;
-        ClearImportTable;
-
-        // --- Debugging ---
+        // // --- Debugging ---
         PrintCurrentProgram;
         Print;
+
+        // // --- Cleanup ---
+        // ClearVariableTable;
+        ClearSymbolTables;
+        ClearConstantTable;
+        // ClearExportTable;
+        ClearImportTable;
+
     }
+};
+
+traversal TransformArrayParameterPassing{
+  uid = TAP,
+  nodes = { fundef, Param, FunCall }
 };
 
 traversal BuildImportTable {
     uid = BIT,
-    nodes = { Program, FunDec },
+    nodes = { Program, FunDec, GlobDecl },
     travdata {
         user itable_stprt import_table_ptr
     }

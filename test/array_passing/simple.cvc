@@ -1,0 +1,17 @@
+void arr(int[q] d){
+  print();
+}
+
+void bar(int [m,n] c){
+  print();
+}
+
+void baz(int [m,n ] a, int [x,y ] b){
+  print();
+}
+
+void foo (int [m,n ] a)
+{
+  bar (a);
+  baz (a, a);
+}

@@ -1,35 +1,35 @@
-extern void printInt(int val);
-extern void printNewlines(int num);
-
-export bool bool_with_parameters(int a, float b, bool c) {
-  int x = 10;
-  float y = 10.5;
-  int z = 14;
-  return false;
-}
-
-export int without_parameters() {
-  int x = 10;
-  float y = 10.5;
-  int z = 14;
-  return 1;
-}
-
-export int main() {
-  int x = 10;
-  return x;
-}
-
-
-int global_var = 10;
+extern int printInt(int val, float something);
+extern void printNewlines(int num, bool x);
+extern bool no_params();
 extern int extern_var;
+extern bool extern_bool;
+extern float extern_float;
 
-void main() {
-  int local_var = 20;
+// export bool bool_with_parameters(int a, float b, bool c) {
+//   int x = 10;
+//   float y = 10.5;
+//   int z = 14;
+//   return false;
+// }
 
-  int total_var = global_var + local_var;
+// export int without_parameters() {
+//   int x = 10;
+//   float y = 10.5;
+//   int z = 14;
+//   return 1;
+// }
 
-  if(local_var < extern_var){
-    return true;
-  }
-}
+// export int main() {
+//   int x = 10;
+//   return x;
+// }
+
+// void main_test() {
+//   int local_var = 20;
+
+//   int total_var = global_var + local_var;
+
+//   if(local_var < extern_var){
+//     return true;
+//   }
+// }

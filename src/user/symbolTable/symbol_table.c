@@ -1,15 +1,17 @@
 #include "symbol_table.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+
 #include "ccngen/enum.h"
 
 static bool compareParamLists(param_entry_st *a, param_entry_st *b);
 static struct param_entry *copyParamList(param_entry_st *src);
 
-//symbol table holding the vars and funcs
+// symbol table holding the vars and funcs
 
-//create new symbol table
+// create new symbol table
 stable_st *STnew(stable_st *parent) {
   stable_st *table = malloc(sizeof(stable_st));
   if (table == NULL) {
@@ -22,106 +24,122 @@ stable_st *STnew(stable_st *parent) {
   return table;
 }
 
-//insert array variable into the symbol table
-var_entry_st *STinsertArrayVar(stable_st *table, const char *name, enum Type type, void *dimensions) {
-  if (!table || !name) return NULL;
+// insert array variable into the symbol table
+var_entry_st *STinsertArrayVar(stable_st *table,
+                               const char *name,
+                               enum Type type,
+                               void *dimensions) {
+  if (!table || !name) {
+    return NULL;
+  }
 
-  //check if var already exists in local scope symbol table
-  if (STlookupVar(table, name, false))
-  {
+  // check if var already exists in local scope symbol table
+  if (STlookupVar(table, name, false)) {
     return NULL;
   }
 
   var_entry_st *entry = malloc(sizeof(var_entry_st));
-  if (!entry) return NULL;
+  if (!entry) {
+    return NULL;
+  }
 
   entry->name = strdup(name);
   entry->type = type;
   entry->dimensions = dimensions;
+  entry->dimension_names = NULL;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
   return entry;
 }
 
-//insert a variable into the symbol table
+// insert a variable into the symbol table
 var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
-  if (!table || !name) return NULL;
+  if (!table || !name) {
+    return NULL;
+  }
 
-  //check if var already exists in local scope symbol table
-  if (STlookupVar(table, name, false))
-  {
+  // check if var already exists in local scope symbol table
+  if (STlookupVar(table, name, false)) {
     return NULL;
   }
 
   var_entry_st *entry = malloc(sizeof(var_entry_st));
-  if (!entry) return NULL;
+  if (!entry) {
+    return NULL;
+  }
 
   entry->name = strdup(name);
   entry->type = type;
   entry->dimensions = NULL;
+  entry->dimension_names = NULL;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
   return entry;
 }
 
-//insert a function into the symbol table
-func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type returnType, param_entry_st *params) {
+// insert a function into the symbol table
+func_entry_st *STinsertFunc(stable_st *table,
+                            const char *name,
+                            enum Type returnType,
+                            param_entry_st *params) {
   if (!table || !name) {
-      //free entire params list if present
-      param_entry_st *current_param = params;
-      while (current_param) {
-          param_entry_st *temp = current_param;
-          current_param = current_param->next;
-          free(temp);
-      }
-      return NULL;
+      // free entire params list if present
+    param_entry_st *current_param = params;
+    while (current_param) {
+      param_entry_st *temp = current_param;
+      current_param = current_param->next;
+      free(temp->name);
+      free(temp);
+    }
+    return NULL;
   }
 
-  //check for duplicate function signature in current scope. using the return type, name and param types
+  // check for duplicate function signature in current scope. using the return type,
+  // name and param types
   func_entry_st *current = table->func_entries;
   while (current) {
-      if (strcmp(current->name, name) == 0 &&
-          current->returnType == returnType &&
-          compareParamLists(current->params, params)) {
-
-          //free entire params list before returning
-          param_entry_st *current_param = params;
-          while (current_param) {
-              param_entry_st *temp = current_param;
-              current_param = current_param->next;
-              free(temp);
-          }
-
-          //duplicate found
-          return NULL;
+    if (strcmp(current->name, name) == 0 && current->returnType == returnType
+        && compareParamLists(current->params, params)) {
+          // free entire params list before returning
+      param_entry_st *current_param = params;
+      while (current_param) {
+        param_entry_st *temp = current_param;
+        current_param = current_param->next;
+        free(temp->name);
+        free(temp);
       }
-      current = current->next;
+
+          // duplicate found
+      return NULL;
+    }
+    current = current->next;
   }
 
   func_entry_st *entry = malloc(sizeof(func_entry_st));
   if (!entry) {
-      //free entire params list
-      param_entry_st *current_param = params;
-      while (current_param) {
-          param_entry_st *temp = current_param;
-          current_param = current_param->next;
-          free(temp);
-      }
-      return NULL;
+      // free entire params list
+    param_entry_st *current_param = params;
+    while (current_param) {
+      param_entry_st *temp = current_param;
+      current_param = current_param->next;
+      free(temp->name);
+      free(temp);
+    }
+    return NULL;
   }
 
   entry->name = strdup(name);
   if (!entry->name) {
-      free(entry);
-      param_entry_st *current_param = params;
-      while (current_param) {
-          param_entry_st *temp = current_param;
-          current_param = current_param->next;
-          free(temp);
-      }
-      return NULL;
+    free(entry);
+    param_entry_st *current_param = params;
+    while (current_param) {
+      param_entry_st *temp = current_param;
+      current_param = current_param->next;
+      free(temp);
+    }
+    return NULL;
   }
 
   entry->returnType = returnType;
@@ -131,193 +149,232 @@ func_entry_st *STinsertFunc(stable_st *table, const char *name, enum Type return
 
   param_entry_st *current_param = params;
   while (current_param) {
-      param_entry_st *temp = current_param;
-      current_param = current_param->next;
-      free(temp);
+    param_entry_st *temp = current_param;
+    current_param = current_param->next;
+    free(temp->name);
+    free(temp);
   }
 
   return entry;
 }
-//lookup var in symbol table or linked parents
-var_entry_st *STlookupVar(stable_st *table, const char *name, bool traverse_parent) {
 
-  //setting the current scope/symbol table 
+stable_st *STgetParentTable(stable_st *current_table) {
+  if (current_table == NULL) {
+    return NULL;
+  }
+  return current_table->parent;
+}
+
+// lookup var in symbol table or linked parents
+var_entry_st *STlookupVar(stable_st *table, const char *name, bool traverse_parent) {
+  // setting the current scope/symbol table
   stable_st *current = table;
 
-  //loop over the current set symbol table
+  // loop over the current set symbol table
   while (current) {
+      // gett the vars from the current set symbol table
+    var_entry_st *entry = current->var_entries;
 
-      //gett the vars from the current set symbol table
-      var_entry_st *entry = current->var_entries;
-
-      //looping over the entries of the set vars
-      while (entry) {
-
-          //check if the names matches, meaning var found so we return it
-          if (strcmp(entry->name, name) == 0) {
-              return entry;
-          }
-          //setting the next entry to check
-          entry = entry->next;
+      // looping over the entries of the set vars
+    while (entry) {
+          // check if the names matches, meaning var found so we return it
+      if (strcmp(entry->name, name) == 0) {
+        return entry;
       }
+          // setting the next entry to check
+      entry = entry->next;
+    }
 
-      if (traverse_parent)
-      {
-        //not found in the current scope, needed to check for static accessible vars. Should not be possible that we access random vars in the scope above.
-        current = current->parent;
-      }else{
-        current = NULL;
-      }
-
+    if (traverse_parent) {
+      // not found in the current scope, needed to check for static accessible vars.
+      // Should not be possible that we access random vars in the scope above.
+      current = current->parent;
+    } else {
+      current = NULL;
+    }
   }
 
-  //not founb
+  // not founb
   return NULL;
 }
 
-//lookup func in symbol table or linked parents(practically the same as above)
+// lookup func in symbol table or linked parents(practically the same as above)
 func_entry_st *STlookupFunc(stable_st *table, const char *name) {
   stable_st *current = table;
   while (current) {
-      func_entry_st *entry = current->func_entries;
-      while (entry) {
-          if (strcmp(entry->name, name) == 0) {
-              return entry;
-          }
-          entry = entry->next;
+    func_entry_st *entry = current->func_entries;
+    while (entry) {
+      if (strcmp(entry->name, name) == 0) {
+        return entry;
       }
-      current = current->parent;
+      entry = entry->next;
+    }
+    current = current->parent;
   }
   return NULL;
 }
 
 const char *typeToString(enum Type t) {
-    switch (t) {
-        case CT_NULL:  return "NULL";
-        case CT_int:   return "int";
-        case CT_float: return "float";
-        case CT_bool:  return "bool";
-        case CT_void:  return "void";
-        case CT_array: return "array";
-        default:       return "UNKNOWN_TYPE";
-    }
+  switch (t) {
+  case CT_NULL:
+    return "NULL";
+  case CT_int:
+    return "int";
+  case CT_float:
+    return "float";
+  case CT_bool:
+    return "bool";
+  case CT_void:
+    return "void";
+  case CT_array:
+    return "array";
+  default:
+    return "UNKNOWN_TYPE";
+  }
 }
 
 void printSymbolTableContent(stable_st *table, bool printParent) {
   if (!table) {
-      printf("Symbol table is NULL.\n");
-      return;
+    printf("Symbol table is NULL.\n");
+    return;
   }
 
   printf("\nSymbol Table Contents:\n");
 
   if (table->var_entries) {
-      printf("Variables:\n");
-      var_entry_st *var_entry = table->var_entries;
-      while (var_entry) {
-          
-        if(var_entry->dimensions){
-            printf("  %s (%s) - Array\n", var_entry->name, typeToString(var_entry->type));
-        } else {
-            printf("  %s (%s)\n", var_entry->name, typeToString(var_entry->type));
-        }
-          var_entry = var_entry->next;
+    printf("Variables:\n");
+    var_entry_st *var_entry = table->var_entries;
+    while (var_entry) {
+      if (var_entry->dimensions) {
+        printf("  %s (%s) - Array\n", var_entry->name, typeToString(var_entry->type));
+      } else {
+        printf("  %s (%s)\n", var_entry->name, typeToString(var_entry->type));
       }
+      var_entry = var_entry->next;
+    }
   } else {
-      printf("No variables in this table.\n");
+    printf("No variables in this table.\n");
   }
 
   if (table->func_entries) {
     printf("Functions:\n");
     func_entry_st *func_entry = table->func_entries;
     while (func_entry) {
-        printf("  %s %s (", typeToString(func_entry->returnType), func_entry->name);
+      printf("  %s %s (", typeToString(func_entry->returnType), func_entry->name);
 
-        param_entry_st *current_param_entry = func_entry->params;
-        bool first_param = true;
-        while (current_param_entry) {
-            if (!first_param) {
-                printf(", ");
-            }
-            printf("%s", typeToString(current_param_entry->type));
-            first_param = false;
-            current_param_entry = current_param_entry->next;
+      param_entry_st *current_param_entry = func_entry->params;
+      bool first_param = true;
+      while (current_param_entry) {
+        if (!first_param) {
+          printf(", ");
         }
-        printf(")\n");
-        func_entry = func_entry->next;
+        printf("%s of type %s",
+               current_param_entry->name,
+               typeToString(current_param_entry->type));
+        first_param = false;
+        current_param_entry = current_param_entry->next;
+      }
+      printf(")\n");
+      func_entry = func_entry->next;
     }
   } else {
-      printf("No functions in this table.\n");
+    printf("No functions in this table.\n");
   }
 
-  if (!printParent)
-  {
+  if (!printParent) {
     return;
   }
-  
+
   if (table->parent) {
-      printf("\nParent Symbol Table:\n");
-      printSymbolTableContent(table->parent, true);
+    printf("\nParent Symbol Table:\n");
+    printSymbolTableContent(table->parent, true);
   }
 }
 
-//free symbol table and all its entries
+// free symbol table and all its entries
 void STfree(stable_st *table) {
-  if (!table) return;
+  if (!table) {
+    return;
+  }
 
-  //vars
+  // vars
   var_entry_st *v_entry = table->var_entries;
   while (v_entry) {
-      var_entry_st *temp = v_entry;
-      v_entry = v_entry->next;
-      free(temp->name);
-      free(temp);
+    var_entry_st *temp = v_entry;
+    v_entry = v_entry->next;
+
+    if (temp->dimension_names) {
+      for (int i = 0; i < temp->num_dimensions; i++) {
+        if (temp->dimension_names[i]) {
+          free(temp->dimension_names[i]);
+          temp->dimension_names[i] = NULL;
+        }
+      }
+      free(temp->dimension_names);
+      temp->dimension_names = NULL;
+    }
+    free(temp->name);
+    temp->name = NULL;
+    free(temp);
   }
 
-  //funcs
+  // funcs
   func_entry_st *f_entry = table->func_entries;
   while (f_entry) {
-
-      //clear params
-      param_entry_st *p_entry = f_entry->params;
-      while (p_entry)
-      {
-          param_entry_st *temp = p_entry;
-          p_entry = p_entry->next;
-          free(temp);
-      }
-      f_entry->params = NULL;
-
-      func_entry_st *temp = f_entry;
-      f_entry = f_entry->next;
+    param_entry_st *p_entry = f_entry->params;
+    while (p_entry) {
+      param_entry_st *temp = p_entry;
+      p_entry = p_entry->next;
       free(temp->name);
+      temp->name = NULL;
       free(temp);
+    }
+    f_entry->params = NULL;
+    func_entry_st *temp = f_entry;
+    f_entry = f_entry->next;
+    free(temp->name);
+    temp->name = NULL;
+    free(temp);
   }
 
-  //table
+  // table
   free(table);
 }
 
-
-//helpers
+// helpers
 static bool compareParamLists(param_entry_st *a, param_entry_st *b) {
   while (a && b) {
-      if (a->type != b->type) return false;
-      a = a->next;
-      b = b->next;
+    if (a->type != b->type) {
+      return false;
+    }
+    a = a->next;
+    b = b->next;
   }
   return (a == NULL && b == NULL);
 }
 
 static struct param_entry *copyParamList(param_entry_st *src) {
-  if (!src) return NULL;
+  if (!src) {
+    return NULL;
+  }
+
   param_entry_st *dst = malloc(sizeof(param_entry_st));
   param_entry_st *current_dst = dst;
-  while (src) {
-      current_dst->type = src->type;
-      current_dst->next = src->next ? malloc(sizeof(param_entry_st)) : NULL;
-      src = src->next;
+  param_entry_st *current_src = src;
+
+  while (current_src) {
+    current_dst->name = strdup(current_src->name);
+    current_dst->type = current_src->type;
+
+    if (current_src->next) {
+      current_dst->next = malloc(sizeof(param_entry_st));
       current_dst = current_dst->next;
+    } else {
+      current_dst->next = NULL;
+    }
+
+    current_src = current_src->next;
   }
+
   return dst;
 }
