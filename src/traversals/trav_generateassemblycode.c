@@ -38,14 +38,14 @@ static void print_exports(FILE *output, node_st *node) {
   }
 
   export_entry_st *current = export_table->entries;
-  while (current) {
-    write_output(output,
-                 ".exportfun \"%s\" %s %s\n",
-                 current->name,
-                 typeToString(current->return_type),
-                 current->label);
-    current = current->next;
-  }
+  // while (current) {
+  //   write_output(output,
+  //                ".exportfun \"%s\" %s %s\n",
+  //                current->name,
+  //                typeToString(current->return_type),
+  //                current->label);
+  //   current = current->next;
+  // }
 }
 
 static void print_imports(FILE *output, node_st *node) {
@@ -71,31 +71,31 @@ static void print_imports(FILE *output, node_st *node) {
 }
 
 static void print_globals(FILE *output, node_st *node) {
-  global_var_table_st *var_table = PROGRAM_VAR_TABLE(node);
-  if (!var_table) {
-    return;
-  }
+  // global_var_table_st *var_table = PROGRAM_VAR_TABLE(node);
+  // if (!var_table) {
+  //   return;
+  // }
 
-  global_var_entry_st *current = var_table->globals;
+  // global_var_entry_st *current = var_table->globals;
 
-  while (current) {
-    write_output(output,
-                 ".exportfun \"%s\" %s %s\n",
-                 current->name,
-                 typeToString(current->type),
-                 current->name);
-    current = current->next;
+  // while (current) {
+  //   write_output(output,
+  //                ".exportfun \"%s\" %s %s\n",
+  //                current->name,
+  //                typeToString(current->type),
+  //                current->name);
+  //   current = current->next;
 
-    global_extern_var_entry_st *current = var_table->externs;
+  //   global_extern_var_entry_st *current = var_table->externs;
 
-    while (current) {
-      write_output(output,
-                   ".importvar \"%s\" %s\n",
-                   current->name,
-                   typeToString(current->type));
-      current = current->next;
-    }
-  }
+  //   while (current) {
+  //     write_output(output,
+  //                  ".importvar \"%s\" %s\n",
+  //                  current->name,
+  //                  typeToString(current->type));
+  //     current = current->next;
+  //   }
+  // }
 }
 
 /**

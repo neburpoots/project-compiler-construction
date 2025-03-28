@@ -1,0 +1,27 @@
+extern int printInt(int val, float something);
+extern void printNewlines(int num, bool x);
+extern bool no_params();
+extern int extern_var;
+extern bool extern_bool;
+extern float extern_float;
+
+export int MAX_VALUE = 100;
+
+//1. should work
+export int test1(int param_int, float param_float) {
+  int x = 10;
+  float y = 10.5;
+  int z = 14;
+}
+
+//2. should work
+export float test2(int param_int, float param_float) {
+  int a = 10;
+  float b = 10.5;
+}
+
+//3. should work
+export bool test3(int param_int, float param_float) {
+  int c = 10;
+  float d = 10.5;
+}

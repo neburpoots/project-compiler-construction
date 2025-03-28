@@ -12,17 +12,17 @@ typedef struct import_entry import_entry_st;
 typedef struct import_table import_table_st;
 
 struct import_entry {
-  ImportEntryType entry_type;  // FUNCTION_ENTRY or VARIABLE_ENTRY
+  ImportEntryType entry_type;
   char *name;
 
   union {
-        // For functions
+    // functions
     struct {
       enum Type return_type;
       param_entry_st *parameters;
     } func;
 
-        // For variables
+    // variables
     struct {
       enum Type var_type;
     } var;
