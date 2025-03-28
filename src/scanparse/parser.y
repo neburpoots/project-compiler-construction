@@ -171,7 +171,28 @@ glob_decl: EXTERN type ID SEMICOLON
   };
 
 glob_def: 
-  type SQUARE_L expr COMMA expr SQUARE_R ID LET expr SEMICOLON
+  EXPORT type SQUARE_L expr SQUARE_R ID LET expr SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($4, NULL), $8, $6, $2, true);
+    AddLocToNode($$, &@1, &@8);
+  }
+  |
+  EXPORT type SQUARE_L expr COMMA expr SQUARE_R ID LET expr SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($4, ASTexprs($6, NULL)), $10, $8, $2, true);
+    AddLocToNode($$, &@1, &@10);
+  }
+  | EXPORT type SQUARE_L expr SQUARE_R ID SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($4, NULL), NULL, $6, $2, true);
+    AddLocToNode($$, &@1, &@6);
+  }
+  | EXPORT type SQUARE_L expr COMMA expr SQUARE_R ID SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($4, ASTexprs($6, NULL)), NULL, $8, $2, true);
+    AddLocToNode($$, &@1, &@8);
+  }
+  | type SQUARE_L expr COMMA expr SQUARE_R ID LET expr SEMICOLON
   {
     $$ = ASTglobdef(ASTexprs($3, ASTexprs($5, NULL)), $9, $7, $1, false);
     AddLocToNode($$, &@1, &@10);
@@ -186,21 +207,11 @@ glob_def:
     $$ = ASTglobdef(ASTexprs($3, NULL), NULL, $5, $1, false);
     AddLocToNode($$, &@1, &@6);
   }
-  // | type SQUARE_L expr SQUARE_R ID LET arrExpr SEMICOLON
-  // {
-  //   $$ = ASTglobdef(ASTexprs($3, NULL), $7, $5, $1, false);
-  //   AddLocToNode($$, &@1, &@8);
-  // }
   | type SQUARE_L expr COMMA expr SQUARE_R ID SEMICOLON
   {
     $$ = ASTglobdef(ASTexprs($3, ASTexprs($5, NULL)), NULL, $7, $1, false);
     AddLocToNode($$, &@1, &@7);
   }
-  // | type SQUARE_L expr COMMA expr SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
-  // {
-  //   $$ = ASTglobdef($3, $10, $7, $1, false);
-  //   AddLocToNode($$, &@1, &@11);
-  // }
  | EXPORT type ID LET expr SEMICOLON
   {
     $$ = ASTglobdef(NULL,$5, $3, $2, true);

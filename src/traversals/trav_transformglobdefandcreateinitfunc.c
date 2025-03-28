@@ -167,7 +167,7 @@ node_st *TGprogram(node_st *node)
                 }
                 // Free the GLOBDEF node and the DECLS node
                 DECLS_NEXT(current_decls) = NULL;
-                
+
                 CCNfree(current_decls);
                 break;
             }
@@ -193,6 +193,9 @@ node_st *TGglobdef(node_st *node)
     if (init_value)
     {
         node_st *vardecl = ASTvardecl(CCNcopy(GLOBDEF_DIMS(node)), init_value, strdup(GLOBDEF_NAME(node)), GLOBDEF_TYPE(node));
+
+        VARDECL_EXPORT(vardecl) = GLOBDEF_EXPORT(node);
+
         GStackPush(data->global_assignments, vardecl);
         GStackPush(data->removals, node);
     }

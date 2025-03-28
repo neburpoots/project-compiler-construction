@@ -570,7 +570,63 @@ void TVIinit()
     data->in_array_dim = false;
     data->init_func_created = true;
 }
+static void convert_init_decls_to_globdefs(node_st *init_func, node_st *program)
+{
+    struct data_tvi *data = DATA_TVI_GET();
 
+    node_st *decls = FUNBODY_FUNCONTENTS(FUNDEF_BODY(init_func));
+    node_st *prev = NULL;
+    node_st *new_decls_head = NULL; // Temporary list for ordered GLOBDEFs
+    node_st *new_decls_tail = NULL;
+
+    while (decls)
+    {
+        node_st *decl = FUNCONTENTS_FUNCONTENT(decls);
+        if (NODE_TYPE(decl) == NT_VARDECL)
+        {
+            // Convert to GLOBDEF
+            node_st *globdef = ASTglobdef(
+                CCNcopy(VARDECL_DIMS(decl)), 
+                NULL, 
+                strdup(VARDECL_NAME(decl)), 
+                VARDECL_TYPE(decl), 
+                VARDECL_EXPORT(decl)
+            );
+
+            // Add to temporary list (maintaining order)
+            node_st *new_decl_node = ASTdecls(globdef, NULL);
+            if (!new_decls_head) {
+                new_decls_head = new_decl_node;
+                new_decls_tail = new_decl_node;
+            } else {
+                DECLS_NEXT(new_decls_tail) = new_decl_node;
+                new_decls_tail = new_decl_node;
+            }
+
+            // Remove from init function
+            node_st *next = FUNCONTENTS_NEXT(decls);
+            if (prev) {
+                FUNCONTENTS_NEXT(prev) = next;
+            } else {
+                FUNBODY_FUNCONTENTS(FUNDEF_BODY(init_func)) = next;
+            }
+            FUNCONTENTS_NEXT(decls) = NULL;
+            CCNfree(decls);
+            decls = next;
+        }
+        else
+        {
+            prev = decls;
+            decls = FUNCONTENTS_NEXT(decls);
+        }
+    }
+
+    // Prepend the new declarations (in original order) to PROGRAM_DECLS
+    if (new_decls_head) {
+        DECLS_NEXT(new_decls_tail) = PROGRAM_DECLS(program);
+        PROGRAM_DECLS(program) = new_decls_head;
+    }
+}
 /**
  * @fn TVIprogram
  */
@@ -596,6 +652,9 @@ node_st *TVIprogram(node_st *node)
             add_to_init_function(init_func, next);
         }
     }
+
+    //Remove decls from init function and move these back to global scope
+    convert_init_decls_to_globdefs(init_func, node);
 
     return node;
 }
@@ -749,53 +808,6 @@ node_st *TVIfundef(node_st *node)
 node_st *TVIglobdef(node_st *node)
 {
     struct data_tvi *data = DATA_TVI_GET();
-
-    // Convert the dimensions to temp variables and add these to global assignments
-    // if (GLOBDEF_DIMS(node))
-    // {
-    //     node_st *dims = GLOBDEF_DIMS(node);
-
-    //     node_st *dim_1 = EXPRS_EXPR(dims);
-
-    //     node_st *dim_2;
-
-    //     if (EXPRS_NEXT(dims))
-    //     {
-    //         dim_2 = EXPRS_EXPR(EXPRS_NEXT(dims));
-    //     }
-    //     else
-    //     {
-    //         dim_2 = NULL;
-    //     }
-
-    //     char *idx_var_1 = create_temp_var_name(data);
-
-    //     // VARDECL
-    //     node_st *idx_vardecl = ASTvardecl(NULL, NULL, idx_var_1, CT_int);
-    //     GStackPush(data->global_assignments, idx_vardecl);
-
-    //     STinsertVar(data->current_symbol_table_stack_ptr, idx_var_1, CT_int);
-
-    //     // ASSIGNMENT
-    //     node_st *assignment = ASTassign(ASTvarlet(NULL, strdup(idx_var_1)), CCNcopy(dim_1));
-    //     GStackPush(data->global_assignments, assignment);
-
-    //     // reassign dim_1
-    //     CCNfree(dim_1);
-    //     EXPRS_EXPR(dims) = ASTvar(NULL, strdup(idx_var_1));
-
-    //     if (dim_2)
-    //     {
-    //         char *idx_var_2 = create_temp_var_name(data);
-    //         node_st *idx_vardecl_2 = ASTvardecl(NULL, NULL, idx_var_2, CT_int);
-    //         GStackPush(data->global_assignments, idx_vardecl_2);
-
-    //         node_st *assignment_2 = ASTassign(ASTvarlet(NULL, strdup(idx_var_2)), CCNcopy(dim_2));
-    //         GStackPush(data->global_assignments, assignment_2);
-    //         CCNfree(dim_2);
-    //         EXPRS_EXPR(EXPRS_NEXT(dims)) = ASTvar(NULL, strdup(idx_var_2));
-    //     }
-    // }
 
     return node;
 }

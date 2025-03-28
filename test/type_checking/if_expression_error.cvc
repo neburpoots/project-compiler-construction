@@ -1,11 +1,11 @@
 
+export int[2] globalVariable = [[1,2],[3,4]];
 
 int test(int test) {
     return test;
 }
 
 export int calculate_age() {
-    int[2] globalVariable = [1,2];
 
     return 10;
 }
