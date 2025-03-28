@@ -30,13 +30,8 @@ void TAPfini() {
  * @fn TAPfundef
  */
 node_st *TAPfundef(node_st *node) {
-  printf("\n\nFUNDEFF\n\n");
   table = FUNDEF_TABLE(node);
   TRAVchildren(node);
-  printf("\n\n");
-  printSymbolTableContent(table, false);
-  printSymbolTableContent(STgetParentTable(table), false);
-  printf("\n\n");
   return node;
 }
 
@@ -45,61 +40,62 @@ node_st *TAPfundef(node_st *node) {
  * Processes each array parameter to extract dimensions and insert new parameters.
  */
 node_st *TAPparam(node_st *node) {
-  if (PARAM_TYPE(node) == CT_array) {
-      // Extract dimensions
-    int dim_count = 0;
-    node_st *dim = PARAM_DIMS(node);
-    while (dim) {
-      dim_count++;
-      dim = IDS_NEXT(dim);
-    }
+  if (PARAM_TYPE(node) != CT_array) {
+    return node;
+  }
 
-      // Store dimension names
-    char **dim_names = malloc(dim_count * sizeof(char *));
-    dim = PARAM_DIMS(node);
+  // get dimensions
+  int dim_count = 0;
+  node_st *dim = PARAM_DIMS(node);
+  while (dim) {
+    dim_count++;
+    dim = IDS_NEXT(dim);
+  }
+
+  // store dimension names
+  char **dim_names = malloc(dim_count * sizeof(char *));
+  dim = PARAM_DIMS(node);
+  for (int i = 0; i < dim_count; i++) {
+    dim_names[i] = strdup(IDS_NAME(dim));
+    dim = IDS_NEXT(dim);
+  }
+
+  // update symbol table entry
+  var_entry_st *entry = STlookupVar(table, PARAM_NAME(node), false);
+  if (!entry) {
     for (int i = 0; i < dim_count; i++) {
-      dim_names[i] = strdup(IDS_NAME(dim));
-      dim = IDS_NEXT(dim);
+      free(dim_names[i]);
     }
+    free(dim_names);
+    return node;
+  }
+  entry->dimension_names = dim_names;
+  entry->num_dimensions = dim_count;
 
-      // Update symbol table entry
-    var_entry_st *entry = STlookupVar(table, PARAM_NAME(node), false);
-    if (!entry) {
-      for (int i = 0; i < dim_count; i++) {
-        free(dim_names[i]);
-      }
-      free(dim_names);
-      return node;
-    }
-    entry->dimension_names = dim_names;
-    entry->num_dimensions = dim_count;
-
-      // Create new dimension parameters
-    node_st *new_params = NULL;
-    node_st *last_param = NULL;
-    for (int i = 0; i < dim_count; i++) {
-      node_st *dim_param = ASTparam(NULL, NULL, strdup(dim_names[i]), CT_int);
-      STinsertVar(table, dim_names[i], CT_int);
-      if (!new_params) {
-        new_params = dim_param;
-        last_param = dim_param;
-      } else {
-        PARAM_NEXT(last_param) = dim_param;
-        last_param = dim_param;
-      }
-    }
-
-      // Link new parameters and continue traversal
-    node_st *original_next = PARAM_NEXT(node);
-    PARAM_NEXT(node) = original_next; // Restore original next
-    if (new_params) {
-      PARAM_NEXT(last_param) = node;
-          // Process the next parameters recursively
-      PARAM_NEXT(node) = TRAVopt(PARAM_NEXT(node));
-      return new_params;
+  // create new dimension parameters
+  node_st *new_params = NULL;
+  node_st *last_param = NULL;
+  for (int i = 0; i < dim_count; i++) {
+    node_st *dim_param = ASTparam(NULL, NULL, strdup(dim_names[i]), CT_int);
+    STinsertVar(table, dim_names[i], CT_int);
+    if (!new_params) {
+      new_params = dim_param;
+      last_param = dim_param;
+    } else {
+      PARAM_NEXT(last_param) = dim_param;
+      last_param = dim_param;
     }
   }
-  // Process next parameters
+
+  // Link new parameters and continue traversal
+  node_st *original_next = PARAM_NEXT(node);
+  PARAM_NEXT(node) = original_next;
+  if (new_params) {
+    PARAM_NEXT(last_param) = node;
+    PARAM_NEXT(node) = TRAVopt(PARAM_NEXT(node));
+    return new_params;
+  }
+
   PARAM_NEXT(node) = TRAVopt(PARAM_NEXT(node));
   return node;
 }
