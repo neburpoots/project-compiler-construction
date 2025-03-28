@@ -7,14 +7,15 @@
  *
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "ccn/ccn.h"
 #include "ccngen/ast.h"
 #include "ccngen/trav.h"
-#include <stdio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "user/symbolTable/symbol_table.h"
 #include "user/stack/stack.h"
+#include "user/symbolTable/symbol_table.h"
 
 // ANSI color codes
 #define RED "\033[1;31m"
@@ -26,8 +27,7 @@
 void printVariableAlreadyDeclared(node_st *node);
 param_entry_st *create_params(node_st *node);
 
-param_entry_st *create_params(node_st *node)
-{
+param_entry_st *create_params(node_st *node) {
   param_entry_st *params = NULL;
   param_entry_st **tail = &params;
 
@@ -35,8 +35,7 @@ param_entry_st *create_params(node_st *node)
 
   // get params based on the supplied node
   switch
-    NODE_TYPE(node)
-    {
+    NODE_TYPE(node) {
     case NT_FUNDEC:
       param_node = FUNDEC_PARAMS(node);
       break;
@@ -47,10 +46,10 @@ param_entry_st *create_params(node_st *node)
       return NULL;
     }
 
-  while (param_node)
-  {
+  while (param_node) {
     printf("Creating param with type: %s\n", typeToString(PARAM_TYPE(param_node)));
     param_entry_st *p = malloc(sizeof(param_entry_st));
+    p->name = strdup(PARAM_NAME(param_node));
     p->type = PARAM_TYPE(param_node);
     p->next = NULL;
 
@@ -64,17 +63,28 @@ param_entry_st *create_params(node_st *node)
 }
 
 // print already declared error.
-void printVariableAlreadyDeclared(node_st *node)
-{
+void printVariableAlreadyDeclared(node_st *node) {
   printf(RED "\nError: variable already declared.\n" RESET);
   switch
-    NODE_TYPE(node)
-    {
+    NODE_TYPE(node) {
     case NT_VARDECL:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW " of type %s has already been declared on line: %d and column: %d \n" RESET, VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
+      printf(
+        YELLOW
+        " Variable: " RESET "'%s'" YELLOW
+        " of type %s has already been declared on line: %d and column: %d \n" RESET,
+        VARDECL_NAME(node),
+        typeToString(VARDECL_TYPE(node)),
+        NODE_BLINE(node),
+        NODE_BCOL(node));
       break;
     case NT_PARAM:
-      printf(YELLOW " Variable: " RESET "'%s'" YELLOW " of type %s has already been declared on line: %d and column: %d\n" RESET, PARAM_NAME(node), typeToString(PARAM_TYPE(node)), NODE_BLINE(node), NODE_BCOL(node));
+      printf(YELLOW
+             " Variable: " RESET "'%s'" YELLOW
+             " of type %s has already been declared on line: %d and column: %d\n" RESET,
+             PARAM_NAME(node),
+             typeToString(PARAM_TYPE(node)),
+             NODE_BLINE(node),
+             NODE_BCOL(node));
       break;
     default:
       printf(YELLOW " No additional information provided.\n\n" RESET);
@@ -83,17 +93,19 @@ void printVariableAlreadyDeclared(node_st *node)
 }
 
 // print function already declare.
-void printFunctionSignatureDeclared(node_st *node)
-{
+void printFunctionSignatureDeclared(node_st *node) {
   printf(RED "\nError: function signature already exist.\n" RESET);
-  printf(YELLOW " Function: " RESET "'%s'" YELLOW " of type %s has already been declared\n" RESET, FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
-  // printf(YELLOW " Exising signature: " RESET "%s %s", typeToString(FUNDEF_TYPE(node)), FUNDEF_NAME(node));
+  printf(YELLOW " Function: " RESET "'%s'" YELLOW
+                " of type %s has already been declared\n" RESET,
+         FUNDEF_NAME(node),
+         typeToString(FUNDEF_TYPE(node)));
+  // printf(YELLOW " Exising signature: " RESET "%s %s",
+  // typeToString(FUNDEF_TYPE(node)), FUNDEF_NAME(node));
   exit(EXIT_FAILURE);
 }
 
 // used to create the stack
-void BSTinit()
-{
+void BSTinit() {
   printf("\nINITIALIZING SYMBOL TABLE TRAVERSAL\n");
   printf("Creating traversal stack\n");
   struct data_bst *data = DATA_BST_GET();
@@ -103,8 +115,7 @@ void BSTinit()
 }
 
 // used for cleanup
-void BSTfini()
-{
+void BSTfini() {
   printf("\nFINISHING SYMBOL TABLE TRAVERSAL\n");
 
   printf("Getting symbol table stack\n");
@@ -121,8 +132,7 @@ void BSTfini()
 /**
  * @fn BSTprogram
  */
-node_st *BSTprogram(node_st *node)
-{
+node_st *BSTprogram(node_st *node) {
   printf("Started traversal\n");
   // create initial symbol table
 
@@ -141,10 +151,12 @@ node_st *BSTprogram(node_st *node)
   // attaching as attribute
   PROGRAM_TABLE(node) = t;
 
-  // results in traversal of GlobDef, GlobDecl, FunDef, FunDec (basically same as travchildren)
+  // results in traversal of GlobDef, GlobDecl, FunDef, FunDec (basically same as
+  // travchildren)
   TRAVdecls(node);
 
-  // Pop scope/symbol table from stack. free is now needed but in the future deeper nested scope does this
+  // Pop scope/symbol table from stack. free is now needed but in the future deeper
+  // nested scope does this
   //  free(Stackpop(data->symbol_table_stack_ptr));
 
   // printSymbolTableContent(t, false);
@@ -155,8 +167,7 @@ node_st *BSTprogram(node_st *node)
 /**
  * @fn BSTglobdecl
  */
-node_st *BSTglobdecl(node_st *node)
-{
+node_st *BSTglobdecl(node_st *node) {
   printf("\nTraversing glob decl\n");
 
   // get traversal data
@@ -166,10 +177,11 @@ node_st *BSTglobdecl(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the symbol table
-  printf("inserting '%s' (%s) into symbol table\n", GLOBDECL_NAME(node), typeToString(GLOBDECL_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         GLOBDECL_NAME(node),
+         typeToString(GLOBDECL_TYPE(node)));
 
-  if (!STinsertVar(t, GLOBDECL_NAME(node), GLOBDECL_TYPE(node)))
-  {
+  if (!STinsertVar(t, GLOBDECL_NAME(node), GLOBDECL_TYPE(node))) {
     printVariableAlreadyDeclared(node);
   }
 
@@ -184,8 +196,7 @@ node_st *BSTglobdecl(node_st *node)
 /**
  * @fn BSTglobdef
  */
-node_st *BSTglobdef(node_st *node)
-{
+node_st *BSTglobdef(node_st *node) {
   printf("\nTraversing glob def\n");
 
   // get traversal data
@@ -195,10 +206,11 @@ node_st *BSTglobdef(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the symbol table
-  printf("inserting '%s' (%s) into symbol table\n", GLOBDEF_NAME(node), typeToString(GLOBDEF_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         GLOBDEF_NAME(node),
+         typeToString(GLOBDEF_TYPE(node)));
 
-  if (!STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node)))
-  {
+  if (!STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node))) {
     printVariableAlreadyDeclared(node);
   }
 
@@ -213,8 +225,7 @@ node_st *BSTglobdef(node_st *node)
 /**
  * @fn BSTfundef
  */
-node_st *BSTfundef(node_st *node)
-{
+node_st *BSTfundef(node_st *node) {
   printf("\nTraversing func def\n");
 
   // get traversal data
@@ -224,10 +235,11 @@ node_st *BSTfundef(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the parent symbol table
-  printf("inserting '%s' (%s) into symbol table\n", FUNDEF_NAME(node), typeToString(FUNDEF_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         FUNDEF_NAME(node),
+         typeToString(FUNDEF_TYPE(node)));
 
-  if (!STinsertFunc(t, FUNDEF_NAME(node), FUNDEF_TYPE(node), create_params(node)))
-  {
+  if (!STinsertFunc(t, FUNDEF_NAME(node), FUNDEF_TYPE(node), create_params(node))) {
     printFunctionSignatureDeclared(node);
   }
 
@@ -240,9 +252,8 @@ node_st *BSTfundef(node_st *node)
 
   // attaching as attribute
   FUNDEF_TABLE(node) = new_table;
-  printf("Attached symbol table to fun def\n");
-
-  // printSymbolTableContent(new_table, true);
+  printf("Attached symbol table to fun def, printing to be sure\n");
+  // printSymbolTableContent(new_table, false);
 
   // pop current fun def scope from stack
   new_table = Stackpop(data->symbol_table_stack_ptr);
@@ -253,8 +264,7 @@ node_st *BSTfundef(node_st *node)
 /**
  * @fn BSTfundec
  */
-node_st *BSTfundec(node_st *node)
-{
+node_st *BSTfundec(node_st *node) {
   printf("\nTraversing func dec\n");
 
   // get traversal data
@@ -264,10 +274,11 @@ node_st *BSTfundec(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the symbol table
-  printf("inserting '%s' (%s) into symbol table\n", FUNDEC_NAME(node), typeToString(FUNDEC_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         FUNDEC_NAME(node),
+         typeToString(FUNDEC_TYPE(node)));
 
-  if (!STinsertFunc(t, FUNDEC_NAME(node), FUNDEC_TYPE(node), create_params(node)))
-  {
+  if (!STinsertFunc(t, FUNDEC_NAME(node), FUNDEC_TYPE(node), create_params(node))) {
     printFunctionSignatureDeclared(node);
   }
 
@@ -289,8 +300,7 @@ node_st *BSTfundec(node_st *node)
 /**
  * @fn BSTfunbody
  */
-node_st *BSTfunbody(node_st *node)
-{
+node_st *BSTfunbody(node_st *node) {
   printf("\nTraversing fun body\n");
 
   TRAVfunContents(node);
@@ -300,8 +310,7 @@ node_st *BSTfunbody(node_st *node)
 /**
  * @fn BSTparam
  */
-node_st *BSTparam(node_st *node)
-{
+node_st *BSTparam(node_st *node) {
   printf("\nTraversing param\n");
 
   // get traversal data
@@ -311,10 +320,11 @@ node_st *BSTparam(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the symbol table
-  printf("inserting '%s' (%s) into symbol table\n", PARAM_NAME(node), typeToString(PARAM_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         PARAM_NAME(node),
+         typeToString(PARAM_TYPE(node)));
 
-  if (!STinsertVar(t, PARAM_NAME(node), PARAM_TYPE(node)))
-  {
+  if (!STinsertVar(t, PARAM_NAME(node), PARAM_TYPE(node))) {
     printVariableAlreadyDeclared(node);
   }
 
@@ -325,8 +335,7 @@ node_st *BSTparam(node_st *node)
 /**
  * @fn BSTvardecl
  */
-node_st *BSTvardecl(node_st *node)
-{
+node_st *BSTvardecl(node_st *node) {
   printf("\nTraversing vardecl\n");
 
   // get traversal data
@@ -336,19 +345,19 @@ node_st *BSTvardecl(node_st *node)
   stable_st *t = StackPeek(data->symbol_table_stack_ptr);
 
   // insert the funcname into the symbol table
-  printf("inserting '%s' (%s) into symbol table\n", VARDECL_NAME(node), typeToString(VARDECL_TYPE(node)));
+  printf("inserting '%s' (%s) into symbol table\n",
+         VARDECL_NAME(node),
+         typeToString(VARDECL_TYPE(node)));
 
-  if (VARDECL_DIMS(node))
-  {
-    if (!STinsertArrayVar(t, VARDECL_NAME(node), VARDECL_TYPE(node), VARDECL_DIMS(node)))
-    {
+  if (VARDECL_DIMS(node)) {
+    if (!STinsertArrayVar(t,
+                          VARDECL_NAME(node),
+                          VARDECL_TYPE(node),
+                          VARDECL_DIMS(node))) {
       printVariableAlreadyDeclared(node);
     }
-  }
-  else
-  {
-    if (!STinsertVar(t, VARDECL_NAME(node), VARDECL_TYPE(node)))
-    {
+  } else {
+    if (!STinsertVar(t, VARDECL_NAME(node), VARDECL_TYPE(node))) {
       printVariableAlreadyDeclared(node);
     }
   }
@@ -363,8 +372,7 @@ node_st *BSTvardecl(node_st *node)
 /**
  * @fn BSTdowhile
  */
-node_st *BSTdowhile(node_st *node)
-{
+node_st *BSTdowhile(node_st *node) {
   // create empty symbol table that links to parent scope
   printf("\nTraversing do while\n");
 
@@ -392,8 +400,7 @@ node_st *BSTdowhile(node_st *node)
 /**
  * @fn BSTfor
  */
-node_st *BSTfor(node_st *node)
-{
+node_st *BSTfor(node_st *node) {
   printf("\nTraversing for\n");
 
   // get traversal data
@@ -408,10 +415,11 @@ node_st *BSTfor(node_st *node)
   printf("\n %s \n", FOR_VAR(node));
 
   // insert relevant data from the for loop
-  printf("inserting '%s' (%s) into symbol table\n", FOR_VAR(node), typeToString(CT_int));
+  printf("inserting '%s' (%s) into symbol table\n",
+         FOR_VAR(node),
+         typeToString(CT_int));
 
-  if (!STinsertVar(new_table, FOR_VAR(node), CT_int))
-  {
+  if (!STinsertVar(new_table, FOR_VAR(node), CT_int)) {
     printVariableAlreadyDeclared(node);
   }
 
@@ -433,8 +441,7 @@ node_st *BSTfor(node_st *node)
 /**
  * @fn BSTifelse
  */
-node_st *BSTifelse(node_st *node)
-{
+node_st *BSTifelse(node_st *node) {
   // create empty symbol table that links to parent scope
   printf("\nTraversing if else\n");
 
@@ -463,8 +470,7 @@ node_st *BSTifelse(node_st *node)
 /**
  * @fn BSTassign
  */
-node_st *BSTassign(node_st *node)
-{
+node_st *BSTassign(node_st *node) {
   // create empty symbol table that links to parent scope
   printf("\nTraversing Assign\n");
 
@@ -490,8 +496,7 @@ node_st *BSTassign(node_st *node)
 /**
  * @fn BSTreturn
  */
-node_st *BSTreturn(node_st *node)
-{
+node_st *BSTreturn(node_st *node) {
   // create empty symbol table that links to parent scope
   printf("\nTraversing Return\n");
 
@@ -514,8 +519,7 @@ node_st *BSTreturn(node_st *node)
 /**
  * @fn BSTwhile
  */
-node_st *BSTwhile(node_st *node)
-{
+node_st *BSTwhile(node_st *node) {
   // create empty symbol table that links to parent scope
   printf("\nTraversing while\n");
 
