@@ -1,17 +1,6 @@
 
-export int test(int test) {
-
-    int[2, 2] globalVariable = 2;
-
-    return test;
-}
-
-export int calculate_age() {
-
-    return 10;
-}
-
-export int main() {
-    calculate_age();
-    return 0;
+int main() {
+    int x = 10;
+    
+    return x;
 }

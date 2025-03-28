@@ -560,9 +560,9 @@ node_st *TCfor(node_st *node)
 
     InferExprType(expr, FOR_TABLE(node));
 
-    if (EXPR_TYPE(expr) != CT_bool)
+    if (EXPR_TYPE(expr) != CT_int)
     {
-        printf(RED "Error: For loop condition is not a boolean.\n" RESET);
+        printf(RED "Error: For loop condition is not a int.\n" RESET);
         printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
         printf("\n");
         data->type_error_count++;

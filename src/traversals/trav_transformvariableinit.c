@@ -694,6 +694,8 @@ node_st *TVIfundef(node_st *node)
 
     TRAVbody(node);
 
+    //Makes sure that the inner functions are done first.
+    
     while(!GStackIsEmpty(data->execute_statement_order))
     {
         node_st *next = GStackPopTail(data->execute_statement_order);

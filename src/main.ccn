@@ -12,6 +12,7 @@ start phase RootPhase {
         // --- Context Analysis ---
         BuildSymbolTables;
         TypeChecking;
+        MoveInitLoopVariable;
         TransformGlobdefAndCreateInitFunc;
         TransformVariableInit;
         TransformBinopDisjunctionConjuntion;
@@ -82,6 +83,15 @@ traversal BuildVariableTables {
 traversal ClearVariableTable {
   uid = CVT,
   nodes = { Program }
+};
+
+traversal MoveInitLoopVariable {
+    uid = ML,
+    nodes = { For, Fundef },
+    travdata {
+        user stack_stptr current_symbol_table_stack_ptr,
+        user generic_stack_stptr vardecls
+    }
 };
 
 traversal BuildExportTable {
