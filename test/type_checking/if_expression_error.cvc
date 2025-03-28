@@ -1,7 +1,8 @@
 
-export int[2] globalVariable = [[1,2],[3,4]];
+export int test(int test) {
 
-int test(int test) {
+    int[2, 2] globalVariable = 2;
+
     return test;
 }
 
