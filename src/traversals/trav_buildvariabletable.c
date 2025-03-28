@@ -43,15 +43,23 @@ node_st *BVTfundef(node_st *node) {
 node_st *BVTglobdef(node_st *node) {
   if (!GLOBDEF_EXPORT(node)) {
     struct data_bvt *data = DATA_BVT_GET();
-    VTadd(data->var_table_ptr, GLOBDEF_NAME(node), GLOBDEF_TYPE(node), true);
+    int index = VTadd(data->var_table_ptr, GLOBDEF_NAME(node), GLOBDEF_TYPE(node), true);
+    INDEX_INDEX(node) = index;
   }
   TRAVchildren(node);
   return node;
 }
 
-node_st *BVTvardecl(node_st *node) {
+node_st *BVTassign(node_st *node) {
   struct data_bvt *data = DATA_BVT_GET();
-  VTadd(data->var_table_ptr, VARDECL_NAME(node), VARDECL_TYPE(node), false);
+
+  const char *name = VARLET_NAME(ASSIGN_LET(node));
+
+  var_entry_st *result = STlookupVar(ASSIGN_TABLE(node), name, true);
+  
+  int index = VTadd(data->var_table_ptr, name, result->type, false);
+
+  INDEX_INDEX(node) = index;
   TRAVchildren(node);
   return node;
 }

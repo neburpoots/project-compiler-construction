@@ -1,13 +1,4 @@
-export void main() {
-    int x = 10;
-    int p = 20;
-    if(x > 9 && x > 10) {
-        p = 5;
-    } else if(x < 10) {
-        p = 10;
-    }
-    int test() {
-        return true;
-    }
-    return 10;
+export int main() {
+    int x = 10 + 20;
+    return x;
 }

@@ -1,0 +1,9 @@
+__init:
+    esr 0
+main:
+    esr 1
+    iloadc 0
+    iloadc 1
+    iadd
+    istore 0
+    return

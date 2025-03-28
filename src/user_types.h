@@ -20,3 +20,5 @@ typedef const_table_st *ctable_stprt;
 typedef export_table_st *etable_stprt;
 typedef import_table_st *itable_stprt;
 typedef glob_var_table_st *vtable_stprt;
+
+typedef FILE *file_stptr;

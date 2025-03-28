@@ -74,7 +74,7 @@ traversal TransformGlobdefAndCreateInitFunc {
 
 traversal BuildVariableTables {
   uid = BVT,
-  nodes = { Program, FunDef, GlobDef, VarDecl },
+  nodes = { Program, FunDef, GlobDef, Assign },
   travdata {
     user vtable_stprt var_table_ptr
   }
@@ -122,7 +122,7 @@ traversal ClearConstantTable{
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return, Var },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
@@ -182,7 +182,11 @@ traversal Print {
 
 traversal GenerateAssemblyCode{
   uid = GAC,
-  nodes = { Program, FunDef }
+  nodes = { Program, FunDef, Assign, Vardecl, Num, Return, Binop, Var },
+  travdata {
+    user file_stptr output_file,
+    Program program
+  }
 };
 
 /*****************************************************************************
@@ -243,6 +247,13 @@ nodeset Named {
     nodes = Vars | (Decl | {FunCall, Param, Ids}),
     attributes {
         string name
+    }
+};
+
+nodeset Index {
+    nodes = {Assign, GlobDef, Num, Float, Bool},
+    attributes {
+        int index
     }
 };
 
@@ -561,9 +572,9 @@ node Var {
     children {
         Exprs indices { constructor }
     },
-
     attributes {
-        string name { constructor }
+        string name { constructor },
+        user stable_stptr table
     }
 };
 

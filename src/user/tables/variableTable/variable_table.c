@@ -47,6 +47,18 @@ glob_var_entry_st *VTget(glob_var_table_st *table, int index) {
   return NULL;
 }
 
+// Cannot currently rely upon this function
+glob_var_entry_st *VTgetByName(glob_var_table_st *table, const char *name) {
+  glob_var_entry_st *current = table->entries;
+  while (current) {
+    if (strcmp(current->name, name) == 0) {
+      return current;
+    }
+    current = current->next;
+  }
+  return NULL;
+}
+
 void VTprint(glob_var_table_st *table) {
   if (!table || !table->entries) {
     printf("Variable table is empty\n");

@@ -554,3 +554,24 @@ node_st *BSTwhile(node_st *node) {
   TRAVchildren(node);
   return node;
 }
+
+
+/**
+ * @fn BSTvar
+ */
+node_st *BSTvar(node_st *node) {
+  // create empty symbol table that links to parent scope
+  printf("\nTraversing var\n");
+
+  // get traversal data
+  struct data_bst *data = DATA_BST_GET();
+
+  // peek the current scope
+  stable_st *t = StackPeek(data->symbol_table_stack_ptr);
+
+  // attaching as attribute
+  VAR_TABLE(node) = t;
+
+  TRAVchildren(node);
+  return node;
+}

@@ -856,6 +856,7 @@ node_st *TVIvardecl(node_st *node)
             node_st *varlet = ASTvarlet(NULL, strdup(VARDECL_NAME(node)));
             node_st *assignment = ASTassign(varlet, init_value);
             GStackPush(data->assignments, assignment);
+            ASSIGN_TABLE(assignment) = data->current_symbol_table_stack_ptr;
         }
 
         VARDECL_INIT(node) = NULL; // Detach from original declaration

@@ -17,6 +17,7 @@ struct const_entry {
         float float_val;
         bool bool_val;
     } value;
+    int index;
     struct const_entry *next;
 };
 

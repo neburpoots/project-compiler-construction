@@ -46,7 +46,6 @@ node_st *TCprogram(node_st *node)
     struct data_tc *data = DATA_TC_GET();
     data->type_error_count = 0;
 
-    printf("Starting type checking traversal\n");
     TRAVchildren(node);
 
     printf("\n");
@@ -533,6 +532,7 @@ node_st *TCfuncontents(node_st *node)
     node_st *function = data->current_function;
     enum Type return_type = FUNDEF_TYPE(function);
 
+    //if void no further checking is required.
     if(return_type == CT_void) {
         TRAVchildren(node);
         return node;
@@ -542,6 +542,7 @@ node_st *TCfuncontents(node_st *node)
 
     node_st *curr = node;
 
+    // Check if the function has a return statement
     while (curr)
     {
         node_st *funcontent = FUNCONTENTS_FUNCONTENT(curr);
