@@ -126,7 +126,7 @@ traversal BuildSymbolTables{
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
-};
+};   
 
 traversal ClearSymbolTables{
     uid = CST,
@@ -135,7 +135,7 @@ traversal ClearSymbolTables{
 
 traversal TypeChecking {
     uid = TC,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return},
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return, FunContents},
     travdata {
         int type_error_count,
         Fundef current_function

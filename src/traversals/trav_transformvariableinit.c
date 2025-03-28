@@ -557,6 +557,7 @@ void TVIfini()
         data->execute_statement_order = NULL;
     }
 }
+
 void TVIinit()
 {
     struct data_tvi *data = DATA_TVI_GET();
@@ -570,6 +571,8 @@ void TVIinit()
     data->in_array_dim = false;
     data->init_func_created = true;
 }
+
+//method to convert the decls back to globdefs in the init function
 static void convert_init_decls_to_globdefs(node_st *init_func, node_st *program)
 {
     struct data_tvi *data = DATA_TVI_GET();

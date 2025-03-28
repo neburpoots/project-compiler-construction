@@ -156,6 +156,15 @@ node_st *TCfundef(node_st *node)
 
     TRAVchildren(node);
 
+    node_st *body = FUNDEF_BODY(node);
+    if(FUNBODY_FUNCONTENTS(body) == NULL && FUNDEF_TYPE(node) != CT_void)
+    {
+        // function has no body but is not void
+        printf(RED "Error: Function '%s' has no body but is not void.\n" RESET, FUNDEF_NAME(node));
+        data->type_error_count++;
+    }
+
+
     // restore parent function
     data->current_function = parent_function;
 
@@ -482,6 +491,85 @@ void InferExprType(node_st *expr, stable_st *symbol_table)
         break;
     }
 }
+
+bool checkElseReturn(node_st *node) {
+    if (!node)
+    {
+        return false;
+    }
+
+    node_st *curr = node;
+    while (curr)
+    {
+        node_st *stmt = STMTS_STMT(curr);
+
+        if (NODE_TYPE(stmt) == NT_RETURN)
+        {
+            return true;
+        }
+        else if (NODE_TYPE(stmt) == NT_IFELSE)
+        {
+            // recursive check for else condition
+            if (checkElseReturn(IFELSE_ELSE_BLOCK(stmt)))
+            {
+                return true;
+            }
+        }
+
+        curr = STMTS_NEXT(curr);
+    }
+
+    return false;
+}
+
+/**
+ * @fn TCfuncontents
+ */
+node_st *TCfuncontents(node_st *node)
+{
+    struct data_tc *data = DATA_TC_GET();
+
+    // check the return type
+    node_st *function = data->current_function;
+    enum Type return_type = FUNDEF_TYPE(function);
+
+    if(return_type == CT_void) {
+        TRAVchildren(node);
+        return node;
+    }
+
+    bool has_return_statement = false;
+
+    node_st *curr = node;
+
+    while (curr)
+    {
+        node_st *funcontent = FUNCONTENTS_FUNCONTENT(curr);
+
+        if (NODE_TYPE(funcontent) == NT_RETURN)
+        {
+            has_return_statement = true;
+            break;
+        } else if(NODE_TYPE(funcontent) == NT_IFELSE) {
+            //recursive check for else condition
+            has_return_statement = checkElseReturn(IFELSE_ELSE_BLOCK(funcontent));
+        }
+
+        curr = FUNCONTENTS_NEXT(curr);
+    }
+
+    if(!has_return_statement)
+    {
+        data->type_error_count++;
+        printf(RED "Error: Function %s() does not return a value.\n" RESET, FUNDEF_NAME(function));
+        printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
+        printf("\n");
+    }
+
+    TRAVchildren(node);
+    return node;
+}
+
 
 /**
  * @fn TCifelse
@@ -904,6 +992,13 @@ node_st *TCreturn(node_st *node)
             printf("\n");
             data->type_error_count++;
         }
+    } else if(!expr)
+    {
+        // No expression but not void
+        printf(RED "Error: Function with return type %s cannot have a return without an expression.\n" RESET, typeToString(return_type));
+        printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
+        printf("\n");
+        data->type_error_count++;
     }
     else if (EXPR_TYPE(expr) != return_type)
     {
