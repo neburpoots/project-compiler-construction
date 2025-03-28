@@ -19,10 +19,8 @@ start phase RootPhase {
         TransformArrayParameterPassing;
 
         // build tables from transformed middle end --
-        // BuildVariableTables;
+        BuildVariableTables;
         BuildConstantTable;
-
-        // the table that holds the extern data
         BuildImportTable;
         BuildExportTable;
 
@@ -34,7 +32,7 @@ start phase RootPhase {
         Print;
 
         // --- Cleanup ---
-        // ClearVariableTable;
+        ClearVariableTable;
         ClearSymbolTables;
         ClearConstantTable;
         ClearExportTable;
@@ -75,7 +73,7 @@ traversal TransformGlobdefAndCreateInitFunc {
 
 traversal BuildVariableTables {
   uid = BVT,
-  nodes = { Program, GlobDef, GlobDecl },
+  nodes = { Program, FunDef, GlobDef, VarDecl },
   travdata {
     user vtable_stprt var_table_ptr
   }

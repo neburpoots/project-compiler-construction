@@ -1,137 +1,85 @@
-// global_table.c
 #include "user/tables/variableTable/variable_table.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-global_var_table_st *VTnew() {
-  global_var_table_st *table_st = malloc(sizeof(global_var_table_st));
-  table_st->globals = NULL;
-  table_st->externs = NULL;
-  table_st->global_size = 0;
-  table_st->extern_size = 0;
-  return table_st;
+#include "user/symbolTable/symbol_table.h"
+
+glob_var_table_st *VTnew() {
+  glob_var_table_st *table = malloc(sizeof(glob_var_table_st));
+  table->entries = NULL;
+  table->size = 0;
+  return table;
 }
 
-int VTadd(global_var_table_st *table, const char *name, enum Type type, bool is_exported) {
-  global_var_entry_st *current = table->globals;
+int VTadd(glob_var_table_st *table,
+          const char *name,
+          enum Type type,
+          bool is_initialized) {
+  glob_var_entry_st *current = table->entries;
   while (current) {
-      if (strcmp(current->name, name) == 0) {
-          return current->index;
-      }
-      current = current->next;
+    if (strcmp(current->name, name) == 0) {
+      return -1;
+    }
+    current = current->next;
   }
 
-  global_var_entry_st *new_entry = malloc(sizeof(global_var_entry_st));
+  glob_var_entry_st *new_entry = malloc(sizeof(glob_var_entry_st));
   new_entry->name = strdup(name);
   new_entry->type = type;
-  new_entry->index = table->global_size;
-  new_entry->is_exported = is_exported;
-  new_entry->next = table->globals;
-  table->globals = new_entry;
-  table->global_size++;
+  new_entry->index = table->size;
+  new_entry->is_initialized = is_initialized;
+  new_entry->next = table->entries;
+  table->entries = new_entry;
+  table->size++;
   return new_entry->index;
 }
 
-int VTaddExtern(global_var_table_st *table, const char *name, enum Type type) {
-  global_extern_var_entry_st *current = table->externs;
+glob_var_entry_st *VTget(glob_var_table_st *table, int index) {
+  glob_var_entry_st *current = table->entries;
   while (current) {
-      if (strcmp(current->name, name) == 0) {
-          return current->index;
-      }
-      current = current->next;
-  }
-
-  global_extern_var_entry_st *new_extern = malloc(sizeof(global_extern_var_entry_st));
-  new_extern->name = strdup(name);
-  new_extern->type = type;
-  new_extern->index = table->extern_size;
-  new_extern->next = table->externs;
-  table->externs = new_extern;
-  table->extern_size++;
-  return new_extern->index;
-}
-
-global_var_entry_st *VTget(global_var_table_st *table, int index) {
-  global_var_entry_st *current = table->globals;
-  while (current) {
-      if (current->index == index) return current;
-      current = current->next;
+    if (current->index == index) {
+      return current;
+    }
+    current = current->next;
   }
   return NULL;
 }
 
-global_extern_var_entry_st *VTgetExtern(global_var_table_st *table, int index) {
-  global_extern_var_entry_st *current = table->externs;
+void VTprint(glob_var_table_st *table) {
+  if (!table || !table->entries) {
+    printf("Variable table is empty\n");
+    return;
+  }
+
+  printf(
+    "┌───────┬────────────────────────┬────────────────────────┬──────────────┐\n");
+  printf(
+    "│ Index │ Name                   │ Type                   │ Initialized  │\n");
+  printf(
+    "├───────┼────────────────────────┼────────────────────────┼──────────────┤\n");
+
+  glob_var_entry_st *current = table->entries;
   while (current) {
-      if (current->index == index) return current;
-      current = current->next;
+    printf("│ %5d │ %-22s │ %-22s │ %-12s │\n",
+           current->index,
+           current->name,
+           typeToString(current->type),
+           current->is_initialized ? "Yes" : "No");
+    current = current->next;
   }
-  return NULL;
+  printf(
+    "└───────┴────────────────────────┴────────────────────────┴──────────────┘\n");
 }
 
-void VTprint(global_var_table_st *table) {
-  if (!table || (!table->globals && !table->externs)) {
-      printf("Global variable table is empty\n");
-      return;
+void VTfree(glob_var_table_st *table) {
+  glob_var_entry_st *current = table->entries;
+  while (current) {
+    glob_var_entry_st *next = current->next;
+    free(current->name);
+    free(current);
+    current = next;
   }
-
-  printf("\nGlobal Variable Table Contents:\n");
-
-  if (table->globals) {
-      printf("\nGlobal Variables (Non-Extern):\n");
-      printf("┌───────┬────────────────────────┬────────────────────────┬──────────────┐\n");
-      printf("│ Index │ Name                   │ Type                   │ Exported     │\n");
-      printf("├───────┼────────────────────────┼────────────────────────┼──────────────┤\n");
-
-      global_var_entry_st *current = table->globals;
-      while (current) {
-          printf("│ %5d │ %-22s │ %-22s │ %-12s │\n",
-                 current->index,
-                 current->name,
-                 typeToString(current->type),
-                 current->is_exported ? "Yes" : "No");
-          current = current->next;
-      }
-      printf("└───────┴────────────────────────┴────────────────────────┴──────────────┘\n");
-      printf("Total globals: %zu\n", table->global_size);
-  }
-
-  if (table->externs) {
-      printf("\nExtern Variables:\n");
-      printf("┌───────┬────────────────────────┬────────────────────────┐\n");
-      printf("│ Index │ Name                   │ Type                   │\n");
-      printf("├───────┼────────────────────────┼────────────────────────┤\n");
-
-      global_extern_var_entry_st *current = table->externs;
-      while (current) {
-          printf("│ %5d │ %-22s │ %-22s │\n",
-                 current->index,
-                 current->name,
-                 typeToString(current->type));
-          current = current->next;
-      }
-      printf("└───────┴────────────────────────┴────────────────────────┘\n");
-      printf("Total externs: %zu\n", table->extern_size);
-  }
-}
-
-void VTfree(global_var_table_st *table) {
-  global_var_entry_st *current_global = table->globals;
-  while (current_global) {
-      global_var_entry_st *next = current_global->next;
-      free(current_global->name);
-      free(current_global);
-      current_global = next;
-  }
-
-  global_extern_var_entry_st *current_extern = table->externs;
-  while (current_extern) {
-      global_extern_var_entry_st *next = current_extern->next;
-      free(current_extern->name);
-      free(current_extern);
-      current_extern = next;
-  }
-
   free(table);
 }

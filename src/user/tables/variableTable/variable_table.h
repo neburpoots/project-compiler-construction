@@ -1,39 +1,30 @@
 #pragma once
-#include "ccngen/enum.h"
 #include <stdbool.h>
-#include "user/symbolTable/symbol_table.h"
+#include <stdio.h>
 
-typedef struct global_var_entry global_var_entry_st;
-typedef struct global_extern_var_entry global_extern_var_entry_st;
-typedef struct var_table global_var_table_st;
+#include "ccngen/enum.h"
 
-struct global_var_entry {
+typedef struct glob_var_entry glob_var_entry_st;
+typedef struct glob_var_table glob_var_table_st;
+
+struct glob_var_entry {
   char *name;
   enum Type type;
   int index;
-  bool is_exported;
-  global_var_entry_st *next;
+  bool is_initialized;
+  glob_var_entry_st *next;
 };
 
-struct global_extern_var_entry
-{
-  char *name;
-  enum Type type;
-  int index;
-  global_extern_var_entry_st *next;
+struct glob_var_table {
+  glob_var_entry_st *entries;
+  size_t size;
 };
 
-struct var_table {
-  global_var_entry_st *globals;
-  global_extern_var_entry_st *externs;
-  size_t global_size;
-  size_t extern_size;
-};
-
-global_var_table_st *VTnew();
-void VTfree(global_var_table_st *table);
-int VTadd(global_var_table_st *table, const char *name, enum Type type, bool is_exported);
-int VTaddExtern(global_var_table_st *table, const char *name, enum Type type);
-global_var_entry_st *VTget(global_var_table_st *table, int index);
-global_extern_var_entry_st *VTgetExtern(global_var_table_st *table, int index);
-void VTprint(global_var_table_st *table);
+glob_var_table_st *VTnew();
+void VTfree(glob_var_table_st *table);
+int VTadd(glob_var_table_st *table,
+          const char *name,
+          enum Type type,
+          bool is_initialized);
+glob_var_entry_st *VTget(glob_var_table_st *table, int index);
+void VTprint(glob_var_table_st *table);
