@@ -143,6 +143,7 @@ traversal TransformVariableInit {
         // user generic_stack_stptr var_decls,
         user generic_stack_stptr stmts,
         user generic_stack_stptr global_assignments,
+        user generic_stack_stptr execute_statement_order,
         user stack_stptr current_symbol_table_stack_ptr,
         FunContents current_scope,
         int temp_counter,

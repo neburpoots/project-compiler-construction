@@ -211,6 +211,10 @@ void printFunctionDoesNotExist(node_st *node)
 // Takes an expression and retrieves the type
 void InferExprType(node_st *expr, stable_st *symbol_table)
 {
+    if(!expr)
+    {
+        return;
+    }
 
     struct data_tc *data = DATA_TC_GET();
 

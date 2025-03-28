@@ -544,6 +544,18 @@ void TVIfini()
         GStackFree(data->global_assignments, NULL);
         data->global_assignments = NULL;
     }
+
+    if (data->execute_statement_order != NULL)
+    {
+        while (!GStackIsEmpty(data->execute_statement_order))
+        {
+            node_st *node = GStackPop(data->execute_statement_order);
+            CCNfree(node);
+        }
+
+        GStackFree(data->execute_statement_order, NULL);
+        data->execute_statement_order = NULL;
+    }
 }
 void TVIinit()
 {
@@ -552,6 +564,7 @@ void TVIinit()
     data->assignments = GStackNew(200);
     data->stmts = GStackNew(200);
     data->global_assignments = GStackNew(100);
+    data->execute_statement_order = GStackNew(100);
     data->temp_counter = 1;
     data->in_global_scope = true;
     data->in_array_dim = false;
@@ -592,10 +605,15 @@ node_st *TVIprogram(node_st *node)
  */
 node_st *TVIfuncontents(node_st *node)
 {
+    struct data_tvi *data = DATA_TVI_GET();
 
-    TRAVdo(FUNCONTENTS_FUNCONTENT(node));
-
-    TRAVopt(FUNCONTENTS_NEXT(node));
+    //find inner functions first and do those first.
+    if(NODE_TYPE(FUNCONTENTS_FUNCONTENT(node)) == NT_FUNDEF)
+    {
+        TRAVdo(FUNCONTENTS_FUNCONTENT(node));
+    } else {
+        GStackPush(data->execute_statement_order, FUNCONTENTS_FUNCONTENT(node));
+    }
 
     return node;
 }
@@ -615,7 +633,15 @@ node_st *TVIfundef(node_st *node)
 
     data->current_symbol_table_stack_ptr = FUNDEF_TABLE(node);
 
-    TRAVchildren(node);
+    TRAVbody(node);
+
+    while(!GStackIsEmpty(data->execute_statement_order))
+    {
+        node_st *next = GStackPopTail(data->execute_statement_order);
+        TRAVdo(next);
+    }
+
+    TRAVparams(node);
 
     node_st *func_body = FUNDEF_BODY(node);
     node_st *last_var_decl = NULL;
@@ -644,9 +670,17 @@ node_st *TVIfundef(node_st *node)
             // insert at the top.
             FUNBODY_FUNCONTENTS(func_body) = ASTfuncontents(next, FUNBODY_FUNCONTENTS(func_body));
         }
-        else if (NODE_TYPE(next) == NT_ASSIGN)
+        else if (NODE_TYPE(next) == NT_ASSIGN && last_var_decl)
         {
             FUNCONTENTS_NEXT(last_var_decl) = ASTfuncontents(next, FUNCONTENTS_NEXT(last_var_decl));
+        } else {
+            // Add it to the end of the function body
+            node_st *search_last = FUNBODY_FUNCONTENTS(func_body);
+            while (FUNCONTENTS_NEXT(search_last))
+            {
+                search_last = FUNCONTENTS_NEXT(search_last);
+            }
+            FUNCONTENTS_NEXT(search_last) = ASTfuncontents(next, NULL);
         }
     }
 
