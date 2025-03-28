@@ -46,6 +46,7 @@ var_entry_st *STinsertArrayVar(stable_st *table,
   entry->name = strdup(name);
   entry->type = type;
   entry->dimensions = dimensions;
+  entry->dimension_names = NULL;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
@@ -71,6 +72,7 @@ var_entry_st *STinsertVar(stable_st *table, const char *name, enum Type type) {
   entry->name = strdup(name);
   entry->type = type;
   entry->dimensions = NULL;
+  entry->dimension_names = NULL;
   entry->next = table->var_entries;
   table->var_entries = entry;
 
@@ -300,26 +302,38 @@ void STfree(stable_st *table) {
   while (v_entry) {
     var_entry_st *temp = v_entry;
     v_entry = v_entry->next;
+
+    if (temp->dimension_names) {
+      for (int i = 0; i < temp->num_dimensions; i++) {
+        if (temp->dimension_names[i]) {
+          free(temp->dimension_names[i]);
+          temp->dimension_names[i] = NULL;
+        }
+      }
+      free(temp->dimension_names);
+      temp->dimension_names = NULL;
+    }
     free(temp->name);
+    temp->name = NULL;
     free(temp);
   }
 
   // funcs
   func_entry_st *f_entry = table->func_entries;
   while (f_entry) {
-    // clear params
     param_entry_st *p_entry = f_entry->params;
     while (p_entry) {
       param_entry_st *temp = p_entry;
       p_entry = p_entry->next;
       free(temp->name);
+      temp->name = NULL;
       free(temp);
     }
     f_entry->params = NULL;
-
     func_entry_st *temp = f_entry;
     f_entry = f_entry->next;
     free(temp->name);
+    temp->name = NULL;
     free(temp);
   }
 

@@ -45,91 +45,62 @@ node_st *TAPfundef(node_st *node) {
  * Used to extract the indices from the array. Adds it to the symbol table aswell
  */
 node_st *TAPparam(node_st *node) {
+  // only parse array
   if (PARAM_TYPE(node) == CT_array) {
-    node_st *current_dim = PARAM_DIMS(node);
+    // get data from ast
+    int dim_count = 0;
+    node_st *dim = PARAM_DIMS(node);
+    while (dim) {
+      dim_count++;
+      dim = IDS_NEXT(dim);
+    }
+
+    // store dimensions
+    char **dim_names = malloc(dim_count * sizeof(char *));
+    dim = PARAM_DIMS(node);
+    for (int i = 0; i < dim_count; i++) {
+      dim_names[i] = strdup(IDS_NAME(dim));
+      dim = IDS_NEXT(dim);
+    }
+
+    // update symbol table
+    var_entry_st *entry = STlookupVar(table, PARAM_NAME(node), false);
+    if (entry) {
+      entry->dimension_names = dim_names;
+      entry->num_dimensions = dim_count;
+    } else {
+      // cleanup if not found
+      for (int i = 0; i < dim_count; i++) {
+        free(dim_names[i]);
+      }
+      free(dim_names);
+      return node;
+    }
+
+    // create new params
     node_st *new_params = NULL;
-    node_st *last_dim_param = NULL;
-    node_st *dim_ids = NULL;
-    node_st *last_dim_id = NULL;  // New pointer to track end of dimension list
+    node_st *last_param = NULL;
 
-    while (current_dim != NULL) {
-      char *dim_name = strdup(IDS_NAME(current_dim));
-      if (!dim_name) {
-        // Cleanup on error
-        while (new_params) {
-          node_st *tmp = new_params;
-          new_params = PARAM_NEXT(new_params);
-          CCNfree(tmp);
-        }
-        while (dim_ids) {
-          node_st *tmp = dim_ids;
-          dim_ids = IDS_NEXT(dim_ids);
-          free(IDS_NAME(tmp));
-          free(tmp);
-        }
-        return node;
-      }
+    for (int i = 0; i < dim_count; i++) {
+      node_st *dim_param = ASTparam(NULL, NULL, strdup(dim_names[i]), CT_int);
+      STinsertVar(table, dim_names[i], CT_int);
 
-      // Create dimension parameter
-      node_st *dim_param = ASTparam(NULL, NULL, dim_name, CT_int);
-      STinsertVar(table, dim_name, CT_int);
-
-      // Create ID node (don't strdup again)
-      node_st *dim_id = ASTids(NULL, dim_name);
-
-      // Append to dimension list (maintain original order)
-      if (!dim_ids) {
-        dim_ids = dim_id;
-        last_dim_id = dim_id;
-      } else {
-        IDS_NEXT(last_dim_id) = dim_id;
-        last_dim_id = dim_id;
-      }
-
-      // Link parameters
       if (!new_params) {
         new_params = dim_param;
-        last_dim_param = dim_param;
+        last_param = dim_param;
       } else {
-        PARAM_NEXT(last_dim_param) = dim_param;
-        last_dim_param = dim_param;
-      }
-
-      current_dim = IDS_NEXT(current_dim);
-    }
-
-    // Update array entry
-    var_entry_st *array_entry = STlookupVar(table, PARAM_NAME(node), false);
-    if (array_entry) {
-      // Free old dimensions if they exist
-      if (array_entry->dimensions) {
-        node_st *dim = (node_st *) array_entry->dimensions;
-        while (dim) {
-          node_st *tmp = dim;
-          dim = IDS_NEXT(dim);
-          free(IDS_NAME(tmp));
-          free(tmp);
-        }
-      }
-      array_entry->dimensions = dim_ids;
-    } else {
-      // Cleanup if no array entry found
-      while (dim_ids) {
-        node_st *tmp = dim_ids;
-        dim_ids = IDS_NEXT(dim_ids);
-        free(IDS_NAME(tmp));
-        free(tmp);
+        PARAM_NEXT(last_param) = dim_param;
+        last_param = dim_param;
       }
     }
 
-    if (last_dim_param) {
-      PARAM_NEXT(last_dim_param) = node;
+    // link parameters
+    if (last_param) {
+      PARAM_NEXT(last_param) = node;
       PARAM_NEXT(node) = NULL;
       return new_params;
     }
   }
-
-  TRAVchildren(node);
   return node;
 }
 
@@ -138,28 +109,22 @@ node_st *TAPparam(node_st *node) {
  * Alter the function call to use the extracted indices paramaters
  */
 node_st *TAPfuncall(node_st *node) {
-  char *func_name = FUNCALL_NAME(node);
-  node_st *current_args = FUNCALL_FUN_ARGS(node);
   node_st *new_args = NULL;
   node_st *last_arg = NULL;
+  node_st *current_args = FUNCALL_FUN_ARGS(node);
 
-  // Process each argument
-  while (current_args != NULL) {
+  while (current_args) {
     node_st *arg_expr = EXPRS_EXPR(current_args);
 
-      // Handle array parameters
     if (NODE_TYPE(arg_expr) == NT_VAR) {
       var_entry_st *var_entry = STlookupVar(table, VAR_NAME(arg_expr), true);
 
       if (var_entry && var_entry->type == CT_array) {
-              // Add dimension parameters first
-        node_st *dims = (node_st *) var_entry->dimensions;
-        while (dims != NULL) {
-                  // Create dimension variable reference
-          node_st *dim_var = ASTvar(NULL, strdup(IDS_NAME(dims)));
+        // add dimension arguments
+        for (int i = 0; i < var_entry->num_dimensions; i++) {
+          node_st *dim_var = ASTvar(NULL, strdup(var_entry->dimension_names[i]));
           node_st *dim_expr = ASTexprs(dim_var, NULL);
 
-                  // Add to new arguments list
           if (!new_args) {
             new_args = dim_expr;
             last_arg = dim_expr;
@@ -167,12 +132,11 @@ node_st *TAPfuncall(node_st *node) {
             EXPRS_NEXT(last_arg) = dim_expr;
             last_arg = dim_expr;
           }
-          dims = IDS_NEXT(dims);
         }
       }
     }
 
-      // Add original argument (array or scalar)
+    // add original comments
     node_st *arg_copy = ASTexprs(CCNcopy(arg_expr), NULL);
     if (!new_args) {
       new_args = arg_copy;
@@ -185,26 +149,11 @@ node_st *TAPfuncall(node_st *node) {
     current_args = EXPRS_NEXT(current_args);
   }
 
-  // Replace old arguments with transformed ones
+  // replace thwe args
   if (FUNCALL_FUN_ARGS(node)) {
     CCNfree(FUNCALL_FUN_ARGS(node));
   }
   FUNCALL_FUN_ARGS(node) = new_args;
 
-  printf("TRANSFORMED CALL: %s(", FUNCALL_NAME(node));
-  node_st *arg = FUNCALL_FUN_ARGS(node);
-  bool first = true;
-  while (arg) {
-    node_st *expr = EXPRS_EXPR(arg);
-    if (NODE_TYPE(expr) == NT_VAR) {
-      printf("%s%s", first ? "" : ", ", VAR_NAME(expr));
-    }
-    first = false;
-    arg = EXPRS_NEXT(arg);
-  }
-  printf(")\n");
-
-
-  TRAVchildren(node);
   return node;
 }

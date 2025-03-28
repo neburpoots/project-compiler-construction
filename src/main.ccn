@@ -23,19 +23,20 @@ start phase RootPhase {
         BuildImportTable;
         BuildExportTable;
 
-        // --- Backend ---
+        // // --- Backend ---
         GenerateAssemblyCode;
 
-        // --- Cleanup ---
+        // // --- Debugging ---
+        PrintCurrentProgram;
+        Print;
+
+        // // --- Cleanup ---
         ClearVariableTable;
         ClearSymbolTables;
         ClearConstantTable;
         ClearExportTable;
         ClearImportTable;
 
-        // --- Debugging ---
-        PrintCurrentProgram;
-        Print;
     }
 };
 

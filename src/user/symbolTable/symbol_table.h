@@ -18,6 +18,8 @@ struct var_entry {
   char *name;
   enum Type type;
   void *dimensions;
+  char **dimension_names;
+  int num_dimensions;
   struct var_entry *next;
 };
 typedef struct var_entry var_entry_st;
