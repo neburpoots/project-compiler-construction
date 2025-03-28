@@ -34,84 +34,8 @@ void TCfini()
 {
 }
 
-
-const char *node_to_type_string(node_st *node)
-{
-    switch (NODE_TYPE(node))
-    {
-    case NT_NULL:
-        return "NT_NULL";
-    case NT_BOOL:
-        return "NT_BOOL";
-    case NT_FLOAT:
-        return "NT_FLOAT";
-    case NT_NUM:
-        return "NT_NUM";
-    case NT_VAR:
-        return "NT_VAR";
-    case NT_VARLET:
-        return "NT_VARLET";
-    case NT_MONOP:
-        return "NT_MONOP";
-    case NT_BINOP:
-        return "NT_BINOP";
-    case NT_ASSIGN:
-        return "NT_ASSIGN";
-    case NT_FUNCONTENTS:
-        return "NT_FUNCONTENTS";
-    case NT_STMTS:
-        return "NT_STMTS";
-    case NT_VARDECL:
-        return "NT_VARDECL";
-    case NT_VARDECLS:
-        return "NT_VARDECLS";
-    case NT_PARAM:
-        return "NT_PARAM";
-    case NT_GLOBDEF:
-        return "NT_GLOBDEF";
-    case NT_FUNDEC:
-        return "NT_FUNDEC";
-    case NT_GLOBDECL:
-        return "NT_GLOBDECL";
-    case NT_FOR:
-        return "NT_FOR";
-    case NT_DOWHILE:
-        return "NT_DOWHILE";
-    case NT_WHILE:
-        return "NT_WHILE";
-    case NT_IFELSE:
-        return "NT_IFELSE";
-    case NT_FUNBODY:
-        return "NT_FUNBODY";
-    case NT_FUNDEF:
-        return "NT_FUNDEF";
-    case NT_FUNDEFS:
-        return "NT_FUNDEFS";
-    case NT_CAST:
-        return "NT_CAST";
-    case NT_FUNCALL:
-        return "NT_FUNCALL";
-    case NT_RETURN:
-        return "NT_RETURN";
-    case NT_EXPRSTMT:
-        return "NT_EXPRSTMT";
-    case NT_IDS:
-        return "NT_IDS";
-    case NT_ARREXPR:
-        return "NT_ARREXPR";
-    case NT_EXPRS:
-        return "NT_EXPRS";
-    case NT_DECLS:
-        return "NT_DECLS";
-    case NT_PROGRAM:
-        return "NT_PROGRAM";
-    case _NT_SIZE:
-        return "_NT_SIZE";
-    default:
-        return "UNKNOWN_NODETYPE";
-    }
-}
-
+// Update function signature in declaration
+bool CheckArrayDimensions(node_st *dims, node_st *initializer, stable_st *st, struct data_tc *data);
 
 
 /**
@@ -129,6 +53,7 @@ node_st *TCprogram(node_st *node)
     if (data->type_error_count > 0)
     {
         printf(RED "Found %d type errors in program.\n" RESET, data->type_error_count);
+        exit(EXIT_FAILURE);
     }
     else
     {
@@ -149,21 +74,52 @@ node_st *TCglobdef(node_st *node)
     if (GLOBDEF_INIT(node))
     {
         node_st *init = GLOBDEF_INIT(node);
-        InferExprType(init, GLOBDEF_TABLE(node)); // Get the inferred type
+        InferExprType(init, GLOBDEF_TABLE(node));
 
-        enum Type declaredType = GLOBDEF_TYPE(node); // Get declared type
+        enum Type declaredType = GLOBDEF_TYPE(node);
 
-        if (EXPR_TYPE(init) != declaredType)
+        if (GLOBDEF_DIMS(node))
         {
-            printf(RED "Error: Type mismatch in assignment for variable: " RESET "%s \n", GLOBDEF_NAME(node));
+            // Array declaration
+            if (EXPR_TYPE(init) != CT_array)
+            {
+                // Handle homogeneous initialization case (e.g., int[2,2] a = 5)
+                if (EXPR_TYPE(init) == declaredType)
+                {
+                    // This will be handled in Milestone 6 transformations
+                    TRAVchildren(node);
+                    return node;
+                }
 
-            printf(YELLOW "  Expected: " RESET BLUE "%s\n" RESET, typeToString(declaredType));
-            printf(YELLOW "  Got:      " RESET RED "%s\n" RESET, typeToString(EXPR_TYPE(init)));
+                // Report type error
+                printf(RED "Error: Array initialization type mismatch for '%s'\n" RESET, GLOBDEF_NAME(node));
+                printf(YELLOW "  Expected: array of %s\n" RESET, typeToString(declaredType));
+                printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(init)));
+                data->type_error_count++;
+                TRAVchildren(node);
+                return node;
+            }
 
-            printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
-            printf("\n");
+            // Check array dimensions match
+            if (!CheckArrayDimensions(GLOBDEF_DIMS(node), init, GLOBDEF_TABLE(node), data))
+            {
+                TRAVchildren(node);
+                return node;
+            }
 
-            data->type_error_count++;
+            // Check element types recursively
+            CheckArrayElementTypes(ARREXPR_EXPRS(init), declaredType, GLOBDEF_TABLE(node), data);
+        }
+        else
+        {
+            // Non-array type checking
+            if (EXPR_TYPE(init) != declaredType)
+            {
+                printf(RED "Error: Type mismatch for variable '%s'\n" RESET, GLOBDEF_NAME(node));
+                printf(YELLOW "  Expected: %s\n" RESET, typeToString(declaredType));
+                printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(init)));
+                data->type_error_count++;
+            }
         }
     }
 
@@ -177,9 +133,8 @@ node_st *TCglobdef(node_st *node)
 node_st *TCglobdecl(node_st *node)
 {
 
-
     TRAVchildren(node);
-    
+
     return node;
 }
 
@@ -340,10 +295,77 @@ void InferExprType(node_st *expr, stable_st *symbol_table)
 
         if (result)
         {
-            EXPR_TYPE(expr) = result->type;
-        }
-        else
-        {
+            node_st *indices = VAR_INDICES(expr);
+
+            if(indices){
+                node_st *dims = result->dimensions;
+
+                node_st *second_dim = EXPRS_NEXT(dims);
+
+                bool is_2d_array = false;
+
+                if(second_dim){
+                    is_2d_array = true;
+                }
+                
+
+                node_st *first_index = EXPRS_EXPR(indices);
+
+                InferExprType(first_index, symbol_table);
+
+                //index is not int
+                if(EXPR_TYPE(first_index) != CT_int){
+                    data->type_error_count++;
+                    printTypeMisMatch(expr, CT_int, EXPR_TYPE(first_index));
+                }
+
+                //if 1d array and no second index int x = array[1]
+                if(!is_2d_array && !EXPRS_NEXT(indices)){
+                    EXPR_TYPE(expr) = result->type;
+                    break;
+                }
+
+                //accessing single d array with two indices.
+                if(!is_2d_array && EXPRS_NEXT(indices)){
+                    data->type_error_count++;
+                    printf(RED "Error: Too many indices for 1d array.\n" RESET);
+                    printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(expr), NODE_BCOL(expr));
+                    printf("\n");
+                    break;
+                }
+
+                //accessing 2d array with one index.
+                if(is_2d_array && !EXPRS_NEXT(indices)) {
+                    data->type_error_count++;
+                    printf(RED "Error: Too few indices for 2d array.\n" RESET);
+                    printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(expr), NODE_BCOL(expr));
+                    printf("\n");
+                    break;
+                }
+
+                node_st *second_index = EXPRS_EXPR(EXPRS_NEXT(indices));
+
+                if(second_index && is_2d_array) {
+
+                    InferExprType(second_index, symbol_table);
+
+                    EXPR_TYPE(expr) = result->type;
+
+                    if(EXPR_TYPE(second_index) != CT_int){
+                        data->type_error_count++;
+                        printTypeMisMatch(expr, CT_int, EXPR_TYPE(second_index));
+                    }
+                } else if(!is_2d_array && !second_index) {
+                    //1d array
+                    EXPR_TYPE(expr) = result->type; 
+                } else {
+
+                }
+                
+            } else {
+                EXPR_TYPE(expr) = result->type;
+            }
+        } else {
             data->type_error_count++;
             printVarDoesNotExist(expr);
         }
@@ -358,12 +380,12 @@ void InferExprType(node_st *expr, stable_st *symbol_table)
 
         func_entry_st *result2 = STlookupFunc(symbol_table, FUNCALL_NAME(expr));
 
-        if(!result2) {
+        if (!result2)
+        {
             data->type_error_count++;
             printFunctionDoesNotExist(expr);
             break;
         }
-        
 
         // Check the parameters of the function.
         node_st *arguments = FUNCALL_FUN_ARGS(expr);
@@ -447,6 +469,8 @@ void InferExprType(node_st *expr, stable_st *symbol_table)
         break;
 
     case NT_ARREXPR:
+        // Array expression initial is handled by seperate function. See var_decl
+        // int[2] = [1,2]
         EXPR_TYPE(expr) = CT_array;
         break;
 
@@ -584,96 +608,67 @@ node_st *TCwhile(node_st *node)
 
 /**
  * @fn TCassign
- * i = 10;
+ * Handles assignments including array assignments with dimension checks
  */
-node_st *TCassign(node_st *node)
-{
-    if (!ASSIGN_TABLE(node))
-    {
+node_st *TCassign(node_st *node) {
+    struct data_tc *data = DATA_TC_GET();
+    if (!ASSIGN_TABLE(node)) {
         TRAVchildren(node);
         return node;
     }
 
-    printf("Entering assign\n");
-    printf("%s", VARLET_NAME(ASSIGN_LET(node)));
-
+    node_st *varlet = ASSIGN_LET(node);
     node_st *expr = ASSIGN_EXPR(node);
+    char *var_name = VARLET_NAME(varlet);
 
-    struct data_tc *data = DATA_TC_GET();
-
-    // printf("\n node type: %s\n", node_to_type_string(expr));
-
-    var_entry_st *result = STlookupVar(ASSIGN_TABLE(node), VARLET_NAME(ASSIGN_LET(node)), true);
-
+    // Type check the RHS expression first
     InferExprType(expr, ASSIGN_TABLE(node));
 
-    // var_entry_st *result = STlookupVar(ASSIGN_TABLE(node), VARLET_NAME(ASSIGN_LET(node)), true);
-
-    if (!result)
-    {
-        node_st *var = ASTvar(NULL, strdup(VARLET_NAME(ASSIGN_LET(node))));
+    // Look up variable in symbol table
+    var_entry_st *var_entry = STlookupVar(ASSIGN_TABLE(node), var_name, true);
+    if (!var_entry) {
+        node_st *var = ASTvar(NULL, strdup(var_name));
         printVarDoesNotExist(var);
         CCNfree(var);
-
         TRAVchildren(node);
         return node;
     }
 
-    // printf("test \n\n\n\n\n\n\n");
-
-    if(result->dimensions) {
-
-        node_st *dimensions = result->dimensions;
-        node_st *dim_1 = EXPRS_EXPR(dimensions);
-
-        int number;
-
-        //int[1]
-        if(NODE_TYPE(dim_1) == NT_NUM) {
-            number = NUM_VAL(dim_1);
+    // Handle array assignments
+    if (var_entry->dimensions) {
+        // Array variable assignment
+        if (EXPR_TYPE(expr) != CT_array) {
+            // Handle homogeneous initialization (e.g., arr = 5)
+            if (EXPR_TYPE(expr) == var_entry->type) {
+                TRAVchildren(node);
+                return node;  // Handled in later transformations
+            }
+            
+            // Type mismatch error
+            printf(RED "Error: Array assignment type mismatch for '%s'\n" RESET, var_name);
+            printf(YELLOW "  Expected: array of %s\n" RESET, typeToString(var_entry->type));
+            printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(expr)));
+            data->type_error_count++;
+            TRAVchildren(node);
+            return node;
         }
 
-        node_st *array_expr = expr;
-
-        int counter_pounter = 0;
-
-        while(array_expr) {
-            counter_pounter++;
-
-            //two dimensional array
-            if(NODE_TYPE(EXPRS_EXPR(array_expr)) == NT_ARREXPR) {
-                //print error and continue.
-                data->type_error_count++;
-                printf(RED "Error: Two dimensional array assignment not supported for 1D array.\n \n" RESET);
-            }
-            //Check type of expression
-            InferExprType(EXPRS_EXPR(array_expr), ASSIGN_TABLE(node));
-
-            if(EXPR_TYPE(EXPRS_EXPR(array_expr)) != result->type) {
-                data->type_error_count++;
-                printTypeMisMatch(array_expr, result->type, EXPR_TYPE(EXPRS_EXPR(array_expr)));
-            }
-
-            if(number && counter_pounter > number) {
-                data->type_error_count++;
-                printf(RED "Error: Too many elements in array assignment.\n" RESET);
-                printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
-                printf("\n");
-            }
+        // Check array dimensions match declaration
+        if (!CheckArrayDimensions(var_entry->dimensions, expr, ASSIGN_TABLE(node), data)) {
+            TRAVchildren(node);
+            return node;
         }
-    }
 
-    if (EXPR_TYPE(expr) != result->type)
-    {
-        printf(RED "Error: Type mismatch in assignment for variable: " RESET "%s \n", VARLET_NAME(ASSIGN_LET(node)));
-
-        printf(YELLOW "  Expected: " RESET BLUE "%s\n" RESET, typeToString(result->type));
-        printf(YELLOW "  Got:      " RESET RED "%s\n" RESET, typeToString(EXPR_TYPE(expr)));
-
-        printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
-        printf("\n");
-
-        data->type_error_count++;
+        // Check element types recursively
+        CheckArrayElementTypes(ARREXPR_EXPRS(expr), var_entry->type, ASSIGN_TABLE(node), data);
+    } else {
+        // Scalar variable assignment
+        if (EXPR_TYPE(expr) != var_entry->type) {
+            printf(RED "Error: Type mismatch in assignment for '%s'\n" RESET, var_name);
+            printf(YELLOW "  Expected: %s\n" RESET, typeToString(var_entry->type));
+            printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(expr)));
+            data->type_error_count++;
+        }
     }
 
     TRAVchildren(node);
@@ -690,7 +685,135 @@ node_st *TCbinop(node_st *node)
 }
 
 /**
- * @fn TCvardecl
+ * Helper function to check array dimensions match declarations
+ * Returns true if dimensions match, false otherwise
+ */
+/**
+ * Check if a dimension expression is a constant integer
+ */
+bool IsConstantInt(node_st *expr)
+{
+    return NODE_TYPE(expr) == NT_NUM;
+}
+
+
+/**
+ * Revised dimension checking with function call support
+ */
+bool CheckArrayDimensions(node_st *dims, node_st *initializer, stable_st *st, struct data_tc *data)
+{
+    node_st *current_dim = dims;
+    node_st *current_level = ARREXPR_EXPRS(initializer);
+    int dim_index = 0;
+
+    while (current_dim && current_level)
+    {
+        node_st *dim_expr = EXPRS_EXPR(current_dim);
+
+        // 1. Check dimension expression type is int
+        InferExprType(dim_expr, st);
+        if (EXPR_TYPE(dim_expr) != CT_int)
+        {
+            printf(RED "Error: Dimension %d must be integer type\n" RESET, dim_index + 1);
+            printf(YELLOW "  Got: %s\n" RESET, typeToString(EXPR_TYPE(dim_expr)));
+            printf(YELLOW "  At line %d, column %d\n" RESET,
+                   NODE_BLINE(dim_expr), NODE_BCOL(dim_expr));
+            data->type_error_count++;
+            return false;
+        }
+
+        // 2. Only check size if dimension is constant
+        if (IsConstantInt(dim_expr))
+        {
+            int expected_size = NUM_VAL(dim_expr);
+            int actual_size = CountArrayElements(current_level);
+
+            if (actual_size > expected_size)
+            {
+                printf(RED "Error: Dimension %d size mismatch\n" RESET, dim_index + 1);
+                printf(YELLOW "  Expected: %d elements\n" RESET, expected_size);
+                printf(YELLOW "  Actual: %d elements\n" RESET, actual_size);
+                data->type_error_count++;
+                return false;
+            }
+        }
+
+        // FIX: Advance to next level properly
+        if (NODE_TYPE(EXPRS_EXPR(current_level)) == NT_ARREXPR) {
+            current_level = ARREXPR_EXPRS(EXPRS_EXPR(current_level));
+        } else {
+            current_level = NULL;
+        }
+
+        // Move to next level (unchanged)
+        current_dim = EXPRS_NEXT(current_dim);
+        // current_level = EXPRS_NEXT(current_level);
+        dim_index++;
+    }
+    return true;
+}
+
+
+int GetArrayNestingDepth(node_st *node)
+{
+
+    // Recursively count array nesting depth
+    if (NODE_TYPE(node) != NT_ARREXPR)
+        return 0;
+    return 1 + GetArrayNestingDepth(EXPRS_EXPR(ARREXPR_EXPRS(node)));
+}
+
+int CountArrayElements(node_st *exprs)
+{
+    // Count elements at current nesting level
+    int count = 0;
+    while (exprs)
+    {
+        count++;
+        exprs = EXPRS_NEXT(exprs);
+    }
+    return count;
+}
+
+int GetConstantIntValue(node_st *expr)
+{
+    // Helper to get integer value from constant expressions
+    if (NODE_TYPE(expr) == NT_NUM)
+        return NUM_VAL(expr);
+    // Add handling for constant expressions if needed
+    return -1; // Invalid value
+}
+
+/**
+ * Helper function to check array element types
+ */
+void CheckArrayElementTypes(node_st *exprs, enum Type expectedType, stable_st *st, struct data_tc *data)
+{
+    while (exprs)
+    {
+        node_st *elem = EXPRS_EXPR(exprs);
+
+        if (NODE_TYPE(elem) == NT_ARREXPR)
+        {
+            // Recursively check nested arrays
+            CheckArrayElementTypes(ARREXPR_EXPRS(elem), expectedType, st, data);
+        }
+        else
+        {
+            InferExprType(elem, st);
+            if (EXPR_TYPE(elem) != expectedType)
+            {
+                printTypeMisMatch(elem, expectedType, EXPR_TYPE(elem));
+                data->type_error_count++;
+            }
+        }
+
+        exprs = EXPRS_NEXT(exprs);
+    }
+}
+
+/**
+ * Main type checking for array declarations
  */
 node_st *TCvardecl(node_st *node)
 {
@@ -699,21 +822,52 @@ node_st *TCvardecl(node_st *node)
     if (VARDECL_INIT(node))
     {
         node_st *init = VARDECL_INIT(node);
-        InferExprType(init, VARDECL_TABLE(node)); // Get the inferred type
+        InferExprType(init, VARDECL_TABLE(node));
 
-        enum Type declaredType = VARDECL_TYPE(node); // Get declared type
+        enum Type declaredType = VARDECL_TYPE(node);
 
-        if (EXPR_TYPE(init) != declaredType)
+        if (VARDECL_DIMS(node))
         {
-            printf(RED "Error: Type mismatch in assignment for variable: " RESET "%s \n", VARDECL_NAME(node));
+            // Array declaration
+            if (EXPR_TYPE(init) != CT_array)
+            {
+                // Handle homogeneous initialization case (e.g., int[2,2] a = 5)
+                if (EXPR_TYPE(init) == declaredType)
+                {
+                    // This will be handled in Milestone 6 transformations
+                    TRAVchildren(node);
+                    return node;
+                }
 
-            printf(YELLOW "  Expected: " RESET BLUE "%s\n" RESET, typeToString(declaredType));
-            printf(YELLOW "  Got:      " RESET RED "%s\n" RESET, typeToString(EXPR_TYPE(init)));
+                // Report type error
+                printf(RED "Error: Array initialization type mismatch for '%s'\n" RESET, VARDECL_NAME(node));
+                printf(YELLOW "  Expected: array of %s\n" RESET, typeToString(declaredType));
+                printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(init)));
+                data->type_error_count++;
+                TRAVchildren(node);
+                return node;
+            }
 
-            printf(YELLOW "At line: %d and column: %d\n" RESET, NODE_BLINE(node), NODE_BCOL(node));
-            printf("\n");
+            // Check array dimensions match
+            if (!CheckArrayDimensions(VARDECL_DIMS(node), init, VARDECL_TABLE(node), data))
+            {
+                TRAVchildren(node);
+                return node;
+            }
 
-            data->type_error_count++;
+            // Check element types recursively
+            CheckArrayElementTypes(ARREXPR_EXPRS(init), declaredType, VARDECL_TABLE(node), data);
+        }
+        else
+        {
+            // Non-array type checking
+            if (EXPR_TYPE(init) != declaredType)
+            {
+                printf(RED "Error: Type mismatch for variable '%s'\n" RESET, VARDECL_NAME(node));
+                printf(YELLOW "  Expected: %s\n" RESET, typeToString(declaredType));
+                printf(YELLOW "  Got:      %s\n" RESET, typeToString(EXPR_TYPE(init)));
+                data->type_error_count++;
+            }
         }
     }
 

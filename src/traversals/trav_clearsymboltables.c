@@ -139,7 +139,7 @@ node_st *CSTifelse(node_st *node)
  */
 node_st *CSTglobdecl(node_st *node)
 {
-  clear_node(node);
+  	clear_node(node);
 	TRAVchildren(node);
   return node;
 }

@@ -1,20 +1,16 @@
-int allahukbar = (int)10.20;
+
 
 int test(int test) {
     return test;
 }
 
-
 export int calculate_age() {
-    int age = (int)true;
-    int test = 10;
+    int[2] globalVariable = [1,2];
 
-    //should be an error
-    if(10 + age > 10) {
-        age = 10;
+    return 10;
+}
 
-        return test(10);
-    }
-
-    return age;
+export int main() {
+    calculate_age();
+    return 0;
 }

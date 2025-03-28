@@ -12,6 +12,7 @@ start phase RootPhase {
         // --- Context Analysis ---
         BuildSymbolTables;
         TypeChecking;
+        TransformGlobdefAndCreateInitFunc;
         TransformVariableInit;
         TransformBinopDisjunctionConjuntion;
         TransformBooleanCasts;
@@ -49,6 +50,18 @@ traversal BuildImportTable {
 traversal ClearImportTable{
   uid = CIT,
   nodes = { Program }
+};
+
+traversal TransformGlobdefAndCreateInitFunc {
+    uid = TG,
+    nodes = { Program, GlobDef },
+    travdata {
+        user stack_stptr current_symbol_table_stack_ptr,
+        user generic_stack_stptr global_assignments,
+        user generic_stack_stptr removals,
+        bool init_func_created
+
+    }
 };
 
 traversal BuildVariableTables {
@@ -115,7 +128,7 @@ traversal TypeChecking {
 // This traversal is used to transform variable initializations into assignments.
 traversal TransformVariableInit {
     uid = TVI,
-    nodes = { Program, GlobDef, VarDecl, Fundef, FunContents },
+    nodes = { Program, GlobDef, VarDecl, Fundef, FunContents, Assign },
     travdata { 
         user generic_stack_stptr assignments,
         // user generic_stack_stptr var_decls,
@@ -164,7 +177,7 @@ enum Type {
     // T_ collides with bison/flex generated stuff.
     prefix = CT,
     values {
-        int, float, bool, void, array
+        int, float, bool, void, array, two_dim_array
     }
 };
 

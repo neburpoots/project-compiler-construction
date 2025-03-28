@@ -51,7 +51,7 @@
 %token EXPORT RETURN
 %type <node> fundef funbody funContents funContent param var_decl return_stmt call ids
 
-%type <node> intval floatval boolval constant expr cast exprs arrExpr arrExprs arrVar matVar matVarlet arrVarlet
+%type <node> intval floatval boolval constant expr cast exprs arrExpr arrVar matVar matVarlet arrVarlet
 %type <node> stmts stmt assign varlet program args 
 
 // enum Type 
@@ -170,7 +170,38 @@ glob_decl: EXTERN type ID SEMICOLON
     AddLocToNode($$, &@1, &@4);
   };
 
-glob_def: EXPORT type ID LET expr SEMICOLON
+glob_def: 
+  type SQUARE_L expr COMMA expr SQUARE_R ID LET expr SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($3, ASTexprs($5, NULL)), $9, $7, $1, false);
+    AddLocToNode($$, &@1, &@10);
+  }
+  | type SQUARE_L expr SQUARE_R ID LET expr SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($3, NULL), $7, $5, $1, false);
+    AddLocToNode($$, &@1, &@8);
+  }
+  | type SQUARE_L expr SQUARE_R ID SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($3, NULL), NULL, $5, $1, false);
+    AddLocToNode($$, &@1, &@6);
+  }
+  // | type SQUARE_L expr SQUARE_R ID LET arrExpr SEMICOLON
+  // {
+  //   $$ = ASTglobdef(ASTexprs($3, NULL), $7, $5, $1, false);
+  //   AddLocToNode($$, &@1, &@8);
+  // }
+  | type SQUARE_L expr COMMA expr SQUARE_R ID SEMICOLON
+  {
+    $$ = ASTglobdef(ASTexprs($3, ASTexprs($5, NULL)), NULL, $7, $1, false);
+    AddLocToNode($$, &@1, &@7);
+  }
+  // | type SQUARE_L expr COMMA expr SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
+  // {
+  //   $$ = ASTglobdef($3, $10, $7, $1, false);
+  //   AddLocToNode($$, &@1, &@11);
+  // }
+ | EXPORT type ID LET expr SEMICOLON
   {
     $$ = ASTglobdef(NULL,$5, $3, $2, true);
     AddLocToNode($$, &@1, &@6);
@@ -298,7 +329,7 @@ var_decl: type ID SEMICOLON
   | type SQUARE_L expr SQUARE_R ID SEMICOLON
   %prec LOWER
   {
-        $$ = ASTvardecl($3,
+        $$ = ASTvardecl(ASTexprs($3, NULL),
             NULL,
             $5,
             $1
@@ -326,37 +357,65 @@ var_decl: type ID SEMICOLON
   };
 
   //var dec for initializing a vector like int[5] vec = [1,2,3,4,5];
-  | type SQUARE_L expr SQUARE_R ID LET arrExpr SEMICOLON
-  %prec LOWER
-  {
+  // | type SQUARE_L expr SQUARE_R ID LET arrExpr SEMICOLON
+  // %prec LOWER
+  // {
 
-      $$ = ASTvardecl(
-          ASTexprs($3, NULL),  // Store the array size
-          $7,                         // Use arrExpr directly
-          $5,
-          $1
-      );
-    AddLocToNode($$, &@1, &@7);
-  }
+  //     $$ = ASTvardecl(
+  //         ASTexprs($3, NULL),  // Store the array size
+  //         $7,                         // Use arrExpr directly
+  //         $5,
+  //         $1
+  //     );
+  //   AddLocToNode($$, &@1, &@7);
+  // }
   //var dec for initializing a matrix int[3,3] mat = [[1,2,3], [4,5,6], [7,8,9]];
-| type SQUARE_L expr COMMA expr SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
-  %prec LOWER
+// | type SQUARE_L expr COMMA expr SQUARE_R ID LET SQUARE_L arrExprs SQUARE_R SEMICOLON
+//   %prec LOWER
 
+// {
+//     //construct dimensions
+//     node_st *dims = ASTexprs($3, ASTexprs($5, NULL));
+
+//     //construct ArrExpr node
+//     node_st *init = ASTarrexpr($10, NULL);
+
+//     //create vardecl
+//     $$ = ASTvardecl(
+//         dims,
+//         init,
+//         $7,
+//         $1
+//     );
+//     AddLocToNode($$, &@1, &@11);
+// }
+| type SQUARE_L expr COMMA expr SQUARE_R ID LET expr SEMICOLON
 {
-    //construct dimensions
+      //construct dimensions
     node_st *dims = ASTexprs($3, ASTexprs($5, NULL));
-
-    //construct ArrExpr node
-    node_st *init = ASTarrexpr($10, NULL);
 
     //create vardecl
     $$ = ASTvardecl(
         dims,
-        init,
+        $9,
         $7,
         $1
     );
-    AddLocToNode($$, &@1, &@11);
+    AddLocToNode($$, &@1, &@10);
+}
+| type SQUARE_L expr SQUARE_R ID LET expr SEMICOLON
+{
+    //construct dimensions
+    node_st *dims = ASTexprs($3, NULL);
+
+    //create vardecl
+    $$ = ASTvardecl(
+        dims,
+        $7,
+        $5,
+        $1
+    );
+    AddLocToNode($$, &@1, &@8);
 }
 
 assign: varlet LET expr SEMICOLON
@@ -660,16 +719,16 @@ arrExpr: SQUARE_L exprs SQUARE_R
 | arrVar
 | matVar
 
-arrExprs: arrExpr
-{
-    $$ = ASTexprs($1, NULL);
-    AddLocToNode($$, &@1, &@1);
-}
-| arrExpr COMMA arrExprs
-{
-    $$ = ASTexprs($1, $3);
-    AddLocToNode($$, &@1, &@3);
-};
+// arrExprs: arrExpr
+// {
+//     $$ = ASTexprs($1, NULL);
+//     AddLocToNode($$, &@1, &@1);
+// }
+// | arrExpr COMMA arrExprs
+// {
+//     $$ = ASTexprs($1, $3);
+//     AddLocToNode($$, &@1, &@3);
+// };
 
 expr: constant { $$ = $1; }
    | ID {

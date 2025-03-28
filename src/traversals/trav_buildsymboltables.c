@@ -197,9 +197,19 @@ node_st *BSTglobdef(node_st *node)
   // insert the funcname into the symbol table
   printf("inserting '%s' (%s) into symbol table\n", GLOBDEF_NAME(node), typeToString(GLOBDEF_TYPE(node)));
 
-  if (!STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node)))
+  if (GLOBDEF_DIMS(node))
   {
-    printVariableAlreadyDeclared(node);
+    if (!STinsertArrayVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node), GLOBDEF_DIMS(node)))
+    {
+      printVariableAlreadyDeclared(node);
+    }
+  }
+  else
+  {
+    if (!STinsertVar(t, GLOBDEF_NAME(node), GLOBDEF_TYPE(node)))
+    {
+      printVariableAlreadyDeclared(node);
+    }
   }
 
   // attaching as attribute
