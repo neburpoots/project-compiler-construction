@@ -775,13 +775,23 @@ floatval: FLOAT
   {
     $$ = ASTfloat($1);
     AddLocToNode($$, &@1, &@1);
-  };
+  }
+  | MINUS FLOAT
+  {
+    $$ = ASTnum(-$2);
+    AddLocToNode($$, &@1, &@1);
+  }
 
 intval: NUM
   {
     $$ = ASTnum($1);
     AddLocToNode($$, &@1, &@1);
-  };
+  }
+  | MINUS NUM
+  {
+    $$ = ASTnum(-$2);
+    AddLocToNode($$, &@1, &@1);
+  }
 
 boolval: TRUEVAL
   {
