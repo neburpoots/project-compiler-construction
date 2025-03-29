@@ -62,6 +62,9 @@
 %token IF ELSE
 %type <node> if_stmt
 
+%precedence IF_WITHOUT_ELSE
+%right ELSE
+
 // token while
 %token WHILE
 %type <node> while_stmt
@@ -249,14 +252,13 @@ stmts: stmt stmts
 // exprs: expr exprs
     
 
-stmt: assign { $$ = $1; }
+ stmt: assign { $$ = $1; }
     | if_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
     | do_while_stmt { $$ = $1; }
     | return_stmt { $$ = $1; }
     | for_stmt { $$ = $1; }
-    | expr SEMICOLON { $$ = ASTexprstmt($1); 
-};
+    | expr SEMICOLON { $$ = ASTexprstmt($1); }  // ✅ Added closing '}';
 
 funContents: funContent funContents
   {
@@ -468,11 +470,30 @@ if_stmt: IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R ELSE if_stmt
     $$ = ASTifelse($3, $6, $10);
     AddLocToNode($$, &@1, &@10);
   }
-  | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
+  | IF BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R %prec IF_WITHOUT_ELSE
   {
     $$ = ASTifelse($3, $6, NULL);
     AddLocToNode($$, &@1, &@6);
-  };
+  }
+
+  | IF BRACKET_L expr BRACKET_R stmt %prec IF_WITHOUT_ELSE
+  {
+    $$ = ASTifelse($3, ASTstmts($5, NULL), NULL);
+    AddLocToNode($$, &@1, &@3);
+  }
+
+  | IF BRACKET_L expr BRACKET_R stmt ELSE stmt
+  {
+    $$ = ASTifelse($3, ASTstmts($5, NULL), ASTstmts($7, NULL));
+    AddLocToNode($$, &@1, &@3);
+  }
+
+  | IF BRACKET_L expr BRACKET_R stmt ELSE CURLY_L stmts CURLY_R
+  {
+    $$ = ASTifelse($3, ASTstmts($5, NULL), $8);
+    AddLocToNode($$, &@1, &@3);
+  }
+  ;
 
 
 while_stmt: WHILE BRACKET_L expr BRACKET_R CURLY_L stmts CURLY_R
