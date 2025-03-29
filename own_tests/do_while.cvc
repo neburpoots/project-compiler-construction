@@ -1,3 +1,8 @@
+
+export bool is_valid(){
+  return true;
+}
+
 export void test1() { 
     do {} while(10 > 2);
 }
@@ -18,7 +23,7 @@ export void test4(){
 
 export void test5(){
     do {
-      test();
+      test1();
     } while(true);
 }
 
@@ -35,5 +40,5 @@ export void test8(){
 }
 
 export void test9(){
-    do {} while(is_valid(x));
+    do {} while(is_valid());
 }

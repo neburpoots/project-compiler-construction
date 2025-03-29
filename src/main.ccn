@@ -30,7 +30,7 @@ start phase RootPhase {
         GenerateAssemblyCode;
 
         // --- Debugging ---
-        PrintCurrentProgram;
+        // PrintCurrentProgram;
         Print;
 
         // --- Cleanup ---
