@@ -1,9 +1,23 @@
 __init:
     esr 0
-main:
-    esr 1
     iloadc 0
-    iloadc 1
-    iadd
     istore 0
-    return
+foo:
+    esr 6
+    iloadc 1
+    istore 1
+    iloadc 0
+    istore 2
+    iloadc 2
+    istore 3
+    istore 4
+    iloadc 3
+    istore 5
+    iloadc 0
+    istore 6
+    iloadc 2
+    iloadc 4
+    iloadc 3
+    iloadc 0
+    istore -1
+.exportvar "test123" int

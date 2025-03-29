@@ -1,4 +1,6 @@
-export int main() {
-    int x = 10 + 20;
-    return x;
+export int test123 = 10;
+
+void foo ()
+{
+  int[3,3] mat = 2;
 }

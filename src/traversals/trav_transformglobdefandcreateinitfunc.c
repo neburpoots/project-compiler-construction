@@ -82,6 +82,12 @@ static node_st *find_or_create_init_function(node_st *program)
     node_st *init_func = ASTfundef(NULL, empty_body, strdup("__init"), CT_void, false);
     data->init_func_created = true;
 
+
+    // Create new symbol table
+    stable_st *new_table = STnew(data->current_symbol_table_stack_ptr);
+
+    FUNDEF_TABLE(init_func) = new_table;
+
     // Add to program
     node_st *new_decls = ASTdecls(init_func, PROGRAM_DECLS(program));
     PROGRAM_DECLS(program) = new_decls;

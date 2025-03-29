@@ -79,21 +79,27 @@ static char *create_vardecl(struct data_tvi *data)
 
     GStackPush(data->assignments, idx_vardecl);
 
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var, CT_int);
+
     return idx_var;
 }
 
 static void create_and_push_assignment(char *var_name, node_st *value, generic_stack_st *assignments)
 {
+    struct data_tvi *data = DATA_TVI_GET();
 
     node_st *idx = ASTvarlet(NULL, strdup(var_name)); // Create varlet with a copy of var_name
     node_st *assignment = ASTassign(idx, value);      // Create assignment
     GStackPush(assignments, assignment);              // Push to assignments stack
+    ASSIGN_TABLE(assignment) = data->current_symbol_table_stack_ptr; // Set symbol table
 }
 
 static char *create_temp_save_array(struct data_tvi *data, generic_stack_st *assignments, node_st *init_value)
 {
     char *idx_var = create_temp_var_name(data);
     node_st *idx_vardecl = ASTvardecl(NULL, NULL, idx_var, CT_int);
+    STinsertVar(data->current_symbol_table_stack_ptr, idx_var, CT_int);
+
     GStackPush(assignments, idx_vardecl);
     node_st *assignment_idx_3 = ASTassign(ASTvarlet(NULL, strdup(idx_var)), init_value);
     GStackPush(assignments, assignment_idx_3);
@@ -150,6 +156,8 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
             strdup("__allocate")));
     GStackPush(assignments, start);
 
+    ASSIGN_TABLE(start) = data->current_symbol_table_stack_ptr;
+
     // create two temp variables for the two loops
     char *idx_var_4 = create_temp_var_name(data);
     char *idx_var_5 = create_temp_var_name(data);
@@ -174,6 +182,8 @@ static node_st *refactor_2d_array_loops(char *array_name, node_st *dims, node_st
     node_st *assignment_inner_loop = ASTassign(
         ASTvarlet(ASTexprs(ASTvar(NULL, strdup(idx_var_4)), ASTexprs(ASTvar(NULL, strdup(idx_var_5)), NULL)), strdup(array_name)),
         ASTvar(NULL, strdup(idx_var_3)));
+
+    ASSIGN_TABLE(assignment_inner_loop) = data->current_symbol_table_stack_ptr;
 
     // Inner for loop
     // i < 10
@@ -256,6 +266,8 @@ static refactor_array_loops_assignment(node_st *assignment, node_st *dims, gener
         ASTvarlet(ASTexprs(ASTvar(NULL, strdup(idx_var_3)), NULL), strdup(array_name)),
         ASTvar(NULL, strdup(idx_var_2)));
 
+    ASSIGN_TABLE(assignment_loop) = data->current_symbol_table_stack_ptr;
+
     node_st *condition = ASTbinop(
         ASTvar(NULL, strdup(idx_var_3)),
         CCNcopy(dim_1),
@@ -320,6 +332,8 @@ static refactor_array_loops(char *array_name, node_st *dims, node_st *init_value
     node_st *assignment_loop = ASTassign(
         ASTvarlet(ASTexprs(ASTvar(NULL, strdup(idx_var_3)), NULL), strdup(array_name)),
         ASTvar(NULL, strdup(idx_var_2)));
+    
+    ASSIGN_TABLE(assignment_loop) = data->current_symbol_table_stack_ptr;
 
     node_st *condition = ASTbinop(
         ASTvar(NULL, strdup(idx_var_3)),
@@ -379,6 +393,8 @@ static void refactor_2d_array(char *array_name, node_st *dims, node_st *init_val
             strdup("__allocate")));
     GStackPush(assignments, start);
 
+    ASSIGN_TABLE(start) = data->current_symbol_table_stack_ptr;
+
     node_st *arrExpr = ARREXPR_EXPRS(init_value);
 
     int counter = 0;
@@ -394,6 +410,8 @@ static void refactor_2d_array(char *array_name, node_st *dims, node_st *init_val
 
             // char *idx_var = create_temp_var_name(data);
             node_st *idx_assign = ASTassign(ASTvarlet(ASTexprs(ASTnum(counter), ASTexprs(ASTnum(innerCounter), NULL)), strdup(array_name)), CCNcopy(numberExpression));
+
+            ASSIGN_TABLE(idx_assign) = data->current_symbol_table_stack_ptr;
 
             GStackPush(data->assignments, idx_assign);
 
@@ -433,6 +451,8 @@ static void refactor_array(char *array_name, node_st *dims, node_st *init_value,
             strdup("__allocate")));
     GStackPush(assignments, start);
 
+    ASSIGN_TABLE(start) = data->current_symbol_table_stack_ptr;
+
     node_st *arrExpr = ARREXPR_EXPRS(init_value);
 
     int counter = 0;
@@ -443,6 +463,8 @@ static void refactor_array(char *array_name, node_st *dims, node_st *init_value,
         // char *idx_var = create_temp_var_name(data);
         node_st *idx_assign = ASTassign(ASTvarlet(ASTexprs(ASTnum(counter), NULL), strdup(array_name)), CCNcopy(expr));
 
+        ASSIGN_TABLE(idx_assign) = data->current_symbol_table_stack_ptr;
+        
         GStackPush(data->assignments, idx_assign);
 
         arrExpr = EXPRS_NEXT(arrExpr);

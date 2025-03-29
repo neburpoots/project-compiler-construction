@@ -33,20 +33,39 @@ static void write_output(FILE *output, const char *format, ...) {
 }
 
 static void print_exports(FILE *output, node_st *node) {
+
   export_table_st *export_table = PROGRAM_EXPORT_TABLE(node);
   if (!export_table) {
     return;
   }
 
   export_entry_st *current = export_table->entries;
-  // while (current) {
-  //   write_output(output,
-  //                ".exportfun \"%s\" %s %s\n",
-  //                current->name,
-  //                typeToString(current->return_type),
-  //                current->label);
-  //   current = current->next;
-  // }
+
+  while (current) {
+
+    if(current->entry_type == EXPORT_FUNCTION) {
+
+
+
+      write_output(output,
+                   ".exportfun \"%s\" %s %s\n",
+                   current->name,
+                   typeToString(current->data.func.return_type),
+                   current->name);
+    } else if (current->entry_type == EXPORT_VARIABLE) {
+      write_output(output,
+                   ".exportvar \"%s\" %s\n",
+                   current->name,
+                   typeToString(current->data.var.var_type));
+    }
+
+    // write_output(output,
+    //              ".exportfun \"%s\" %s %s\n",
+    //              current->name,
+    //              typeToString(current->entry_type),
+    //              current->name);
+    current = current->next;
+  }
 }
 
 static void print_imports(FILE *output, node_st *node) {
@@ -56,47 +75,22 @@ static void print_imports(FILE *output, node_st *node) {
   }
 
   import_entry_st *current = import_table->entries;
-  // while (current) {
-  //     write_output(output, ".importfun \"%s\" %s ",
-  //                 current->func_name,
-  //                 typeToString(current->return_type));
 
-  //     param_entry_st *param = current->parameters;
-  //     while (param) {
-  //         write_output(output, "%s ", typeToString(param->type));
-  //         param = param->next;
-  //     }
-  //     write_output(output, "\n");
-  //     current = current->next;
-  // }
+  while (current) {
+    write_output(output,
+                 ".importvar \"%s\" %s\n",
+                 current->name,
+                 typeToString(current->entry_type));
+    current = current->next;
+  }
 }
 
 static void print_globals(FILE *output, node_st *node) {
-  // global_var_table_st *var_table = PROGRAM_VAR_TABLE(node);
-  // if (!var_table) {
-  //   return;
-  // }
 
-  // global_var_entry_st *current = var_table->globals;
 
-  // while (current) {
-  //   write_output(output,
-  //                ".exportfun \"%s\" %s %s\n",
-  //                current->name,
-  //                typeToString(current->type),
-  //                current->name);
-  //   current = current->next;
+    
 
-  //   global_extern_var_entry_st *current = var_table->externs;
-
-  //   while (current) {
-  //     write_output(output,
-  //                  ".importvar \"%s\" %s\n",
-  //                  current->name,
-  //                  typeToString(current->type));
-  //     current = current->next;
-  //   }
-  // }
+  
 }
 
 //calculates the amount of locals for the esr
@@ -160,9 +154,11 @@ node_st *GACprogram(node_st *node) {
   data->output_file = output_stream;
 
   print_globals(output_stream, node);
+
+  TRAVchildren(node);
+
   print_exports(output_stream, node);
   print_imports(output_stream, node);
-  TRAVchildren(node);
 
   if (output_stream != stdout) {
     fclose(output_stream);
@@ -283,8 +279,9 @@ node_st *GACbinop(node_st *node) {
       write_output(data->output_file, "    imod\n");
       break;
     default:
-      fprintf(stderr, "Error: Unknown binary operator\n");
-      exit(EXIT_FAILURE);
+      // fprintf(stderr, "Error: Unknown binary operator\n");
+      // exit(EXIT_FAILURE);
+      break;
   }
   
   return node;
