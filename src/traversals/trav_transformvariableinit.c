@@ -557,6 +557,7 @@ void TVIfini()
         data->execute_statement_order = NULL;
     }
 }
+
 void TVIinit()
 {
     struct data_tvi *data = DATA_TVI_GET();
@@ -570,6 +571,8 @@ void TVIinit()
     data->in_array_dim = false;
     data->init_func_created = true;
 }
+
+//method to convert the decls back to globdefs in the init function
 static void convert_init_decls_to_globdefs(node_st *init_func, node_st *program)
 {
     struct data_tvi *data = DATA_TVI_GET();
@@ -694,6 +697,8 @@ node_st *TVIfundef(node_st *node)
 
     TRAVbody(node);
 
+    //Makes sure that the inner functions are done first.
+    
     while(!GStackIsEmpty(data->execute_statement_order))
     {
         node_st *next = GStackPopTail(data->execute_statement_order);
@@ -851,6 +856,7 @@ node_st *TVIvardecl(node_st *node)
             node_st *varlet = ASTvarlet(NULL, strdup(VARDECL_NAME(node)));
             node_st *assignment = ASTassign(varlet, init_value);
             GStackPush(data->assignments, assignment);
+            ASSIGN_TABLE(assignment) = data->current_symbol_table_stack_ptr;
         }
 
         VARDECL_INIT(node) = NULL; // Detach from original declaration

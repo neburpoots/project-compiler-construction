@@ -1,7 +1,0 @@
-.exportfun "global_var" int global_var
-.importvar "extern_var" int
-.exportfun "main" int main
-.exportfun "without_parameters" int without_parameters
-.exportfun "bool_with_parameters" bool bool_with_parameters
-.importfun "printNewlines" void int 
-.importfun "printInt" void int 

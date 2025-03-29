@@ -48,7 +48,8 @@ int CTadd(const_table_st *table, ConstType type, void *value) {
     }
     new_entry->next = table->entries;
     table->entries = new_entry;
-    return table->size++;
+    new_entry->index = table->size++;
+    return new_entry->index;
 }
 
 //get by index
@@ -71,10 +72,9 @@ void CTprint(const_table_st *table) {
   printf("├───────┼──────────┼───────────────┤\n");
 
   const_entry_st *current = table->entries;
-  int current_index = 0;
 
   while (current != NULL) {
-      printf("│ %5d │ %-8s │ ", current_index,
+      printf("│ %5d │ %-8s │ ", current->index,
              ConstTypeToString(current->type));
 
       switch (current->type) {
@@ -93,11 +93,10 @@ void CTprint(const_table_st *table) {
       }
 
       current = current->next;
-      current_index++;
   }
 
   printf("└───────┴──────────┴───────────────┘\n");
-  printf("Total constants: %d\n\n", current_index);
+  printf("Total constants: %d\n\n", table->size);
 }
 
 //convert the entry type to string

@@ -12,6 +12,7 @@ start phase RootPhase {
         // --- Context Analysis ---
         BuildSymbolTables;
         TypeChecking;
+        MoveInitLoopVariable;
         TransformGlobdefAndCreateInitFunc;
         TransformVariableInit;
         TransformBinopDisjunctionConjuntion;
@@ -79,7 +80,7 @@ traversal TransformGlobdefAndCreateInitFunc {
 
 traversal BuildVariableTables {
   uid = BVT,
-  nodes = { Program, FunDef, GlobDef, VarDecl },
+  nodes = { Program, FunDef, GlobDef, Assign },
   travdata {
     user vtable_stprt var_table_ptr
   }
@@ -88,6 +89,15 @@ traversal BuildVariableTables {
 traversal ClearVariableTable {
   uid = CVT,
   nodes = { Program }
+};
+
+traversal MoveInitLoopVariable {
+    uid = ML,
+    nodes = { For, Fundef },
+    travdata {
+        user stack_stptr current_symbol_table_stack_ptr,
+        user generic_stack_stptr vardecls
+    }
 };
 
 traversal BuildExportTable {
@@ -118,11 +128,11 @@ traversal ClearConstantTable{
 
 traversal BuildSymbolTables{
     uid = BST,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return },
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, VarDecl, Assign, Return, Var },
     travdata { 
         user stack_stptr symbol_table_stack_ptr
     }
-};
+};   
 
 traversal ClearSymbolTables{
     uid = CST,
@@ -131,7 +141,7 @@ traversal ClearSymbolTables{
 
 traversal TypeChecking {
     uid = TC,
-    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return},
+    nodes = { Program, GlobDef, GlobDecl, FunDef, FunDec, FunBody, IfElse, While, DoWhile, For, Param, Assign, VarDecl, Binop, Return, FunContents},
     travdata {
         int type_error_count,
         Fundef current_function
@@ -178,7 +188,11 @@ traversal Print {
 
 traversal GenerateAssemblyCode{
   uid = GAC,
-  nodes = { Program, FunDef }
+  nodes = { Program, FunDef, Assign, Vardecl, Num, Return, Binop, Var },
+  travdata {
+    user file_stptr output_file,
+    Program program
+  }
 };
 
 /*****************************************************************************
@@ -239,6 +253,13 @@ nodeset Named {
     nodes = Vars | (Decl | {FunCall, Param, Ids}),
     attributes {
         string name
+    }
+};
+
+nodeset Index {
+    nodes = {Assign, GlobDef, Num, Float, Bool},
+    attributes {
+        int index
     }
 };
 
@@ -557,9 +578,9 @@ node Var {
     children {
         Exprs indices { constructor }
     },
-
     attributes {
-        string name { constructor }
+        string name { constructor },
+        user stable_stptr table
     }
 };
 

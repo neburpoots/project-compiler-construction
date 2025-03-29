@@ -38,24 +38,29 @@ void BCTfini()
 void Add_node_value(node_st *node, ConstType type){
   struct data_bct *data = DATA_BCT_GET();
 
+  //Node index
+  int index;
+
   switch (type)
   {
     case CONST_INT:
-      CTadd(data->const_table_ptr, type, &NUM_VAL(node));
+      index = CTadd(data->const_table_ptr, type, &NUM_VAL(node));
       break;
 
     case CONST_FLOAT:
-      CTadd(data->const_table_ptr, type, &FLOAT_VAL(node));
+      index = CTadd(data->const_table_ptr, type, &FLOAT_VAL(node));
       break;
 
     case CONST_BOOL:
-      CTadd(data->const_table_ptr, type, &BOOL_VAL(node));
+      index = CTadd(data->const_table_ptr, type, &BOOL_VAL(node));
       break;
 
   default:
     printf("Supplied unknown type to constant table insertion function\n");
     break;
   }
+  //set node index
+  INDEX_INDEX(node) = index;
 }
 
 /**
@@ -75,6 +80,7 @@ node_st *BCTprogram(node_st *node)
 node_st *BCTnum(node_st *node)
 {
   Add_node_value(node, CONST_INT);
+
   TRAVchildren(node);
   return node;
 }
@@ -95,6 +101,7 @@ node_st *BCTfloat(node_st *node)
 node_st *BCTbool(node_st *node)
 {
   Add_node_value(node, CONST_BOOL);
+
   TRAVchildren(node);
   return node;
 }

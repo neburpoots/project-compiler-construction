@@ -37,6 +37,7 @@ add_executable(civicc ${FLEX_CivicLexer_OUTPUTS} ${BISON_CivicParser_OUTPUTS}
     src/traversals/trav_transformvariableinit.c
     src/traversals/trav_transformbinopdisjunctionconjuntion.c
     src/traversals/trav_transformbooleancasts.c
+    src/traversals/trav_moveinitloopvariable.c
     src/traversals/trav_clearconstanttable.c
     src/traversals/trav_clearexporttable.c
     src/traversals/trav_buildexporttable.c
