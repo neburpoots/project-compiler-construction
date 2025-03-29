@@ -99,12 +99,25 @@ int yycolumn = 1;
                              FILTER( ID);
                            }
 
-[0-9]+                     { yylval.cint=atoi(yytext);
-                             FILTER( NUM);
-                           }
+[0-9]+ {
+    char *endptr;
+    long num = strtol(yytext, &endptr, 10);
 
-[0-9]+"."[0-9]*            { yylval.cflt = atof(yytext); 
-                             FILTER(FLOAT); 
+    if (*endptr != '\0') {
+        yyerror("Invalid integer literal");
+    }
+
+    if (num > INT32_MAX || num < INT32_MIN) {
+        char err[100];
+        sprintf(err, "Integer overflow: %s exceeds 32-bit range", yytext);
+        yyerror(err);
+    }
+    yylval.cint = (int)num;
+    FILTER(NUM);
+}
+
+[0-9]+"."[0-9]*            { yylval.cflt = atof(yytext);
+                             FILTER(FLOAT);
                            }
 
 \n.*                       {
