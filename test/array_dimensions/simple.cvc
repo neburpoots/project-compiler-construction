@@ -1,4 +1,0 @@
-void transpose (int [m,n] a)
-{
-
-}

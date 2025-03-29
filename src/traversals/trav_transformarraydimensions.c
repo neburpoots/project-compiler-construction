@@ -30,29 +30,30 @@ void TADfini() {
  */
 node_st *TADfundef(node_st *node) {
   symbol_table = FUNDEF_TABLE(node);
+
+  printSymbolTableContent(symbol_table, false);
+
   TRAVchildren(node);
   return node;
+}
+
+void remove_dims_from_param(node_st *node) {
+  if (PARAM_TYPE(node) == CT_array && PARAM_DIMS(node)) {
+    CCNfree(PARAM_DIMS(node));
+    PARAM_DIMS(node) = NULL;
+  }
 }
 
 /**
  * @fn TADparam
  */
 node_st *TADparam(node_st *node) {
-  if (PARAM_TYPE(node) == CT_array) {
-    printf("ARRAY \n");
+  node_st *current_param = node;
 
-    node_st *dims = PARAM_DIMS(node);
-
-    while (dims) {
-      printf("%s\n", IDS_NAME(dims));
-      dims = IDS_NEXT(dims);
-    }
-
-
-    printf("CLEARING DIMS\n");
-  // CCNfree(PARAM_DIMS(node));
+  while (current_param != NULL) {
+    remove_dims_from_param(current_param);
+    current_param = PARAM_NEXT(current_param);
   }
 
-  TRAVchildren(node);
   return node;
 }

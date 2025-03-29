@@ -1,0 +1,4 @@
+void foo (int [m,n ] a)
+{
+  int[1,1] b = 1;
+}
