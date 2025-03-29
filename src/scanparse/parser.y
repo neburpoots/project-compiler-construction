@@ -526,8 +526,21 @@ for_stmt:
   {
     $$ = ASTfor($6, $8, $10, $13, $4);
     AddLocToNode($$, &@1, &@14);
-  };
+  }
 
+  //no step size, 1 statement, no curlies
+  | FOR BRACKET_L type ID LET expr COMMA expr BRACKET_R stmt
+  {
+    $$ = ASTfor($6, $8, ASTnum(1), ASTstmts($10, NULL), $4);
+    AddLocToNode($$, &@1, &@10);
+  }
+
+  //with step size, 1 statement, no curlies
+  | FOR BRACKET_L type ID LET expr COMMA expr COMMA expr BRACKET_R stmt
+  {
+    $$ = ASTfor($6, $8, $10, ASTstmts($12, NULL), $4);
+    AddLocToNode($$, &@1, &@12);
+  };
 
 param: type ID
   {
