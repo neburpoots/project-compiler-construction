@@ -495,6 +495,12 @@ do_while_stmt: DO CURLY_L stmts CURLY_R WHILE BRACKET_L expr BRACKET_R SEMICOLON
   {
     $$ = ASTdowhile($6, NULL);
     AddLocToNode($$, &@1, &@8);
+  }
+  //no curlies
+  | DO stmt WHILE BRACKET_L expr BRACKET_R SEMICOLON
+  {
+    $$ = ASTdowhile($5, ASTstmts($2, NULL));
+    AddLocToNode($$, &@1, &@2);
   };
 
 for_stmt:
